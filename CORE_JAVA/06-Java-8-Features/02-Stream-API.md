@@ -49,6 +49,82 @@ DoubleStream doubleStream = DoubleStream.of(1.0, 2.0);
 
 ---
 
+## Stream Pipeline Internals (Senior Interview Favorite)
+
+Interviewers at top companies ask about **how** streams work internally, not just how to use them.
+
+### Architecture Diagram
+
+```mermaid
+graph LR
+    A[Source<br/>Spliterator] --> B[Stage 1<br/>filter Sink]
+    B --> C[Stage 2<br/>map Sink]
+    C --> D[Stage 3<br/>sorted Sink]
+    D --> E[Terminal Op<br/>collect/reduce/forEach]
+
+    style A fill:#4CAF50,color:#fff
+    style B fill:#2196F3,color:#fff
+    style C fill:#2196F3,color:#fff
+    style D fill:#FF9800,color:#fff
+    style E fill:#F44336,color:#fff
+```
+
+- **Green**: Source — provides elements via `Spliterator`.
+- **Blue**: Stateless intermediate ops — process one element at a time, no memory between elements.
+- **Orange**: Stateful intermediate ops — must buffer all elements before passing downstream.
+- **Red**: Terminal op — triggers execution of the entire pipeline.
+
+### How Lazy Evaluation Actually Works
+
+Streams build a **pipeline description** (a linked list of stages). Nothing executes until a terminal operation is called. At that point:
+
+1. The terminal operation requests elements from the last stage.
+2. Each stage pulls from its upstream, creating a **pull-based chain**.
+3. Elements flow through the entire pipeline **one at a time** (operation fusion).
+
+```java
+// This creates 3 pipeline stages but processes NOTHING
+Stream<String> pipeline = list.stream()       // Stage 0: source
+    .filter(s -> s.length() > 3)               // Stage 1: filter
+    .map(String::toUpperCase);                 // Stage 2: map
+
+// ONLY when this runs does data flow:
+pipeline.forEach(System.out::println);         // Terminal triggers pull
+```
+
+**Operation Fusion**: Instead of running filter on ALL elements, then map on ALL elements, streams fuse operations. Element 1 goes through filter→map→forEach, then Element 2 goes through filter→map→forEach.
+
+### Spliterator Characteristics (Interview Gold)
+
+A `Spliterator` defines how a stream's source can be traversed and split. Its characteristics affect optimization:
+
+| Characteristic | Meaning | Optimization Impact |
+|---------------|---------|-------------------|
+| `ORDERED` | Elements have defined order | `distinct()` preserves first occurrence; `sorted()` needs work |
+| `DISTINCT` | All elements are unique | `distinct()` becomes a no-op |
+| `SORTED` | Elements pre-sorted | `sorted()` becomes a no-op |
+| `SIZED` | Exact count known | Enables array pre-allocation in `toArray()` |
+| `NONNULL` | No nulls | Skips null checks internally |
+| `IMMUTABLE` | Source can't change | Safe for parallel without defensive copy |
+| `SUBSIZED` | Splits are also SIZED | Better parallel load balancing |
+
+**Interview Q: Why does `HashSet.stream().distinct()` run faster than `ArrayList.stream().distinct()`?**
+A: HashSet's Spliterator has the `DISTINCT` characteristic. The stream framework detects this and skips the `distinct()` operation entirely. ArrayList does not have this flag.
+
+### Stateless vs Stateful Operations
+
+| Stateless | Stateful |
+|-----------|----------|
+| `filter`, `map`, `flatMap`, `peek` | `sorted`, `distinct`, `limit`, `skip` |
+| Process each element independently | Must see all elements or maintain state |
+| $O(1)$ memory per element | $O(n)$ memory in worst case |
+| Parallelize easily | Require barriers in parallel streams |
+
+**Interview Q: Why is `sorted()` expensive in a parallel stream?**
+A: It requires a **barrier** — all threads must finish their partitions before sorting can begin. This eliminates much of the parallelism benefit. Pre-sorting data or using `TreeSet` is often better.
+
+---
+
 ## Intermediate Operations (Lazy)
 
 Operations that return a new Stream. Not executed until terminal operation.
@@ -266,6 +342,253 @@ Stream<String> sequential = parallel.sequential();
 // ✅ Good for: Large datasets, CPU-intensive operations
 // ❌ Bad for: Small datasets, I/O operations, shared mutable state
 ```
+
+---
+
+## Java 9+ Stream API Additions (Highly Asked in Interviews)
+
+Interviewers frequently ask about post-Java 8 stream additions to test if candidates stay current.
+
+### takeWhile() & dropWhile() (Java 9)
+
+Unlike `filter()`, these are **short-circuiting** — they stop evaluating once the predicate fails.
+
+```java
+// takeWhile: takes elements while condition is true, then STOPS
+List<Integer> taken = Stream.of(1, 2, 3, 4, 5, 1, 2)
+    .takeWhile(n -> n < 4)
+    .collect(Collectors.toList());
+// Result: [1, 2, 3] — stops at 4, never sees 5, 1, 2
+
+// dropWhile: drops elements while condition is true, then keeps rest
+List<Integer> dropped = Stream.of(1, 2, 3, 4, 5, 1, 2)
+    .dropWhile(n -> n < 4)
+    .collect(Collectors.toList());
+// Result: [4, 5, 1, 2] — drops 1,2,3 then keeps everything
+
+// ⚠️ Interview Trap: On UNORDERED streams, behavior is non-deterministic
+Set<Integer> set = Set.of(1, 2, 3, 4, 5);
+set.stream().takeWhile(n -> n < 4); // Unpredictable! Set has no order
+```
+
+**Interview Q: What's the difference between `filter()` and `takeWhile()`?**
+A: `filter()` evaluates ALL elements. `takeWhile()` short-circuits — once the predicate returns false, no more elements are processed. For infinite streams, `filter()` would hang but `takeWhile()` terminates.
+
+### iterate() with Predicate (Java 9)
+
+```java
+// Java 8: infinite stream, must add limit()
+Stream.iterate(0, n -> n + 2).limit(10);
+
+// Java 9: bounded iterate with hasNext predicate
+Stream.iterate(0, n -> n < 20, n -> n + 2);
+// Result: 0, 2, 4, 6, 8, 10, 12, 14, 16, 18
+// Equivalent to: for (int i = 0; i < 20; i += 2)
+```
+
+**Interview Q: Why was the three-argument `iterate()` added?**
+A: To replace traditional for-loops cleanly without needing a separate `limit()` call. It prevents accidental infinite streams and makes intent explicit.
+
+### ofNullable() (Java 9)
+
+```java
+// Creates empty stream if null, single-element stream otherwise
+String value = possiblyNull();
+Stream<String> stream = Stream.ofNullable(value);
+
+// Practical use: avoid NPE when streaming optional results
+List<String> results = database.findNames("pattern")
+    .stream()
+    .flatMap(name -> Stream.ofNullable(name))  // Skips nulls
+    .collect(Collectors.toList());
+
+// vs Stream.of(null) → throws NullPointerException
+// vs Stream.ofNullable(null) → returns empty stream
+```
+
+### flatMap Enhancements (Java 9+)
+
+```java
+// Optional.flatMap chaining (Java 9)
+Optional<String> result = Optional.of("hello")
+    .flatMap(s -> Optional.of(s.toUpperCase()))
+    .flatMap(s -> s.length() > 3 ? Optional.of(s) : Optional.empty());
+```
+
+---
+
+## Exception Handling in Streams (Critical Interview Topic)
+
+Streams do not handle checked exceptions well. Lambdas used in stream operations cannot throw checked exceptions directly. This is one of the most commonly asked interview topics.
+
+### The Problem
+
+```java
+// ❌ Compilation error: unreported exception
+List<Path> paths = List.of(Path.of("a.txt"), Path.of("b.txt"));
+List<String> contents = paths.stream()
+    .map(path -> Files.readString(path))  // IOException is checked!
+    .collect(Collectors.toList());
+```
+
+### Solution 1: Try-Catch Inside Lambda
+
+```java
+List<String> contents = paths.stream()
+    .map(path -> {
+        try {
+            return Files.readString(path);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    })
+    .collect(Collectors.toList());
+```
+
+### Solution 2: Wrapper Method (Recommended)
+
+```java
+@FunctionalInterface
+public interface CheckedFunction<T, R> {
+    R apply(T t) throws Exception;
+}
+
+public static <T, R> Function<T, R> wrap(CheckedFunction<T, R> function) {
+    return t -> {
+        try {
+            return function.apply(t);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    };
+}
+
+// Clean usage
+List<String> contents = paths.stream()
+    .map(wrap(Files::readString))
+    .collect(Collectors.toList());
+```
+
+### Solution 3: Either Pattern (Functional Approach)
+
+```java
+// Return success/failure without throwing
+record Result<T>(T value, Exception error) {
+    boolean isSuccess() { return error == null; }
+    static <T> Result<T> success(T value) { return new Result<>(value, null); }
+    static <T> Result<T> failure(Exception e) { return new Result<>(null, e); }
+}
+
+List<Result<String>> results = paths.stream()
+    .map(path -> {
+        try {
+            return Result.success(Files.readString(path));
+        } catch (IOException e) {
+            return Result.<String>failure(e);
+        }
+    })
+    .collect(Collectors.toList());
+
+// Separate successes from failures
+List<String> successes = results.stream()
+    .filter(Result::isSuccess)
+    .map(Result::value)
+    .collect(Collectors.toList());
+
+List<Exception> failures = results.stream()
+    .filter(r -> !r.isSuccess())
+    .map(Result::error)
+    .collect(Collectors.toList());
+```
+
+**Interview Q: Why can't stream lambdas throw checked exceptions?**
+A: Functional interfaces like `Function<T,R>` and `Predicate<T>` don't declare `throws` in their method signatures. Java's type system requires checked exceptions to be declared or caught. The design choice was intentional — streams encourage pure, side-effect-free operations.
+
+---
+
+## Performance & Benchmarking (Senior-Level Interview Questions)
+
+### Stream Overhead vs For-Loop
+
+Streams have startup overhead. For small collections (< 1000 elements), traditional loops are faster.
+
+```java
+// Microbenchmark comparison (approximate)
+// Operation: filter even numbers, double them, sum
+
+// For-loop: ~5ns per element
+int sum = 0;
+for (int i = 0; i < array.length; i++) {
+    if (array[i] % 2 == 0) sum += array[i] * 2;
+}
+
+// Sequential stream: ~8ns per element (pipeline setup overhead)
+int sum = Arrays.stream(array)
+    .filter(n -> n % 2 == 0)
+    .map(n -> n * 2)
+    .sum();
+
+// Parallel stream: ~3ns per element (only beneficial for large arrays > 10,000)
+int sum = Arrays.stream(array).parallel()
+    .filter(n -> n % 2 == 0)
+    .map(n -> n * 2)
+    .sum();
+```
+
+### When Streams Are Slower
+
+| Scenario | Why | Alternative |
+|----------|-----|-------------|
+| Small collections (< 1K) | Pipeline setup cost dominates | For-each loop |
+| Boxing/unboxing | `Stream<Integer>` boxes every int | Use `IntStream` |
+| Nested streams | Object allocation per stage | Flatten logic |
+| Simple iteration | No transformation needed | `forEach` on collection |
+| Index-based access | Streams don't expose index | `IntStream.range()` |
+
+### Optimization Techniques
+
+```java
+// ❌ Bad: Boxing overhead
+List<Integer> list = ...;
+list.stream().filter(n -> n > 0).mapToInt(Integer::intValue).sum();
+
+// ✅ Good: Primitive stream from start
+int[] array = ...;
+Arrays.stream(array).filter(n -> n > 0).sum();
+
+// ❌ Bad: Multiple terminal operations = multiple traversals
+long count = list.stream().filter(p -> p.getAge() > 18).count();
+int sum = list.stream().filter(p -> p.getAge() > 18).mapToInt(Person::getSalary).sum();
+
+// ✅ Good: Single traversal with summarizing
+IntSummaryStatistics stats = list.stream()
+    .filter(p -> p.getAge() > 18)
+    .mapToInt(Person::getSalary)
+    .summaryStatistics();
+long count = stats.getCount();
+int sum = stats.getSum();
+
+// ✅ Good: Use unordered() to skip ordering guarantees
+// If you don't need encounter order, this enables parallel optimizations
+list.parallelStream()
+    .unordered()  // Tells JVM: order doesn't matter
+    .distinct()   // Much faster without ORDERED characteristic
+    .collect(Collectors.toList());
+```
+
+### Parallel Stream Threshold Rule
+
+$$T_{parallel} < T_{sequential} \text{ only when } N \times Q > F$$
+
+Where:
+- $N$ = number of elements
+- $Q$ = cost per element computation
+- $F$ = fork/join framework overhead (~10,000 ns)
+
+**Rule of thumb**: Use parallel streams only when $N > 10{,}000$ AND operation is CPU-bound.
+
+**Interview Q: What is the default parallelism for parallel streams?**
+A: `Runtime.getRuntime().availableProcessors()`. Uses `ForkJoinPool.commonPool()`. Can be overridden via `-Djava.util.concurrent.ForkJoinPool.common.parallelism=N`.
 
 ---
 
@@ -794,6 +1117,302 @@ A: Nothing. filter() returns empty Optional because "HELLO".length() is 5, not >
 
 ---
 
+## Advanced Tricky Interview Scenarios (Senior/Architect Level)
+
+These are real questions asked at FAANG, banks, and top product companies.
+
+### Scenario 1: Stream Pipeline Evaluation Order
+
+**Q: What is the exact output?**
+```java
+Stream.of(5, 3, 1, 4, 2)
+    .filter(x -> {
+        System.out.print("F" + x + " ");
+        return x > 2;
+    })
+    .map(x -> {
+        System.out.print("M" + x + " ");
+        return x * 10;
+    })
+    .sorted((a, b) -> {
+        System.out.print("S ");
+        return a.compareTo(b);
+    })
+    .findFirst()
+    .ifPresent(x -> System.out.println("Result: " + x));
+```
+
+**A:** `F5 M5 F3 M3 F1 F4 M4 F2 Result: 30`
+
+**Explanation**: 
+- `filter` and `map` are **stateless** — they process element-by-element (fused).
+- `sorted` is **stateful** — it must buffer ALL elements that pass filter/map before sorting.
+- `findFirst` short-circuits after sorted produces its first element.
+- Elements flow: 5→F5→pass→M5→buffer, 3→F3→pass→M3→buffer, 1→F1→fail, 4→F4→pass→M4→buffer, 2→F2→fail.
+- Sorted buffers [50, 30, 40], sorts to [30, 40, 50], findFirst returns 30.
+- Notice: `S` may or may not print depending on JVM optimization of single-comparison sorts.
+
+**Interview Tip**: Stateless ops fuse. Stateful ops (sorted, distinct) buffer everything. Short-circuiting terminals (findFirst, anyMatch) stop early.
+
+---
+
+### Scenario 2: Infinite Stream with Short-Circuit
+
+**Q: Does this terminate? What does it return?**
+```java
+boolean result = Stream.iterate(1, n -> n + 1)
+    .anyMatch(n -> n > 100);
+System.out.println(result);
+```
+
+**A:** Yes, prints `true`. `anyMatch` is short-circuiting — stops as soon as one element matches.
+
+**Q: What about this?**
+```java
+long count = Stream.iterate(1, n -> n + 1)
+    .filter(n -> n > 100)
+    .limit(5)
+    .count();
+```
+
+**A:** Returns `5`. `limit(5)` is short-circuiting. After filtering past 100, takes 5 elements (101-105), then stops.
+
+**Q: And this?**
+```java
+// DANGER!
+long count = Stream.iterate(1, n -> n + 1)
+    .filter(n -> n > 100)
+    .count(); // ❌ INFINITE LOOP! No short-circuit terminal op
+```
+
+**Interview Tip**: `count()` is NOT short-circuiting. It must process all elements. With infinite streams, always use `limit()`, `takeWhile()`, or a short-circuiting terminal operation.
+
+---
+
+### Scenario 3: Parallel Stream Identity Violation
+
+**Q: What's wrong here?**
+```java
+String result = List.of("a", "b", "c").parallelStream()
+    .reduce("", String::concat);
+```
+
+**A:** Technically works but violates the identity contract for parallel streams. The identity `""` is correct (empty string concatenated with anything returns that thing). However, `String::concat` creates new String objects at each step — $O(n^2)$ time complexity.
+
+**Better approach:**
+```java
+String result = List.of("a", "b", "c").parallelStream()
+    .collect(Collectors.joining()); // O(n), designed for parallel
+```
+
+**Q: What if we used a non-identity value?**
+```java
+Integer result = List.of(1, 2, 3).parallelStream()
+    .reduce(10, Integer::sum);
+// Expected: 10 + 1 + 2 + 3 = 16
+// Actual: 10 + 1 + 10 + 2 + 10 + 3 = 36 (with 3 threads)
+```
+
+**Interview Tip**: The identity MUST satisfy: `accumulator.apply(identity, t) == t` for all `t`. Using 10 as identity for sum violates this because `10 + 1 ≠ 1`.
+
+---
+
+### Scenario 4: Collectors.toMap Duplicate Key Crash
+
+**Q: What happens?**
+```java
+List<String> words = List.of("apple", "ant", "banana");
+Map<Character, String> map = words.stream()
+    .collect(Collectors.toMap(w -> w.charAt(0), w -> w));
+```
+
+**A:** `IllegalStateException: Duplicate key apple`. Both "apple" and "ant" start with 'a'.
+
+**Fix — provide merge function:**
+```java
+Map<Character, String> map = words.stream()
+    .collect(Collectors.toMap(
+        w -> w.charAt(0),
+        w -> w,
+        (existing, replacement) -> existing + "," + replacement  // Merge
+    ));
+// {a=apple,ant, b=banana}
+
+// Or group instead:
+Map<Character, List<String>> grouped = words.stream()
+    .collect(Collectors.groupingBy(w -> w.charAt(0)));
+// {a=[apple, ant], b=[banana]}
+```
+
+**Interview Tip**: Always ask "can keys collide?" when using `toMap()`. If yes, provide a merge function or use `groupingBy()`.
+
+---
+
+### Scenario 5: flatMap vs map Composition
+
+**Q: What's the output difference?**
+```java
+List<List<Integer>> nested = List.of(List.of(1, 2), List.of(3, 4));
+
+// Using map
+List<Stream<Integer>> mapped = nested.stream()
+    .map(List::stream)
+    .collect(Collectors.toList());
+// Type: List<Stream<Integer>> — streams inside a list, NOT flattened!
+
+// Using flatMap
+List<Integer> flatMapped = nested.stream()
+    .flatMap(List::stream)
+    .collect(Collectors.toList());
+// Type: List<Integer> — [1, 2, 3, 4]
+```
+
+**Q: Tricky variant — what does this produce?**
+```java
+List<String> result = Stream.of("Hello", "World")
+    .flatMap(s -> Arrays.stream(s.split("")))
+    .distinct()
+    .sorted()
+    .collect(Collectors.toList());
+```
+
+**A:** `[H, W, d, e, l, o, r]` — splits into characters, removes duplicates (two 'l's become one), sorts alphabetically (uppercase before lowercase in ASCII).
+
+---
+
+### Scenario 6: peek() Misuse in Production
+
+**Q: Is this safe for production logging?**
+```java
+list.stream()
+    .peek(item -> logger.info("Processing: {}", item))
+    .filter(item -> item.isValid())
+    .count();
+```
+
+**A:** It works, but `peek()` was designed for **debugging**, not production side effects. The Java docs explicitly state: "This method exists mainly to support debugging." In optimized pipelines, the JVM may eliminate `peek()` calls if it determines the result isn't needed.
+
+**Production alternative:**
+```java
+list.stream()
+    .filter(item -> {
+        logger.info("Processing: {}", item);
+        return item.isValid();
+    })
+    .count();
+```
+
+---
+
+### Scenario 7: Collector Characteristics & Parallel Safety
+
+**Q: Why is `Collectors.toList()` safe in parallel but adding to an external list isn't?**
+```java
+// ✅ Safe
+List<Integer> result = list.parallelStream()
+    .collect(Collectors.toList());
+
+// ❌ Unsafe
+List<Integer> result = new ArrayList<>();
+list.parallelStream()
+    .forEach(result::add); // Race condition!
+```
+
+**A:** `collect()` uses the collector's `combiner()` function to merge partial results from each thread safely. Each thread accumulates into its own container, then containers are merged. `forEach` with external mutation has no such protection.
+
+Collector internals:
+```java
+Collector.of(
+    ArrayList::new,                    // supplier: each thread gets own list
+    List::add,                         // accumulator: add to thread-local list
+    (left, right) -> { left.addAll(right); return left; }  // combiner: merge
+);
+```
+
+---
+
+### Scenario 8: Stream Closed Exception
+
+**Q: What happens?**
+```java
+try (Stream<String> stream = Files.lines(Path.of("data.txt"))) {
+    List<String> lines = stream.collect(Collectors.toList());
+    long count = stream.count(); // ❌ What happens here?
+}
+```
+
+**A:** `IllegalStateException: stream has already been operated upon or closed.` A stream can only have ONE terminal operation. After `collect()`, the stream is consumed.
+
+**Q: What about try-with-resources?**
+```java
+try (Stream<String> stream = Files.lines(Path.of("data.txt"))) {
+    stream.forEach(System.out::println);
+} // Stream is auto-closed here, releasing file handle
+```
+
+**Interview Tip**: `Files.lines()` returns a stream backed by an I/O resource. It MUST be closed. Always use try-with-resources. This is a very common senior-level question.
+
+---
+
+### Scenario 9: Optional Chaining Anti-Patterns
+
+**Q: What's wrong with this code?**
+```java
+// Anti-pattern: using get() without checking
+String name = optionalPerson.get().getName(); // NoSuchElementException if empty
+
+// Anti-pattern: using isPresent() like null check (defeats purpose of Optional)
+if (optionalPerson.isPresent()) {
+    doSomething(optionalPerson.get());
+}
+
+// Correct approaches:
+optionalPerson.ifPresent(p -> doSomething(p));
+
+String name = optionalPerson.map(Person::getName).orElse("Unknown");
+
+optionalPerson
+    .filter(p -> p.getAge() > 18)
+    .ifPresent(p -> grantAccess(p));
+```
+
+**Q: Tricky — what does this return?**
+```java
+Optional<String> result = Optional.of(Optional.of("hello"))
+    .flatMap(opt -> opt)
+    .map(String::toUpperCase);
+```
+
+**A:** `Optional[HELLO]`. `flatMap` unwraps one level of nesting, then `map` transforms the inner value.
+
+---
+
+### Scenario 10: Reduce vs Collect Decision Matrix
+
+| Criteria | reduce() | collect() |
+|----------|----------|-----------|
+| Result type | Immutable (creates new object each step) | Mutable container |
+| Use case | Single value (sum, max, concat) | Collection (List, Map, Set) |
+| Parallel safety | Requires associative + identity | Uses combiner to merge |
+| Performance | String concatenation = $O(n^2)$ | StringBuilder via joining = $O(n)$ |
+| Return type | `T` or `Optional<T>` | `R` (collection type) |
+
+**Interview Q: Can you implement `toList()` using `reduce()`?**
+```java
+// Possible but TERRIBLE practice
+List<Integer> list = numbers.stream()
+    .reduce(new ArrayList<Integer>(),
+        (acc, n) -> { acc.add(n); return acc; },     // Mutates! Breaks contract
+        (l1, l2) -> { l1.addAll(l2); return l1; });
+// ❌ reduce expects IMMUTABLE accumulation. This breaks in parallel streams.
+
+// ✅ Correct: use collect()
+List<Integer> list = numbers.stream()
+    .collect(Collectors.toList());
+```
+
+---
+
 ## Common Traps
 
 ### ❌ Trap 1: Reusing Streams
@@ -960,6 +1579,196 @@ int sum = large.parallelStream()  // ✅ Parallel beneficial here
 
 **Interview Tip**:
 Use parallel streams only for large datasets with CPU-intensive operations. Measure performance before using parallel.
+
+---
+
+### ❌ Trap 6: Boxing Overhead in Streams (Performance Interview Favorite)
+
+**Why it's wrong**:
+Using `Stream<Integer>` instead of `IntStream` causes autoboxing for every element. For millions of elements, this creates massive GC pressure and can be 3-5x slower.
+
+**Incorrect Code**:
+```java
+// Each int is boxed to Integer object = millions of objects on heap
+long sum = Stream.of(1, 2, 3, 4, 5)
+    .filter(n -> n % 2 == 0)
+    .mapToLong(Integer::longValue) // Too late, already boxed!
+    .sum();
+```
+
+**Correct Code**:
+```java
+// Primitive stream - no boxing at all
+long sum = IntStream.of(1, 2, 3, 4, 5)
+    .filter(n -> n % 2 == 0)
+    .asLongStream()
+    .sum();
+
+// When starting from a List<Integer>, convert early
+int sum = list.stream()
+    .mapToInt(Integer::intValue) // Convert immediately to primitive
+    .filter(n -> n > 0)
+    .sum();
+```
+
+**Interview Tip**:
+Always use `IntStream`, `LongStream`, or `DoubleStream` for numeric operations. The `mapToInt()` / `mapToLong()` / `mapToDouble()` methods exist specifically to unbox early in the pipeline. Interviewers frequently ask about the performance difference between `Stream<Integer>.count()` vs `IntStream.count()`.
+
+---
+
+### ❌ Trap 7: `Collectors.toMap()` Throws NPE on Null Values
+
+**Why it's wrong**:
+Unlike `HashMap.put()`, `Collectors.toMap()` internally calls `Map.merge()` which throws `NullPointerException` if any **value** is null — even if the key is non-null.
+
+**Incorrect Code**:
+```java
+List<Person> persons = List.of(
+    new Person("Alice", "NYC"),
+    new Person("Bob", null)     // null city
+);
+
+// ❌ NullPointerException! value is null for "Bob"
+Map<String, String> map = persons.stream()
+    .collect(Collectors.toMap(Person::getName, Person::getCity));
+```
+
+**Correct Code**:
+```java
+// Option 1: Filter out nulls first
+Map<String, String> map = persons.stream()
+    .filter(p -> p.getCity() != null)
+    .collect(Collectors.toMap(Person::getName, Person::getCity));
+
+// Option 2: Use forEach with a regular HashMap (tolerates null values)
+Map<String, String> map = new HashMap<>();
+persons.forEach(p -> map.put(p.getName(), p.getCity()));
+
+// Option 3: Replace null with default
+Map<String, String> map = persons.stream()
+    .collect(Collectors.toMap(
+        Person::getName,
+        p -> p.getCity() != null ? p.getCity() : "Unknown"
+    ));
+```
+
+**Interview Tip**:
+This is one of the most commonly encountered production bugs. `toMap()` uses `Map.merge()` internally, and `merge()` explicitly rejects null values. Always handle potential nulls before collecting to a Map.
+
+---
+
+### ❌ Trap 8: `Files.lines()` Resource Leak
+
+**Why it's wrong**:
+`Files.lines()` opens a file handle wrapped in a Stream. If not closed, the file descriptor leaks until GC finalizes the stream (unpredictable timing).
+
+**Incorrect Code**:
+```java
+// File handle stays open until GC runs finalizer
+List<String> lines = Files.lines(Path.of("data.txt"))
+    .filter(l -> !l.isEmpty())
+    .collect(Collectors.toList());
+```
+
+**Correct Code**:
+```java
+// try-with-resources guarantees closure even if exception occurs
+try (Stream<String> lines = Files.lines(Path.of("data.txt"))) {
+    List<String> result = lines
+        .filter(l -> !l.isEmpty())
+        .collect(Collectors.toList());
+}
+```
+
+**Interview Tip**:
+Any stream backed by an I/O resource (`Files.lines()`, `Files.list()`, `Files.walk()`, `BufferedReader.lines()`) MUST be used in try-with-resources. This is asked in almost every senior Java interview. The `BaseStream` interface extends `AutoCloseable` specifically for this reason.
+
+---
+
+### ❌ Trap 9: Operation Order Changes Semantics
+
+**Why it's wrong**:
+The order of stateful operations like `sorted()` and `limit()` completely changes the result.
+
+**Incorrect Code**:
+```java
+// Gets first 5 elements encountered, then sorts ONLY those 5
+// NOT the top 5 overall!
+List<Person> wrong = persons.stream()
+    .limit(5)
+    .sorted(Comparator.comparingInt(Person::getAge))
+    .collect(Collectors.toList());
+```
+
+**Correct Code**:
+```java
+// Sorts ALL elements first, then takes top 5 youngest
+List<Person> correct = persons.stream()
+    .sorted(Comparator.comparingInt(Person::getAge))
+    .limit(5)
+    .collect(Collectors.toList());
+```
+
+**Interview Tip**:
+Stateless operations (`filter`, `map`) can be reordered freely. Stateful operations (`sorted`, `distinct`, `limit`, `skip`) are order-dependent. Interviewers will give you two pipelines with swapped operations and ask if they produce the same result.
+
+---
+
+### ❌ Trap 10: `reduce()` with Mutable Accumulator
+
+**Why it's wrong**:
+`reduce()` expects an **immutable** accumulation pattern. Using a mutable container (like ArrayList) inside `reduce()` violates the contract and produces incorrect results in parallel streams.
+
+**Incorrect Code**:
+```java
+// ❌ Breaks in parallel streams — multiple threads share the same list
+List<Integer> result = numbers.parallelStream()
+    .reduce(new ArrayList<Integer>(),
+        (list, n) -> { list.add(n); return list; },
+        (l1, l2) -> { l1.addAll(l2); return l1; });
+```
+
+**Correct Code**:
+```java
+// ✅ Use collect() for mutable reduction
+List<Integer> result = numbers.parallelStream()
+    .collect(Collectors.toList());
+
+// ✅ Or use reduce() with immutable accumulation
+Optional<Integer> sum = numbers.stream()
+    .reduce(Integer::sum);
+```
+
+**Interview Tip**:
+The rule is simple: `reduce()` = immutable accumulation (returns new value each step), `collect()` = mutable accumulation (modifies container). Using `reduce()` to build a collection is always wrong.
+
+---
+
+## Quick Reference Cheat Sheet (Interview Revision)
+
+| Operation | Type | Short-Circuit? | Stateless? | Returns |
+|-----------|------|---------------|------------|---------|
+| `filter()` | Intermediate | No | Yes | `Stream<T>` |
+| `map()` | Intermediate | No | Yes | `Stream<R>` |
+| `flatMap()` | Intermediate | No | Yes | `Stream<R>` |
+| `distinct()` | Intermediate | No | No | `Stream<T>` |
+| `sorted()` | Intermediate | No | No | `Stream<T>` |
+| `peek()` | Intermediate | No | Yes | `Stream<T>` |
+| `limit()` | Intermediate | Yes | No | `Stream<T>` |
+| `skip()` | Intermediate | No | No | `Stream<T>` |
+| `takeWhile()` | Intermediate | Yes | No | `Stream<T>` |
+| `dropWhile()` | Intermediate | Yes | No | `Stream<T>` |
+| `forEach()` | Terminal | No | N/A | `void` |
+| `collect()` | Terminal | No | N/A | `R` |
+| `reduce()` | Terminal | No | N/A | `Optional<T>` or `T` |
+| `count()` | Terminal | No | N/A | `long` |
+| `findFirst()` | Terminal | Yes | N/A | `Optional<T>` |
+| `findAny()` | Terminal | Yes | N/A | `Optional<T>` |
+| `anyMatch()` | Terminal | Yes | N/A | `boolean` |
+| `allMatch()` | Terminal | Yes | N/A | `boolean` |
+| `noneMatch()` | Terminal | Yes | N/A | `boolean` |
+| `toArray()` | Terminal | No | N/A | `Object[]` or `A[]` |
+| `min()`/`max()` | Terminal | No | N/A | `Optional<T>` |
 
 ---
 

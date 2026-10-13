@@ -1,329 +1,356 @@
-# Multithreading & Concurrency - Problems & Synchronizers
+# Multithreading & Concurrency - Problems & Synchronizers (In-Depth Masterclass)
 
-## Common Concurrency Problems
+## 1. Concurrency Hazards: Race Conditions, Deadlocks & Livelocks
 
-### 1. Race Condition
+Multi-threaded concurrent systems are prone to four primary hazards: **Race Conditions**, **Deadlocks**, **Livelocks**, and **Thread Starvation**.
+
+### 1. Race Conditions: Check-Then-Act & Read-Modify-Write
+A race condition occurs when program correctness depends on the non-deterministic relative timing or interleaving of threads.
+
+#### Hazard A: Check-Then-Act
 ```java
-// ❌ Problem: Multiple threads accessing shared data
-class Counter {
-    private int count = 0;
-    
-    public void increment() {
-        count++;  // NOT atomic: read, modify, write
-    }
+// ❌ BROKEN: Time-Of-Check to Time-Of-Use (TOCTOU) Race Condition
+if (!map.containsKey(key)) {          // Step 1: Check
+    map.put(key, computeValue());     // Step 2: Act (Thread B can insert between 1 and 2!)
 }
 
-// ✅ Solution: Use atomic or synchronization
-class Counter {
-    private AtomicInteger count = new AtomicInteger(0);
-    
-    public void increment() {
-        count.incrementAndGet();  // Atomic
-    }
-}
+// ✅ CORRECT: Atomic composite operation
+map.computeIfAbsent(key, k -> computeValue());
 ```
 
-### 2. Deadlock
+#### Hazard B: Read-Modify-Write
+`count++` requires three machine operations: read `count` into register $\to$ increment register $\to$ write back to memory. Two threads reading simultaneously will both write the same incremented value, losing updates.
+
+---
+
+### 2. Deadlock Deep Dive & The 4 Coffman Conditions
+
+A deadlock occurs when two or more threads are permanently blocked, each waiting for a lock held by another.
+
+```
+       Thread 1                  Thread 2
+   ┌──────────────┐          ┌──────────────┐
+   │ Holds Lock A │          │ Holds Lock B │
+   └──────┬───────┘          └──────┬───────┘
+          │ Waiting for             │ Waiting for
+          ▼                         ▼
+   ┌──────────────┐          ┌──────────────┐
+   │    Lock B    │          │    Lock A    │
+   └──────────────┘          └──────────────┘
+```
+
+#### The 4 Coffman Conditions (All 4 MUST hold simultaneously for deadlock to occur):
+1. **Mutual Exclusion:** Resources cannot be shared; only one thread can hold a resource at a time.
+2. **Hold and Wait:** A thread holds at least one resource while waiting to acquire additional resources held by others.
+3. **No Preemption:** Resources cannot be forcibly taken away from a thread holding them; they must be released voluntarily.
+4. **Circular Wait:** A closed chain of threads exists where each thread holds a resource requested by the next thread.
+
+#### Breaking Coffman Conditions to Prevent Deadlock:
+- **Break Circular Wait (Most Common):** Enforce a **global strict lock ordering**. If all threads acquire Lock A before Lock B, circular wait is impossible.
+- **Break No Preemption:** Use `ReentrantLock.tryLock(timeout, unit)`. If a thread cannot acquire the second lock within the timeout, it releases the first lock and backs off.
+
+#### Lock Ordering Tie-Breaking Pattern
+When transferring money between two accounts, ordering by account ID prevents deadlocks:
 ```java
-// ❌ Problem: Circular wait
-Thread 1: lock A → waiting for B
-Thread 2: lock B → waiting for A
+public void transferMoney(Account from, Account to, BigDecimal amount) {
+    Account firstLock = from.getId() < to.getId() ? from : to;
+    Account secondLock = from.getId() < to.getId() ? to : from;
 
-// Example
-Object lockA = new Object();
-Object lockB = new Object();
-
-// Thread 1
-synchronized(lockA) {
-    Thread.sleep(100);
-    synchronized(lockB) { }  // Deadlock!
-}
-
-// Thread 2
-synchronized(lockB) {
-    Thread.sleep(100);
-    synchronized(lockA) { }  // Deadlock!
-}
-
-// ✅ Solutions:
-// 1. Fixed ordering
-synchronized(lockA) {
-    synchronized(lockB) { }  // Always A then B
-}
-
-// 2. Try lock with timeout
-if (lockA.tryLock(1, TimeUnit.SECONDS)) {
-    try {
-        if (lockB.tryLock(1, TimeUnit.SECONDS)) {
-            try { /* work */ } finally { lockB.unlock(); }
+    synchronized (firstLock) {
+        synchronized (secondLock) {
+            from.debit(amount);
+            to.credit(amount);
         }
-    } finally { lockA.unlock(); }
-}
-
-// 3. Use higher-level constructs (java.util.concurrent)
-```
-
-### 3. Livelock
-```java
-// Threads keep responding to each other but make no progress
-// Like two people stepping aside for each other repeatedly
-
-// ✅ Solution: Add randomness/backoff
-public void process() {
-    while (!tryLock()) {
-        Thread.sleep(random.nextInt(100));  // Random backoff
     }
 }
 ```
 
-### 4. Starvation
+#### Diagnosing Deadlocks in Production:
+1. **Command Line:** Run `jstack <PID>` in terminal. The JVM automatically performs cycle-detection on intrinsic locks and displays:
+   `Found 1 deadlock.` with full stack traces.
+2. **Programmatic Detection:**
 ```java
-// Thread cannot get CPU time due to other threads
-
-// Causes:
-// - Unfair lock (default)
-// - High priority threads
-// - Synchronized blocks taking long
-
-// ✅ Solution: Use fair lock
-Lock fairLock = new ReentrantLock(true);
+ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+long[] deadlockedThreadIds = bean.findDeadlockedThreads();
+if (deadlockedThreadIds != null) {
+    ThreadInfo[] infos = bean.getThreadInfo(deadlockedThreadIds);
+    // Alert on-call team!
+}
 ```
 
 ---
 
-## Synchronizers
+### 3. Livelock vs Starvation
 
-### 1. CountDownLatch
+- **Livelock:** Threads continuously change their states in response to each other, but make zero forward progress (analogous to two polite people repeatedly stepping in the same direction to let each other pass in a hallway).
+  - *Solution:* Introduce **randomized backoff jitter** before retrying lock acquisition.
+- **Starvation:** A runnable thread is perpetually denied CPU execution or lock acquisition because other threads monopolize the resource.
+  - *Causes:* Default unfair locks (`ReentrantLock(false)`), CPU priority skewing.
+  - *Solution:* Enable fair queuing (`new ReentrantLock(true)`).
+
+---
+
+## 2. Advanced Concurrency Synchronizers
+
+The `java.util.concurrent` package provides high-level coordination primitives built on top of AQS.
+
+### Synchronizers Comparison Matrix
+
+| Synchronizer | Reusable? | Coordination Model | Typical Production Use Case |
+| :--- | :--- | :--- | :--- |
+| **`CountDownLatch`** | ❌ No (One-time) | One or more threads wait until $N$ events occur | Application startup: waiting for DB, cache, and message queue to initialize |
+| **`CyclicBarrier`** | ✅ Yes | $N$ threads wait for **each other** to reach a barrier | Multi-phase parallel simulation / matrix computations |
+| **`Semaphore`** | ✅ Yes | Manages a fixed pool of $N$ permits | Database connection pool limits, API rate limiters |
+| **`Phaser`** | ✅ Yes | Flexible barrier with dynamic registration of parties | Multi-stage batch processing pipelines with variable threads |
+| **`Exchanger`** | ✅ Yes | Bidirectional atomic swap between exactly 2 threads | Double-buffering pipelines (producer fills, consumer drains) |
+
+---
+
+### 1. CountDownLatch Deep Dive
+A countdown gate: threads calling `await()` block until the latch count reaches zero via `countDown()`.
+
 ```java
-// Wait for N threads to complete
-CountDownLatch latch = new CountDownLatch(3);
+public class ServiceInitializer {
+    public static void main(String[] args) throws InterruptedException {
+        int services = 3;
+        CountDownLatch latch = new CountDownLatch(services);
 
-// Worker threads
-for (int i = 0; i < 3; i++) {
-    new Thread(() -> {
-        doWork();
-        latch.countDown();  // Decrement count
-    }).start();
+        ExecutorService executor = Executors.newFixedThreadPool(services);
+        executor.submit(new InitTask("Database", 2000, latch));
+        executor.submit(new InitTask("Cache", 1000, latch));
+        executor.submit(new InitTask("Kafka", 1500, latch));
+
+        // Main thread waits with timeout:
+        boolean initialized = latch.await(5, TimeUnit.SECONDS);
+        if (!initialized) {
+            throw new RuntimeException("System initialization timed out!");
+        }
+        System.out.println("All services initialized! Ready to accept traffic.");
+        executor.shutdown();
+    }
 }
-
-// Main thread waits
-latch.await();  // Blocks until count = 0
-System.out.println("All workers done");
-
-// One-time use! Cannot reset
 ```
 
-### 2. CyclicBarrier
-```java
-// Wait for N threads to reach a common point
-CyclicBarrier barrier = new CyclicBarrier(3, () -> {
-    System.out.println("All threads reached barrier");
-});
+---
 
-for (int i = 0; i < 3; i++) {
-    new Thread(() -> {
+### 2. CyclicBarrier Deep Dive
+A synchronization point where a fixed number of threads (`parties`) must all arrive before any can proceed.
+
+```java
+public class MatrixSolver {
+    public static void main(String[] args) {
+        int parties = 3;
+        // Barrier action runs when all parties arrive, executed by the LAST arriving thread!
+        CyclicBarrier barrier = new CyclicBarrier(parties, () -> {
+            System.out.println("=== Phase complete! Aggregating partial results ===");
+        });
+
+        for (int i = 0; i < parties; i++) {
+            new Thread(new Worker(barrier)).start();
+        }
+    }
+}
+```
+
+---
+
+### 3. Semaphore Deep Dive (Rate Limiter / Pool Governor)
+Controls concurrent access to a finite set of resources via permits.
+
+```java
+public class DatabaseConnectionPool {
+    private final Semaphore semaphore;
+
+    public DatabaseConnectionPool(int maxConnections) {
+        this.semaphore = new Semaphore(maxConnections, true); // Fair semaphore
+    }
+
+    public void executeQuery(String sql) throws InterruptedException {
+        semaphore.acquire(); // Acquires permit or blocks
         try {
-            phase1();
-            barrier.await();  // Wait for others
-            phase2();
-            barrier.await();  // Reusable!
-        } catch (Exception e) { }
-    }).start();
-}
-
-// Can be reused after threads are released
-```
-
-### CountDownLatch vs CyclicBarrier
-
-| Feature | CountDownLatch | CyclicBarrier |
-|---------|----------------|---------------|
-| Reusable | No | Yes |
-| Use case | Wait for events | Wait for threads |
-| Action | countDown() / await() | await() only |
-| Parties | Fixed count | Fixed parties |
-| Callback | No | Optional Runnable |
-
-### 3. Semaphore
-```java
-// Control access to limited resources
-Semaphore semaphore = new Semaphore(3);  // 3 permits
-
-// Acquire permit
-semaphore.acquire();  // Blocks if no permits
-try {
-    accessResource();
-} finally {
-    semaphore.release();  // Return permit
-}
-
-// Try acquire (non-blocking)
-if (semaphore.tryAcquire()) {
-    try { accessResource(); }
-    finally { semaphore.release(); }
-}
-
-// Fair semaphore
-Semaphore fair = new Semaphore(3, true);
-```
-
-### 4. Exchanger
-```java
-// Exchange data between two threads
-Exchanger<List<String>> exchanger = new Exchanger<>();
-
-// Thread 1: Producer
-List<String> buffer = new ArrayList<>();
-fillBuffer(buffer);
-buffer = exchanger.exchange(buffer);  // Exchange with Thread 2
-
-// Thread 2: Consumer
-List<String> buffer = new ArrayList<>();
-buffer = exchanger.exchange(buffer);  // Receive from Thread 1
-processBuffer(buffer);
-```
-
-### 5. Phaser
-```java
-// More flexible barrier
-Phaser phaser = new Phaser(1);  // Register main thread
-
-for (int i = 0; i < 5; i++) {
-    phaser.register();  // Dynamic registration
-    new Thread(() -> {
-        phase1();
-        phaser.arriveAndAwaitAdvance();  // Wait for all
-        phase2();
-        phaser.arriveAndDeregister();  // Leave
-    }).start();
-}
-
-phaser.arriveAndAwaitAdvance();  // Main thread waits
-phaser.arriveAndDeregister();
-```
-
----
-
-## BlockingQueue Implementations
-
-```java
-// ArrayBlockingQueue - Bounded, array-backed
-BlockingQueue<String> queue = new ArrayBlockingQueue<>(100);
-
-// Producer
-queue.put("item");  // Blocks if full
-
-// Consumer
-String item = queue.take();  // Blocks if empty
-
-// Non-blocking
-boolean added = queue.offer("item", 1, TimeUnit.SECONDS);
-String item = queue.poll(1, TimeUnit.SECONDS);
-
-// LinkedBlockingQueue - Optionally bounded, linked list
-BlockingQueue<String> queue = new LinkedBlockingQueue<>();
-
-// PriorityBlockingQueue - Unbounded, priority order
-BlockingQueue<Task> queue = new PriorityBlockingQueue<>();
-
-// SynchronousQueue - Zero capacity, handoff
-BlockingQueue<String> queue = new SynchronousQueue<>();
-// put() waits for take()
-
-// DelayQueue - Elements available after delay
-class DelayedTask implements Delayed {
-    private long startTime;
-    
-    public long getDelay(TimeUnit unit) {
-        return unit.convert(startTime - System.nanoTime(), TimeUnit.NANOSECONDS);
-    }
-    
-    public int compareTo(Delayed o) {
-        return Long.compare(startTime, ((DelayedTask) o).startTime);
+            Connection conn = getConnection();
+            conn.run(sql);
+        } finally {
+            semaphore.release(); // Returns permit
+        }
     }
 }
 ```
 
 ---
 
-## Producer-Consumer Pattern
+## 3. Concurrent Collections Under the Hood
 
+### 1. ConcurrentHashMap Internals (Java 8+)
+Unlike Java 7's segmented locking (`Segment[]`), Java 8+ `ConcurrentHashMap` uses a fine-grained synchronization scheme:
+
+```
+┌────────────────────────────────────────────────────────┐
+│             ConcurrentHashMap Bucket Array             │
+├────────────┬────────────┬────────────┬─────────────────┤
+│ Bucket 0   │ Bucket 1   │ Bucket 2   │ Bucket 3        │
+│ [ null ]   │ [ Node ]   │ [ Node ]   │ [ TreeBin ]     │
+└────────────┼────────────┼────────────┼─────────────────┘
+             │            │
+             ▼            ▼
+       CAS Insertion   synchronized(firstNode)
+```
+
+1. **Lock-Free Reads:** `get()` never acquires a lock. The `val` and `next` pointers in `Node` are declared **`volatile`**, ensuring instant memory visibility.
+2. **CAS for Empty Buckets:** If `table[i] == null`, inserting a node uses lock-free `CAS` (`compareAndSetObject`).
+3. **Synchronized Bucket Head:** If a collision occurs (`table[i] != null`), it synchronizes **only on the first `Node` of that bucket**:
+   `synchronized (node)`
+   Threads inserting into different buckets execute completely concurrently without blocking!
+4. **TreeBin Escalation:** When a bucket chain exceeds 8 nodes and capacity $\ge 64$, the linked list converts to a Red-Black Tree (`TreeBin`).
+5. **Concurrent Resizing (`transfer`):** Multiple threads collaborate to migrate elements from the old table to the new doubled table using `ForwardingNode` sentinels.
+6. **Concurrent Counter (`CounterCell`):** `size()` uses cell striping (identical to `LongAdder`), avoiding a single volatile bottleneck.
+
+> **Why are `null` keys and values strictly forbidden in `ConcurrentHashMap`?**
+> In a concurrent environment, if `map.get(key)` returns `null`, you cannot tell whether the key is mapped to `null` or the key is not in the map. In single-threaded `HashMap`, you would disambiguate via `map.containsKey(key)`. But in `ConcurrentHashMap`, another thread could insert or delete the key between the `get()` call and the `containsKey()` call! To eliminate this race condition, `null` keys and values throw `NullPointerException`.
+
+---
+
+### 2. CopyOnWriteArrayList
+- **Underlying structure:** `private transient volatile Object[] array;`
+- **Writes:** Mutating operations (`add`, `set`, `remove`) acquire an internal lock (`ReentrantLock`), allocate a clone of the entire array with length $\pm 1$, modify the clone, and set the volatile `array` pointer.
+- **Reads:** Reads access the current array without locking. Iterators operate on a snapshot that never reflects subsequent writes and never throws `ConcurrentModificationException`.
+
+---
+
+### 3. ConcurrentSkipListMap & ConcurrentSkipListSet
+- Provides a thread-safe, sorted `NavigableMap` / `NavigableSet`.
+- Backed by a **Skip List** (a probabilistic alternative to balanced trees).
+- Uses lock-free CAS operations for all reads and mutations.
+- Offers guaranteed **$O(\log n)$** time complexity for `get()`, `put()`, `remove()`.
+
+---
+
+## 4. Classic Concurrency Coding Patterns
+
+### Pattern 1: Bounded-Buffer Producer-Consumer (ReentrantLock + Conditions)
 ```java
-class ProducerConsumer {
-    private final BlockingQueue<Integer> queue = new ArrayBlockingQueue<>(10);
-    
-    public void start() {
-        // Producer
-        new Thread(() -> {
-            try {
-                for (int i = 0; i < 100; i++) {
-                    queue.put(i);
-                    System.out.println("Produced: " + i);
+public class BoundedBlockingQueue<T> {
+    private final Object[] items;
+    private int head = 0, tail = 0, count = 0;
+
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition notFull  = lock.newCondition();
+    private final Condition notEmpty = lock.newCondition();
+
+    public BoundedBlockingQueue(int capacity) {
+        this.items = new Object[capacity];
+    }
+
+    public void put(T x) throws InterruptedException {
+        lock.lock();
+        try {
+            while (count == items.length) {
+                notFull.await(); // Wait until space is available
+            }
+            items[tail] = x;
+            if (++tail == items.length) tail = 0;
+            count++;
+            notEmpty.signal(); // Notify waiting consumers
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public T take() throws InterruptedException {
+        lock.lock();
+        try {
+            while (count == 0) {
+                notEmpty.await(); // Wait until items are available
+            }
+            T x = (T) items[head];
+            items[head] = null; // Prevent memory leak
+            if (++head == items.length) head = 0;
+            count--;
+            notFull.signal(); // Notify waiting producers
+            return x;
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+```
+
+---
+
+### Pattern 2: Alternating Sequence Printing (Odd / Even by 2 Threads)
+```java
+public class OddEvenPrinter {
+    private int count = 1;
+    private final int max;
+    private final Object lock = new Object();
+
+    public OddEvenPrinter(int max) { this.max = max; }
+
+    public void printOdd() {
+        synchronized (lock) {
+            while (count <= max) {
+                while (count % 2 == 0) { // If even, wait
+                    try { lock.wait(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
                 }
-            } catch (InterruptedException e) { }
-        }).start();
-        
-        // Consumer
-        new Thread(() -> {
-            try {
-                while (true) {
-                    Integer item = queue.take();
-                    System.out.println("Consumed: " + item);
+                if (count <= max) {
+                    System.out.println("Odd Thread: " + count++);
+                    lock.notifyAll();
                 }
-            } catch (InterruptedException e) { }
-        }).start();
+            }
+        }
+    }
+
+    public void printEven() {
+        synchronized (lock) {
+            while (count <= max) {
+                while (count % 2 != 0) { // If odd, wait
+                    try { lock.wait(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                }
+                if (count <= max) {
+                    System.out.println("Even Thread: " + count++);
+                    lock.notifyAll();
+                }
+            }
+        }
     }
 }
 ```
 
 ---
 
-## Thread-Safe Collections
+## 5. Senior / FAANG Interview Questions & Answers
 
-```java
-// ConcurrentHashMap - Thread-safe HashMap
-ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>();
-map.put("key", 1);
-map.putIfAbsent("key", 2);  // Atomic
-map.compute("key", (k, v) -> v == null ? 1 : v + 1);
+### Q1: What is False Sharing in multi-threaded programming, and how is it addressed in Java?
+**Answer:**
+Modern CPU caches operate on **cache lines** (typically 64 bytes). When two distinct variables processed by two different CPU cores reside on the same 64-byte cache line, modifying variable A on Core 0 invalidates the entire cache line on Core 1, forcing Core 1 to reload variable B from L3/RAM even though variable B never changed.
+Java solves this via padding:
+- Prior to Java 8: Manual padding by declaring dummy `long p1, p2, p3, p4, p5, p6, p7;` variables.
+- Java 8+: The `@jdk.internal.vm.annotation.Contended` annotation inserts 128 bytes of padding around the target field (used in `LongAdder.Cell` and `Thread.threadLocalRandomSeed`).
 
-// CopyOnWriteArrayList - Thread-safe List
-// Good for: Frequent reads, infrequent writes
-CopyOnWriteArrayList<String> list = new CopyOnWriteArrayList<>();
-list.add("item");  // Creates copy of underlying array
+### Q2: Why is `ConcurrentHashMap.size()` an estimate rather than a strict snapshot?
+**Answer:**
+To count entries without stopping the world, `ConcurrentHashMap` aggregates its `baseCount` and active `CounterCell[]` array values without acquiring global locks. While `size()` sums these cells, other concurrent threads may insert or delete entries in other buckets. Hence, `size()` returns a weakly consistent estimate of current entries, which is acceptable in high-throughput concurrent systems.
 
-// CopyOnWriteArraySet
-CopyOnWriteArraySet<String> set = new CopyOnWriteArraySet<>();
-
-// ConcurrentLinkedQueue - Unbounded, thread-safe queue
-ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<>();
-queue.offer("item");  // Non-blocking
-
-// ConcurrentSkipListMap - Sorted, concurrent map
-ConcurrentSkipListMap<String, Integer> sortedMap = new ConcurrentSkipListMap<>();
-```
+### Q3: What is the difference between `ArrayBlockingQueue` and `LinkedBlockingQueue` in terms of lock contention?
+**Answer:**
+- `ArrayBlockingQueue` uses a **single `ReentrantLock`** for both producers (`put`) and consumers (`take`). A producer putting an item competes directly for the lock with a consumer taking an item.
+- `LinkedBlockingQueue` uses **two separate locks**: a `takeLock` and a `putLock`. Producers and consumers can operate concurrently without lock contention, yielding significantly higher throughput under balanced load.
 
 ---
 
-## Interview Q&A
+## 6. Summary Cheat Sheet
 
-**Q: What is deadlock and how to prevent it?**
-A: Two or more threads waiting forever for each other. Prevent with: fixed ordering, timeout, deadlock detection.
-
-**Q: Difference between CountDownLatch and CyclicBarrier?**
-A: CountDownLatch is one-time, waits for events. CyclicBarrier is reusable, waits for threads.
-
-**Q: What is Semaphore used for?**
-A: Controlling access to limited resources (connection pools, rate limiting).
-
-**Q: What is the difference between BlockingQueue's put() and offer()?**
-A: put() blocks if full. offer() returns false immediately or with timeout.
-
-**Q: When to use CopyOnWriteArrayList?**
-A: When reads vastly outnumber writes. Writes are expensive (copy entire array).
-
-**Q: What is race condition?**
-A: Multiple threads access shared data, at least one writes, no synchronization.
-
-**Q: How does ConcurrentHashMap achieve thread-safety?**
-A: Segments/buckets locked independently. No whole-map lock. CAS for reads.
+```
+┌───────────────────────────┬────────────────────────────────────────────────────────┐
+│ Concurrency Hazard / Tool │ Key Defense / Principle                                │
+├───────────────────────────┼────────────────────────────────────────────────────────┤
+│ Deadlock Prevention       │ Strict global lock ordering; breaks circular wait      │
+│ Deadlock Detection        │ jstack <pid> or ThreadMXBean.findDeadlockedThreads()   │
+│ CountDownLatch            │ One-time countdown gate; threads wait for events       │
+│ CyclicBarrier             │ Reusable sync barrier; threads wait for each other     │
+│ Semaphore                 │ Permit pool; ideal for rate limiters and resource pools│
+│ ConcurrentHashMap         │ CAS for empty bucket + synchronized on bin head node   │
+│ False Sharing             │ Cache line bouncing solved by @Contended padding       │
+└───────────────────────────┴────────────────────────────────────────────────────────┘
+```

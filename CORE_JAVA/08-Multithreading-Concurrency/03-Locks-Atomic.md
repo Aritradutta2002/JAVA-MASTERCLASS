@@ -1,314 +1,309 @@
-# Multithreading & Concurrency - Locks & Atomics
+# Multithreading & Concurrency - Locks & Atomics (In-Depth Masterclass)
 
-## Lock Interface
+## 1. Intrinsic Locks: JVM Monitor Internals & Lock Escalation
 
-```java
-public interface Lock {
-    void lock();
-    void lockInterruptibly() throws InterruptedException;
-    boolean tryLock();
-    boolean tryLock(long time, TimeUnit unit);
-    void unlock();
-    Condition newCondition();
-}
+In Java, every object can act as an intrinsic monitor lock. The synchronization state is stored directly inside the **Object Header Mark Word**.
+
 ```
+                       64-bit JVM Mark Word State Transitions
+┌────────────────────────────────────────────────────────┬─────────────┐
+│ Mark Word Bits (Bits 0–61)                             │ Lock Tag    │
+├────────────────────────────────────────────────────────┼─────────────┤
+│ Unlocked: HashCode (31b) | Age (4b) | Biased=0         │ 01          │
+│ Lightweight Lock: Pointer to Lock Record on thread stack│ 00          │
+│ Heavyweight Lock: Pointer to native ObjectMonitor      │ 10          │
+│ Marked for Garbage Collection (CMS / G1)               │ 11          │
+└────────────────────────────────────────────────────────┴─────────────┘
+```
+
+### The 3 Stages of Lock Escalation (Inflation)
+
+To minimize OS kernel context-switch penalties, the HotSpot JVM progressively escalates locks:
+
+```mermaid
+flowchart TD
+    Unlocked[1. Unlocked Object: tag 01] -->|Thread Contends| Lightweight[2. Lightweight Lock: tag 00<br/>Displaced Mark Word via CAS Spin]
+    Lightweight -->|Contention Fails / High Spin| Heavyweight[3. Heavyweight Lock: tag 10<br/>Inflated to OS Mutex Monitor]
+```
+
+1. **Lightweight Locking (Thin Lock):**
+   - When a thread enters a `synchronized` block, the JVM creates a **Lock Record** on the thread's execution stack.
+   - It performs an atomic **CAS** to swap the object's Mark Word with a pointer to this stack Lock Record.
+   - If successful, the thread owns the lock without any OS kernel involvement.
+   - If another thread contends, it performs a brief **adaptive spin** (busy-waiting in user mode) expecting the lock to be released quickly.
+2. **Heavyweight Locking (OS Mutex):**
+   - If CAS spinning exceeds a threshold, the lock **inflates** into a heavyweight monitor.
+   - An `ObjectMonitor` structure is allocated in C++ heap.
+   - The Mark Word is rewritten to point to this `ObjectMonitor` (tag `10`).
+   - Contending threads are suspended at the OS level via `pthread_mutex` or Windows Events, moving into the `BLOCKED` state.
+   > **JVM Rule:** In standard HotSpot execution, lock inflation is **one-way (irreversible)**. Once heavyweight, it stays heavyweight until object garbage collection.
+
+### JIT Lock Optimizations
+- **Lock Elision (Escape Analysis):** If the JIT compiler proves via escape analysis that a locked object never escapes the allocating thread, it completely strips away the lock bytecode (`monitorenter` / `monitorexit`).
+- **Lock Coarsening:** If the compiler detects adjacent synchronized blocks operating on the same lock object, it merges them into a single larger synchronized block, eliminating repeated lock/unlock overhead.
 
 ---
 
-## ReentrantLock
+## 2. Java Memory Model (JMM) & `happens-before`
 
+Modern multi-core CPUs feature separate L1/L2/L3 caches. Without coordination, threads on Core 0 and Core 1 see stale or inconsistent views of shared memory.
+
+```
+┌──────────────────┐               ┌──────────────────┐
+│   CPU Core 0     │               │   CPU Core 1     │
+│ [ L1/L2 Cache ]  │               │ [ L1/L2 Cache ]  │
+└────────┬─────────┘               └────────┬─────────┘
+         │                                  │
+         └─────────────┬────────────────────┘
+                       │ MESI Cache Coherence Bus
+         ┌─────────────▼────────────────────┐
+         │     Shared L3 Cache & RAM        │
+         └──────────────────────────────────┘
+```
+
+### The 3 Concurrency Properties
+1. **Visibility:** When one thread modifies a shared variable, other threads immediately observe the updated value.
+2. **Atomicity:** An operation completes in an all-or-nothing manner without interruption from other threads.
+3. **Ordering:** The sequence of program instructions is preserved across threads despite compiler and hardware optimizations.
+
+### The `happens-before` Relationship Rules
+If action $A$ `happens-before` action $B$, the memory changes made by $A$ are guaranteed to be visible to $B$.
+
+1. **Program Order Rule:** Each action in a thread happens-before every subsequent action in that same thread.
+2. **Monitor Lock Rule:** An unlock on a monitor lock happens-before every subsequent lock on that **same** monitor.
+3. **Volatile Variable Rule:** A write to a `volatile` field happens-before every subsequent read of that **same** field.
+4. **Thread Start Rule:** Calling `thread.start()` happens-before any action in the started thread.
+5. **Thread Join Rule:** All actions in a thread happen-before any other thread successfully returns from `thread.join()`.
+6. **Transitivity:** If $A$ happens-before $B$, and $B$ happens-before $C$, then $A$ happens-before $C$.
+
+---
+
+## 3. The `volatile` Keyword & The Double-Checked Locking Trap
+
+### What `volatile` Guarantees
+1. **Memory Visibility:** Reads and writes bypass CPU registers and L1/L2 caches, forcing direct synchronization with main memory via hardware cache coherence protocols.
+2. **Instruction Ordering:** Inserts **Memory Barriers / Fences** (`StoreStore`, `StoreLoad`, `LoadLoad`, `LoadStore`) to prevent the JIT compiler and CPU out-of-order execution engine from reordering instructions across the volatile barrier.
+3. **No Atomicity for Compound Operations:** `volatile int count; count++;` is NOT thread-safe! It compiles to 3 instructions (read $\to$ increment $\to$ write).
+
+### The Double-Checked Locking (DCL) Singleton Bug
 ```java
-class Counter {
-    private final Lock lock = new ReentrantLock();
-    private int count = 0;
-    
-    public void increment() {
-        lock.lock();
-        try {
-            count++;
-        } finally {
-            lock.unlock();  // Always in finally!
-        }
-    }
-    
-    // Try lock (non-blocking)
-    public boolean tryIncrement() {
-        if (lock.tryLock()) {
-            try {
-                count++;
-                return true;
-            } finally {
-                lock.unlock();
+public class Singleton {
+    // ❌ WITHOUT volatile: Broken in multi-threaded environments!
+    // private static Singleton instance; 
+
+    // ✅ WITH volatile: Correct and thread-safe!
+    private static volatile Singleton instance;
+
+    public static Singleton getInstance() {
+        if (instance == null) {                         // 1st Check (Lock-free)
+            synchronized (Singleton.class) {
+                if (instance == null) {                 // 2nd Check (Guarded)
+                    instance = new Singleton();         // DANGER ZONE!
+                }
             }
         }
-        return false;
-    }
-    
-    // Try lock with timeout
-    public boolean incrementWithTimeout() throws InterruptedException {
-        if (lock.tryLock(1, TimeUnit.SECONDS)) {
-            try {
-                count++;
-                return true;
-            } finally {
-                lock.unlock();
-            }
-        }
-        return false;
+        return instance;
     }
 }
 ```
 
-### ReentrantLock vs synchronized
+#### Why DCL Fails Without `volatile`:
+`instance = new Singleton()` is **NOT** an atomic operation. The JVM bytecode executes 3 steps:
+1. `memory = allocate()`: Allocate memory block for Singleton.
+2. `ctorInstance(memory)`: Invoke `<init>` constructor to initialize fields.
+3. `instance = memory`: Assign the memory address to the reference variable `instance`.
 
-| Feature | synchronized | ReentrantLock |
-|---------|--------------|---------------|
-| Lock release | Automatic | Manual (finally) |
-| Interruptible | No | Yes |
-| Try lock | No | Yes |
-| Fairness | No | Yes (optional) |
-| Condition | Single | Multiple |
-| Performance | Good | Better under contention |
-
-### Fair vs Unfair Lock
-```java
-// Unfair (default) - may starve waiting threads
-Lock unfairLock = new ReentrantLock();
-
-// Fair - FIFO order
-Lock fairLock = new ReentrantLock(true);
-```
+The CPU or JIT compiler may reorder step 2 and step 3:
+$$\text{allocate()} \longrightarrow \text{assign reference (instance != null)} \longrightarrow \text{invoke constructor}$$
+If Thread A reorders 2 and 3, Thread B arrives at the **1st Check (`instance == null`)**, sees that `instance` is non-null, and immediately consumes it—**while the constructor is still running on Thread A!** Thread B crashes with corrupted or half-initialized data.
+Declaring `instance` as **`volatile`** inserts a `StoreStore` barrier, guaranteeing that constructor initialization finishes **before** the reference assignment is published.
 
 ---
 
-## ReadWriteLock
+## 4. AbstractQueuedSynchronizer (AQS) Deep Dive
 
-```java
-class Cache {
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private final Map<String, Object> cache = new HashMap<>();
-    
-    // Multiple readers can access simultaneously
-    public Object get(String key) {
-        lock.readLock().lock();
-        try {
-            return cache.get(key);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-    
-    // Only one writer, blocks all readers
-    public void put(String key, Object value) {
-        lock.writeLock().lock();
-        try {
-            cache.put(key, value);
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-}
+`AbstractQueuedSynchronizer` (AQS) is the foundation of `ReentrantLock`, `Semaphore`, `CountDownLatch`, and `ReentrantReadWriteLock`.
+
 ```
+                    AQS Architecture (CLH Queue)
+           ┌──────────────────────────────────────────────┐
+           │ volatile int state; (Synchronization State)  │
+           └──────────────────────────────────────────────┘
+                                  │
+     Head Node                Node 1                   Tail Node
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│ prev: null      │ ◄── │ prev            │ ◄── │ prev            │
+│ next            │ ──► │ next            │ ──► │ next: null      │
+│ thread: ThreadA │     │ thread: ThreadB │     │ thread: ThreadC │
+│ waitStatus: -1  │     │ waitStatus: -1  │     │ waitStatus: 0   │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
+
+### Core Architecture Components
+1. **Volatile State (`state`):** A 32-bit `volatile int state` manipulated via CAS:
+   - In `ReentrantLock`: `state = 0` means unlocked; `state > 0` represents the lock hold count (reentrancy depth).
+   - In `Semaphore`: `state` represents the number of available permits.
+   - In `CountDownLatch`: `state` represents the countdown latch count.
+2. **CLH Wait Queue:** A variant of the Craig, Landin, and Hagersten doubly-linked FIFO queue.
+   - Contending threads are encapsulated inside `Node` objects.
+   - Blocked threads are suspended via `LockSupport.park(this)` and unparked via `LockSupport.unpark(thread)`.
+3. **Exclusive vs Shared Mode:**
+   - **Exclusive (e.g. `ReentrantLock`):** Only one thread can acquire at a time (`tryAcquire` / `tryRelease`).
+   - **Shared (e.g. `CountDownLatch`, `Semaphore`):** Multiple threads can acquire concurrently (`tryAcquireShared` / `tryReleaseShared`).
 
 ---
 
-## StampedLock (Java 8+)
+## 5. ReentrantLock vs synchronized
+
+| Feature | `synchronized` | `ReentrantLock` |
+| :--- | :--- | :--- |
+| **Implementation** | JVM Bytecode (`monitorenter` / `exit`) | Java API (AQS-based) |
+| **Lock Release** | Automatic (guaranteed by JVM) | Manual (must release in `finally` block) |
+| **Interruptible Lock** | ❌ No (blocks indefinitely) | ✅ Yes (`lockInterruptibly()`) |
+| **Non-Blocking Try** | ❌ No | ✅ Yes (`tryLock()`, `tryLock(timeout, unit)`) |
+| **Fairness Guarantee** | ❌ No (always unfair) | ✅ Optional (`new ReentrantLock(true)`) |
+| **Multiple Conditions** | ❌ No (single wait-set per object) | ✅ Yes (`lock.newCondition()`) |
+
+### Fair vs Non-Fair Locks: Why Non-Fair is Default
+```java
+Lock unfairLock = new ReentrantLock();     // Default: Unfair
+Lock fairLock   = new ReentrantLock(true); // Fair: FIFO order
+```
+- **Fair Lock:** Threads acquire the lock in strict FIFO order based on queue arrival. A newly arriving thread checks `hasQueuedPredecessors()`; if threads are already queued, it must join the queue.
+- **Non-Fair Lock:** When a lock is released, a newly arriving thread attempts a direct CAS acquisition before checking the queue.
+- **Why Non-Fair has Higher Throughput:** Waking up a queued thread from OS sleep requires an expensive context switch (~1–5 microseconds). A non-fair lock allows an already-running thread that is already on the CPU to "barge in" and finish immediately, resulting in up to **10x higher throughput** under heavy contention.
+
+---
+
+## 6. ReadWriteLock & StampedLock (Optimistic Locking)
+
+### ReentrantReadWriteLock
+Separates read operations from write operations:
+- Multiple readers can hold the `readLock()` simultaneously.
+- Only one writer can hold the `writeLock()` exclusively.
+- **Limitation:** Can lead to **writer starvation** if a continuous stream of readers prevents the writer from acquiring the lock.
+
+### StampedLock (Java 8+): High-Throughput Optimistic Locking
+`StampedLock` provides three locking modes: Write, Read, and **Optimistic Read**.
 
 ```java
-class Point {
+public class Point {
     private double x, y;
-    private final StampedLock lock = new StampedLock();
-    
-    // Optimistic read (no locking)
+    private final StampedLock sl = new StampedLock();
+
+    // High-performance Optimistic Read (Zero Lock Contention!)
     public double distanceFromOrigin() {
-        long stamp = lock.tryOptimisticRead();
+        // 1. Acquire optimistic read stamp (Does NOT lock anything!)
+        long stamp = sl.tryOptimisticRead();
         double currentX = x, currentY = y;
-        
-        if (!lock.validate(stamp)) {
-            // Optimistic read failed, get read lock
-            stamp = lock.readLock();
+
+        // 2. Validate if a write occurred between stamp acquisition and read
+        if (!sl.validate(stamp)) {
+            // Validation failed! A writer intervened; upgrade to standard read lock
+            stamp = sl.readLock();
             try {
                 currentX = x;
                 currentY = y;
             } finally {
-                lock.unlockRead(stamp);
+                sl.unlockRead(stamp);
             }
         }
         return Math.sqrt(currentX * currentX + currentY * currentY);
     }
-    
-    // Write lock
+
     public void move(double deltaX, double deltaY) {
-        long stamp = lock.writeLock();
+        long stamp = sl.writeLock(); // Exclusive write lock
         try {
             x += deltaX;
             y += deltaY;
         } finally {
-            lock.unlockWrite(stamp);
+            sl.unlockWrite(stamp);
         }
     }
 }
 ```
 
+> **Warning:** `StampedLock` is **NOT reentrant**! Calling `sl.writeLock()` twice within the same thread results in an instant deadlock. It also does not support `Condition` variables.
+
 ---
 
-## Condition Variables
+## 7. CAS (Compare-And-Swap) & Lock-Free Atomics
+
+### Hardware-Level CAS
+CAS is a CPU-level atomic instruction (`cmpxchg` on x86 architectures):
+$$\text{CAS}(V, E, N)$$
+- $V$: Memory location.
+- $E$: Expected old value.
+- $N$: New value to write.
+If $V == E$, write $N$ and return `true`; otherwise return `false` without modifying memory.
+
+### The ABA Problem & Solution
+- **The Problem:** Thread 1 reads value `A`. Thread 2 changes `A` $\to$ `B` $\to$ `A`. Thread 1 runs CAS; it sees `A` and succeeds, completely unaware that state was modified and reverted in the interim.
+- **The Danger:** In lock-free stacks or memory reclamation schemes, ABA can cause head-pointer corruption and memory leaks.
+- **The Solution:** Use **`AtomicStampedReference`** or **`AtomicMarkableReference`**, which pair the object pointer with an integer version stamp:
 
 ```java
-class BoundedBuffer<T> {
-    private final Lock lock = new ReentrantLock();
-    private final Condition notFull = lock.newCondition();
-    private final Condition notEmpty = lock.newCondition();
-    
-    private final Queue<T> queue = new LinkedList<>();
-    private final int capacity;
-    
-    public void put(T item) throws InterruptedException {
-        lock.lock();
-        try {
-            while (queue.size() == capacity) {
-                notFull.await();  // Release lock, wait for signal
-            }
-            queue.add(item);
-            notEmpty.signal();  // Wake up one consumer
-        } finally {
-            lock.unlock();
-        }
-    }
-    
-    public T take() throws InterruptedException {
-        lock.lock();
-        try {
-            while (queue.isEmpty()) {
-                notEmpty.await();
-            }
-            T item = queue.poll();
-            notFull.signal();
-            return item;
-        } finally {
-            lock.unlock();
-        }
-    }
-}
+AtomicStampedReference<String> asr = new AtomicStampedReference<>("A", 1);
+
+int initialStamp = asr.getStamp();
+// Update only succeeds if BOTH reference == "A" AND stamp == initialStamp
+boolean success = asr.compareAndSet("A", "NewValue", initialStamp, initialStamp + 1);
 ```
 
 ---
 
-## Atomic Classes
+## 8. High-Contention Counters: LongAdder vs AtomicLong
 
-```java
-import java.util.concurrent.atomic.*;
+Under intense multi-threaded write contention (e.g. web traffic counters), `AtomicLong.incrementAndGet()` suffers severe performance degradation because dozens of threads continuously fail CAS and loop, causing **cache-line bouncing**.
 
-// AtomicInteger
-AtomicInteger counter = new AtomicInteger(0);
-counter.incrementAndGet();     // ++i
-counter.getAndIncrement();     // i++
-counter.decrementAndGet();     // --i
-counter.getAndDecrement();     // i--
-counter.addAndGet(5);          // i += 5
-counter.get();                 // Read
-counter.set(10);               // Write
-counter.compareAndSet(10, 20); // CAS: if == 10, set to 20
+```
+                AtomicLong (Single Bottleneck)
+ Thread 1 ──┐
+ Thread 2 ──┼──► CAS on single volatile long (Heavy Contention!)
+ Thread 3 ──┘
 
-// AtomicReference
-AtomicReference<String> ref = new AtomicReference<>("initial");
-ref.compareAndSet("initial", "updated");
-
-// AtomicStampedReference (solve ABA problem)
-AtomicStampedReference<Integer> stamped = new AtomicStampedReference<>(100, 0);
-int[] stampHolder = new int[1];
-Integer value = stamped.get(stampHolder);
-int stamp = stampHolder[0];
-stamped.compareAndSet(value, 200, stamp, stamp + 1);
-
-// AtomicLong, AtomicBoolean, AtomicIntegerArray, etc.
+                LongAdder (Cell Striping)
+ Thread 1 ──► [ Cell 0 ]
+ Thread 2 ──► [ Cell 1 ]  ──► sum() aggregates cells when read!
+ Thread 3 ──► [ Cell 2 ]
 ```
 
-### CAS (Compare-And-Swap)
-```java
-// Atomic operation without locking
-public final int incrementAndGet() {
-    return unsafe.getAndAddInt(this, valueOffset, 1) + 1;
-}
-
-// Underlying: CPU atomic instruction
-// If current value == expected, set to new value
-// Returns true if successful, false otherwise
-```
+### How LongAdder Works
+- Extends `Striped64`.
+- Maintains a base value and an array of `Cell` objects.
+- Each thread is hashed to a specific `Cell` in the array via thread-local probe hashes.
+- Each `Cell` is annotated with **`@jdk.internal.vm.annotation.Contended`**, which adds 128 bytes of cache line padding to prevent **False Sharing** (where multiple cells share the same 64-byte CPU cache line).
+- `sum()` adds the base value and all cells. Note: `sum()` is **not** an atomic snapshot, making `LongAdder` ideal for metrics and statistics where writes dominate reads.
 
 ---
 
-## LongAdder & LongAccumulator (Java 8+)
+## 9. Senior / FAANG Interview Questions & Answers
 
-```java
-// Better than AtomicLong for high contention
-LongAdder adder = new LongAdder();
-adder.increment();
-adder.add(5);
-long sum = adder.sum();      // Not atomic
-long sum = adder.sumThenReset();
+### Q1: Why must `unlock()` always be placed in a `finally` block, whereas `lock()` should be placed outside the `try` block?
+**Answer:**
+If `lock.lock()` is placed inside the `try` block and throws an exception (e.g., `OutOfMemoryError`), the `finally` block executes and attempts to call `lock.unlock()`. Since the lock was never acquired, it throws an `IllegalMonitorStateException`, masking the root exception! Always call `lock.lock()` immediately before `try`.
 
-// LongAccumulator for custom operations
-LongAccumulator max = new LongAccumulator(Long::max, Long.MIN_VALUE);
-max.accumulate(100);
-max.accumulate(200);
-long maxValue = max.get();  // 200
-```
+### Q2: What is the difference between Condition's `signal()` and `signalAll()`?
+**Answer:**
+`signal()` wakes the single longest-waiting thread from the Condition's wait queue and transfers it to the AQS sync queue. `signalAll()` moves all waiting threads to the AQS sync queue. If multiple threads wait on different predicates (e.g. buffer empty vs buffer full), using a single Condition with `signal()` can cause a signal to wake the wrong thread, resulting in a thread hang. With `ReentrantLock`, you should create separate Condition instances (`notFull`, `notEmpty`) and use `signal()`.
+
+### Q3: Can a thread holding a read lock in `ReentrantReadWriteLock` upgrade to a write lock?
+**Answer:**
+**No.** Lock upgrading is not supported. If a thread holding a read lock attempts to acquire the write lock, it deadlocks itself because the write lock requires all read locks to be released first. However, **lock downgrading** IS supported: a thread holding a write lock can acquire a read lock and then release the write lock.
 
 ---
 
-## volatile Keyword
+## 10. Summary Cheat Sheet
 
-```java
-class Flag {
-    // Guarantees visibility across threads
-    // Does NOT guarantee atomicity for compound operations
-    private volatile boolean running = true;
-    
-    // ✅ Good for: single read/write
-    public void stop() { running = false; }
-    public boolean isRunning() { return running; }
-    
-    // ❌ Bad for: compound operations
-    private volatile int counter = 0;
-    public void increment() { counter++; }  // NOT thread-safe!
-    // Use AtomicInteger instead
-}
 ```
-
-### volatile vs Atomic vs synchronized
-
-| Feature | volatile | Atomic | synchronized |
-|---------|----------|--------|--------------|
-| Visibility | ✅ | ✅ | ✅ |
-| Atomicity | ❌ | ✅ | ✅ |
-| Mutual Exclusion | ❌ | ❌ | ✅ |
-| Performance | Best | Good | Slower |
-
----
-
-## Interview Q&A
-
-**Q: What is the difference between ReentrantLock and synchronized?**
-A: ReentrantLock is interruptible, has tryLock, supports fairness, and multiple conditions.
-
-**Q: What is ReadWriteLock?**
-A: Allows multiple readers OR one writer. Improves concurrency for read-heavy workloads.
-
-**Q: What is optimistic locking?**
-A: Read without locking, validate at end. If validation fails, acquire lock and retry.
-
-**Q: What is CAS?**
-A: Compare-And-Swap. Atomic CPU instruction. If current == expected, set to new value.
-
-**Q: What is the ABA problem?**
-A: Value changes A→B→A. CAS succeeds but state changed. Solution: AtomicStampedReference.
-
-**Q: When to use LongAdder vs AtomicLong?**
-A: LongAdder for high contention writes. AtomicLong for low contention or when need atomic read.
-
-**Q: What does volatile guarantee?**
-A: Visibility (all threads see latest value) and ordering (prevents reordering). Not atomicity.
-
-**Q: Why use Condition over wait/notify?**
-A: Multiple conditions per lock, interruptible wait, timeout support.
+┌───────────────────────────┬────────────────────────────────────────────────────────┐
+│ Mechanism                 │ Key Architecture / Distinction                         │
+├───────────────────────────┼────────────────────────────────────────────────────────┤
+│ Lock Escalation           │ Unlocked (01) -> Lightweight (00) -> Heavyweight (10)  │
+│ volatile                  │ Visibility + Memory Barriers (No compound atomicity)   │
+│ AQS                       │ volatile int state + CLH doubly-linked FIFO wait queue │
+│ ReentrantLock Unfairness  │ Bypasses queue on arrival; up to 10x higher throughput │
+│ StampedLock Optimistic    │ tryOptimisticRead() + validate(stamp) - zero lock wait │
+│ LongAdder                 │ Cell striping + @Contended padding to beat false sharing│
+└───────────────────────────┴────────────────────────────────────────────────────────┘
+```
