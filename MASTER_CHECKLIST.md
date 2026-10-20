@@ -25,34 +25,45 @@ This master checklist covers all 6 major technical areas for comprehensive Java 
 ## 1. Core Java
 
 **Location**: [CORE_JAVA/](./CORE_JAVA/)  
-**Estimated Time**: 4-5 weeks  
-**Question Count**: 900+ (50+ per chapter)
+**Master Index**: [CORE_JAVA/README.md](./CORE_JAVA/README.md)  
+**Standard**: [CORE_JAVA/STANDARD.md](./CORE_JAVA/STANDARD.md)  
+**Estimated Time**: 4 weeks (see the [4-week plan](./CORE_JAVA/README.md#-how-to-practise-a-real-4-week-plan))  
+**Question Count**: 1,300+ across 44 chapters, plus **counter-questions** and **MCQ banks** in every chapter
 
-### Fundamentals (Week 1-2)
-- [ ] 01. Core Java OOP - 4 Pillars, Inheritance, Polymorphism
-- [ ] 02. Java Memory Model - Heap, Stack, GC
-- [ ] 03. Exception Handling - Checked, Unchecked, Best Practices
-- [ ] 04. Collections Framework - List, Set, Map, Queue
-- [ ] 05. Generics - Type Parameters, Wildcards, Type Erasure
+**Chapter checklist format used below:** `[ ]` = not yet studied · `[x]` = revised · `[✓]` = can answer without notes
 
-### Modern Java (Week 2-3)
-- [ ] 06. Java 8 Features - Lambda, Streams, Optional
-- [ ] 07. Java 11-17-21 Features - Records, Sealed Classes, Pattern Matching
-- [ ] 08. Multithreading & Concurrency - Threads, Executors, Locks
+### Fundamentals (Week 1)
+- [ ] 01. Core Java OOP — 13 chapters: 4 Pillars, Access Modifiers, Encapsulation vs Abstraction, Inheritance & Diamond, Polymorphism, Interface vs Abstract, final/static/volatile, equals/hashCode, Immutables, Nested/Anonymous, Object class, Variance, Tricky Scenarios
+- [ ] 02. Java Memory Model — Stack/Heap/Metaspace, GC (G1/ZGC/Shenandoah), JVM Internals (class loading, JIT, diagnostics)
+- [ ] 03. Exception Handling — Hierarchy, try-with-resources, suppressed exceptions, custom exceptions
+- [ ] 04. Collections Framework — Lists, Maps (HashMap/CHM internals), Sets/Queues/Utilities, complexity tables
+- [ ] 05. Generics — Erasure, wildcards, PECS, bounded types, bridge methods
 
-### Design & Patterns (Week 3-4)
-- [ ] 09. Design Patterns - Singleton, Factory, Builder, Observer
-- [ ] 10. SOLID Principles - SRP, OCP, LSP, ISP, DIP
-- [ ] 11. Data Structures & Algorithms - Arrays, Trees, Graphs
+### Modern Java (Week 2)
+- [ ] 06. Java 8 Features — Lambda & functional interfaces, Stream API internals, Optional & CompletableFuture
+- [ ] 07. Java 11/17/21 — `var`, Records, Sealed Classes, Pattern Matching, Virtual Threads
+- [ ] 08. Multithreading & Concurrency — JMM/happens-before, Executor framework, Locks & atomics, Deadlock/livelock/false-sharing
 
-### Advanced Topics (Week 4-5)
-- [ ] 12. Strings - String Pool, StringBuilder, Immutability
-- [ ] 13. Enums - Enum Basics, Advanced Usage
-- [ ] 14. Reflection & Annotations - Runtime Inspection, Custom Annotations
-- [ ] 15. IO & NIO - File Operations, Streams, NIO.2
-- [ ] 16. JDBC - Database Connectivity, PreparedStatement
-- [ ] 17. Serialization - Object Serialization, Externalizable
-- [ ] 18. Testing - JUnit, Mockito, Test-Driven Development
+### Design & Patterns (Week 3)
+- [ ] 09. Design Patterns — All 23 GoF with class diagrams, production examples, counter-questions
+- [ ] 10. SOLID Principles — SRP/OCP/LSP/ISP/DIP with ❌→✅ refactors and Spring examples
+- [ ] 11. Data Structures & Algorithms — Complexity ladder, ~35 canonical problems, dry-run traces
+
+### Advanced Topics (Week 4)
+- [ ] 12. Strings — String pool, compact strings, concat internals, `substring` leaks, `intern`
+- [ ] 13. Enums — Compiler internals, `EnumMap`/`EnumSet`, constant-specific bodies
+- [ ] 14. Reflection & Annotations — `Class` internals, retention policy, dynamic proxies, `MethodHandles`
+- [ ] 15. IO & NIO — Streams vs Channels, Buffers, Selectors, NIO.2 file API, memory-mapped files
+- [ ] 16. JDBC — 6-step flow, SQL injection, transactions, isolation levels, connection pooling
+- [ ] 17. Serialization — `serialVersionUID`, custom serialization, deserialisation attacks & defences
+- [ ] 18. Testing — JUnit 5, Mockito, TestNG, Test pyramid, test smells, flaky tests
+
+### 🎯 Core Java Readiness Checklist
+- [ ] I can answer all **Top-40 questions** in the [Question Bank](./CORE_JAVA/README.md#-the-question-bank) with the *naive answer → trap → expert answer* structure
+- [ ] I can handle **8+ counter-questions per chapter** without notes
+- [ ] I can trace any ASCII diagram in this folder out loud
+- [ ] I have completed at least **one coding drill** per chapter
+- [ ] I have done **3 recorded mock interviews** (45 min each)
 
 ---
 

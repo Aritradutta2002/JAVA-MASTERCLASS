@@ -80,7 +80,22 @@ Click on any folder to explore detailed interview notes and concepts.
 | **08-Multithreading-Concurrency** | Threads, Executor Framework, Synchronization, Locks, Atomic Classes | [Open Folder](CORE_JAVA/08-Multithreading-Concurrency) |
 | **09-Design-Patterns** | Singleton, Factory, Observer, Strategy, Builder, Proxy | [Open Folder](CORE_JAVA/09-Design-Patterns) |
 | **10-SOLID-Principles** | Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion | [Open Folder](CORE_JAVA/10-SOLID-Principles) |
-| **11-DSA** | Quick reference for DSA concepts | [Open Folder](CORE_JAVA/11-DSA) |
+| **11-DSA** | Complexity ladder, ~35 canonical problems, dry-run traces, pattern fingerprints | [Open Folder](CORE_JAVA/11-DSA) |
+| **12-Strings** | String Pool, Immutability, StringBuilder, `substring` leaks, Interning | [Open Folder](CORE_JAVA/12-Strings) |
+| **13-Enums** | Compiler Internals, `EnumMap`/`EnumSet`, Constant-Specific Bodies | [Open Folder](CORE_JAVA/13-Enums) |
+| **14-Reflection-Annotations** | `Class` Internals, Retention Policy, Dynamic Proxies, JPMS | [Open Folder](CORE_JAVA/14-Reflection-Annotations) |
+| **15-IO-NIO** | Byte/Char Streams, Channels, Buffers, Selectors, NIO.2 | [Open Folder](CORE_JAVA/15-IO-NIO) |
+| **16-JDBC** | 6-Step Flow, `PreparedStatement`, Transactions, Isolation Levels | [Open Folder](CORE_JAVA/16-JDBC) |
+| **17-Serialization** | `serialVersionUID`, Custom Ser., Deserialisation Attacks | [Open Folder](CORE_JAVA/17-Serialization) |
+| **18-Testing** | JUnit 5, Mockito, TestNG, Test Pyramid, Test Smells | [Open Folder](CORE_JAVA/18-Testing) |
+
+> ☕ **Every chapter** follows the [CORE_JAVA Standard](./CORE_JAVA/STANDARD.md):
+> TL;DR → Deep Theory → ASCII/Mermaid Visualisations → Worked Examples with output
+> → Production Code → Pitfalls → Level-wise Q&A → **Counter-Questions & Traps**
+> → Rapid-Fire MCQs → Cheat Sheet → Production Notes.
+>
+> 🔥 Start with the **[CORE_JAVA Master Index](./CORE_JAVA/README.md)** — it has the
+> **Top-40 question bank**, the 4-week study plan, and the counter-question technique.
 
 ---
 
