@@ -5,7 +5,8 @@
 This master checklist covers all 6 major technical areas for comprehensive Java backend interview preparation. Use this to track your progress and ensure complete coverage of all essential topics.
 
 **Total Areas**: 6  
-**Estimated Study Time**: 12-16 weeks (full-time preparation)
+**Estimated Study Time**: 12-16 weeks (full-time preparation)  
+**Deepest track**: [SPRING_BOOT/](./SPRING_BOOT/README.md) — 14 topics, 72 chapters, 1,200+ questions
 
 ---
 
@@ -14,7 +15,7 @@ This master checklist covers all 6 major technical areas for comprehensive Java 
 | Area | Chapters | Priority | Status |
 |------|----------|----------|--------|
 | [Core Java](#1-core-java) | 18 | ⭐⭐⭐⭐⭐ | 🚧 In Progress |
-| [Spring & Spring Boot](#2-spring--spring-boot) | 7 | ⭐⭐⭐⭐⭐ | 🚧 Planned |
+| [Spring & Spring Boot](#2-spring--spring-boot) | 72 | ⭐⭐⭐⭐⭐ | 🚧 Planned |
 | [Docker for Java Backend](#3-docker-for-java-backend) | 5 | ⭐⭐⭐⭐ | 🚧 Planned |
 | [Cloud & DevOps](#4-cloud--devops) | 6 | ⭐⭐⭐⭐ | 🚧 Planned |
 | [Database & Caching](#5-database--caching) | 5 | ⭐⭐⭐⭐⭐ | 🚧 Planned |
@@ -69,24 +70,47 @@ This master checklist covers all 6 major technical areas for comprehensive Java 
 
 ## 2. Spring & Spring Boot
 
-**Location**: [SPRING_SPRINGBOOT/](./SPRING_SPRINGBOOT/)  
-**Estimated Time**: 3-4 weeks  
-**Scenario Count**: 190+
+**Location**: [SPRING_BOOT/](./SPRING_BOOT/README.md)  
+**Master Index**: [SPRING_BOOT/README.md](./SPRING_BOOT/README.md)  
+**Standard**: [SPRING_BOOT/STANDARD.md](./SPRING_BOOT/STANDARD.md)  
+**Estimated Time**: 8 weeks (see the 8-week plan in the [master index](./SPRING_BOOT/README.md))  
+**Chapter Count**: 72 chapters across 14 topics, 1,200+ questions with **counter-questions** in every chapter
 
-### Core Spring (Week 1)
-- [ ] 01. Core Spring - IoC, DI, Bean Lifecycle, AOP
-- [ ] 02. Spring Boot - Auto-configuration, Starters, Actuator
+**Chapter checklist format used below:** `[ ]` = not yet studied · `[x]` = revised · `[✓]` = can answer without notes
 
-### Web & Data (Week 2)
-- [ ] 03. Spring MVC - REST APIs, Controllers, Exception Handling
-- [ ] 04. Spring Data JPA - Repositories, Queries, Transactions
+### Foundations (Week 1)
+- [ ] 01. Spring Boot Fundamentals — [01-Architecture-and-Internals](./SPRING_BOOT/01-Spring-Boot-Fundamentals/01-Architecture-and-Internals.md), Auto-config, Config & Profiles, Actuator, Request Lifecycle · 5 ch
+- [ ] 02. Spring Core — IoC Container, DI, Bean Lifecycle & Scopes, AOP & Proxies, Modules · 5 ch
+- [ ] 03. Spring MVC — DispatcherServlet, REST Controllers, Validation, Exception Handling, Filters & Interceptors · 5 ch
 
-### Security & Cloud (Week 3)
-- [ ] 05. Spring Security - Authentication, Authorization, JWT, OAuth2
-- [ ] 06. Spring Cloud - Microservices, Service Discovery, Config
+### Persistence & Security (Week 2-3)
+- [ ] 04. Spring Data JPA & Hibernate — ORM Theory, Persistence Context, Entity Lifecycle, Fetching & N+1, Transactions, Hibernate Tuning · 6 ch
+- [ ] 05. Spring Security — Filter Chain, Authentication, Authorization, CORS/CSRF, Method Security, Production Patterns, Best Practices · 7 ch
+- [ ] 06. JWT Authentication — Anatomy, Stateless Flow, Access/Refresh Rotation, Security Risks · 4 ch
+- [ ] 07. OAuth2 & OIDC — Architecture, Auth Code + PKCE, Client Credentials, OIDC & Social Login, Security, Enterprise SSO · 6 ch
 
-### Testing (Week 4)
-- [ ] 07. Spring Testing - Unit Tests, Integration Tests, MockMvc
+### Distributed Systems (Week 4)
+- [ ] 08. Microservices — Monolith vs µServices, Communication & Contracts, Discovery/Config/Gateway, Circuit Breakers, Tracing, Sagas · 6 ch
+- [ ] 09. Messaging — Kafka Architecture, Producers/Consumers & Spring Kafka, RabbitMQ, Reliable Messaging & EDA · 4 ch
+- [ ] 10. Caching — Patterns, Redis & Spring Cache, Consistency/Invalidation/Stampedes, Multi-Level & Ops · 4 ch
+
+### Data & Design (Week 5)
+- [ ] 11. Database Design & Optimisation — Schema & Normalisation, Indexing, Query Plans, Locking & Isolation, Scaling/Partitioning/Replication · 5 ch
+- [ ] 12. System Design for Java Backend — Framework, Scalability & Reliability, Classic Problems, Data-Intensive Designs, Capacity Estimation, Case Studies · 6 ch
+
+### Testing & Production (Week 6)
+- [ ] 13. Testing — Strategy & Pyramid, Unit & Slice Tests, Testcontainers & Contracts, Performance & CI Pipelines · 4 ch
+- [ ] 14. Deployment & DevOps — Docker, Kubernetes, CI/CD & Releases, Observability & SRE, Cloud/IaC/Cost · 5 ch
+
+### 🎯 Spring Readiness Checklist
+- [ ] I can answer all **Top-50 questions** in the [SPRING_BOOT question bank](./SPRING_BOOT/README.md#-the-question-bank--top-50-must-master-questions) with the *naive → trap → expert* structure
+- [ ] I can handle **8+ counter-questions per chapter** without notes
+- [ ] I have traced the startup flow, security filter chain, and one saga end-to-end out loud
+- [ ] I have built one end-to-end service (JWT auth + JPA + Redis + Kafka + Docker + K8s manifests)
+- [ ] I have done **3 recorded mock interviews** covering Spring internals and system design
+
+> 📦 The legacy 7-topic index at [SPRING_SPRINGBOOT/](./SPRING_SPRINGBOOT/) is superseded by the
+> 72-chapter [SPRING_BOOT/](./SPRING_BOOT/README.md) track above.
 
 ---
 
@@ -224,7 +248,8 @@ This master checklist covers all 6 major technical areas for comprehensive Java 
 ## 🔗 Quick Links
 
 - [Core Java README](./CORE_JAVA/README.md)
-- [Spring & Spring Boot README](./SPRING_SPRINGBOOT/README.md)
+- [Spring & Spring Boot README (72 chapters)](./SPRING_BOOT/README.md)
+- [Legacy Spring index (superseded)](./SPRING_SPRINGBOOT/README.md)
 - [Docker README](./DOCKER_JAVA_BACKEND/README.md)
 - [Cloud & DevOps README](./CLOUD_DEVOPS/README.md)
 - [Database & Caching README](./DATABASE_CACHING/README.md)
@@ -232,5 +257,5 @@ This master checklist covers all 6 major technical areas for comprehensive Java 
 
 ---
 
-*Last Updated: 2024*  
-*Total Content: 1000+ Questions | 190+ Scenarios | 6 Major Areas*
+*Last Updated: 2026*  
+*Total Content: 2,500+ Questions | 250+ Scenarios | 6 Major Areas | 72 Spring Boot chapters*
