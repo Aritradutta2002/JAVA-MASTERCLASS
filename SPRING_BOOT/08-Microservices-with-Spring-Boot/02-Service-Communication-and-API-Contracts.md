@@ -2898,4 +2898,4 @@ to REST).
 
 ---
 **Next Chapter:** → [03 · Service Discovery, Config & API Gateway](./03-Service-Discovery-Config-and-API-Gateway.md)
-**Previous Chapter:** ← [01 · Monolith vs Microservices](./01-Monolith-vs-Microservices-and-When-to-Use-Which.md)
+**Previous Chapter:** ← [01 · Monolith vs Microservices](./01-Monolith-vs-Microservices-and-Service-Discovery.md)

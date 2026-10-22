@@ -2,7 +2,7 @@
 
 > **Level:** Beginner → Advanced
 > **Interview Frequency:** ★★★★☆ ("Why is my CORS failing? How do you prevent CSRF?")
-> **Prerequisite:** [01 · Security Architecture](./01-Security-Architecture-and-Filter-Chain.md)
+> **Prerequisite:** [01 · Security Architecture](./01-Architecture-and-Security-Filter-Chain.md)
 > **Last Updated:** 2026
 
 ---

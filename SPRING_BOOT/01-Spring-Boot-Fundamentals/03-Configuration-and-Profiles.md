@@ -1407,7 +1407,7 @@ A) A shared `application.yml` in a common jar  B) A shared `@ConfigurationProper
 
 - → [04 · Actuator & Observability](./04-Actuator-and-Observability.md) — exposing health, metrics
   and config safely.
-- → [02 · Auto-Configuration](./02-Auto-Configuration-and-Starters.md) — how properties bind into
+- → [02 · Auto-Configuration](./02-Auto-Configuration-and-Conditional-Internals.md) — how properties bind into
   auto-configured beans.
 - → [11 · DB Optimisation](../11-Database-Design-Optimization/05-Scaling-Partitioning-and-Replication.md) —
   tuning HikariCP from properties.
@@ -1415,4 +1415,4 @@ A) A shared `application.yml` in a common jar  B) A shared `@ConfigurationProper
 
 ---
 **Next Chapter:** → [04 · Actuator & Observability](./04-Actuator-and-Observability.md)
-**Previous Chapter:** ← [02 · Auto-Configuration & Starters](./02-Auto-Configuration-and-Starters.md)
+**Previous Chapter:** ← [02 · Auto-Configuration & Starters](./02-Auto-Configuration-and-Conditional-Internals.md)

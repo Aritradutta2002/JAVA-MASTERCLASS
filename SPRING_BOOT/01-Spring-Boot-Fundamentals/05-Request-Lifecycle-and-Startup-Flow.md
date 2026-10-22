@@ -1743,11 +1743,11 @@ A) `/api`  B) `/`  C) `/dispatch`  D) `/*`
 
 - → [03 · Spring MVC](../03-Spring-MVC/README.md) — the full MVC deep dive (controllers, REST,
   validation, exceptions, file upload).
-- → [02 · Spring Core](../02-Spring-Core/04-AOP-and-Proxies.md) — the proxy mechanics that make
+- → [02 · Spring Core](../02-Spring-Core-Framework/04-AOP-Proxy-Mechanics-and-Spring-Modules.md) — the proxy mechanics that make
   `@Transactional` work (or not).
-- → [04 · JPA](../04-Spring-Data-JPA-Hibernate/05-Transactions-and-Query-Optimization.md) — transaction
+- → [04 · JPA](../04-Spring-Data-JPA-Hibernate/03-Transactions-Propagation-and-Isolation.md) — transaction
 > propagation in detail.
-- → [05 · Spring Security](../05-Spring-Security/01-Security-Architecture-and-Filter-Chain.md) —
+- → [05 · Spring Security](../05-Spring-Security/01-Architecture-and-Security-Filter-Chain.md) —
 > the filter chain in depth.
 
 ---

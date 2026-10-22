@@ -1027,7 +1027,7 @@ A) They're identical  B) `hasRole` prefixes `ROLE_` automatically  C) `hasAuthor
 ## 16. Follow-up Learning
 
 - → [06 · JWT Authentication](../06-JWT-Authentication/README.md) — token design.
-- → [07 · OAuth2 & OIDC](../07-OAuth2-OIDC/README.md) — identity providers.
+- → [07 · OAuth2 & OIDC](../07-OAuth2-OpenID-Connect/README.md) — identity providers.
 - → [13 · Testing](../13-Testing/README.md) — security testing in depth.
 - → [14 · Deployment & DevOps](../14-Deployment-DevOps/README.md) — secrets, CI/CD,
   monitoring.

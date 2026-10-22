@@ -3,7 +3,7 @@
 > **Everything you need to crack a Spring Boot / Java backend interview at the 3–4+ years level —
 > in depth.**
 >
-> 14 topic areas · 57 deep-dive chapters · 400+ interview questions with expert answers ·
+> 14 topic areas · 68 deep-dive chapters · 500+ interview questions with expert answers ·
 > counter-questions (interviewer push-back) · visualisations · dry-run traces · MCQ banks ·
 > production incident walkthroughs · system design solutions.
 >
@@ -22,7 +22,7 @@
 |----------|---------|
 | 🟢 **Fresher (0–1 yr)** | Start at [01 · Boot Fundamentals](./01-Spring-Boot-Fundamentals/README.md) → [02 · Spring Core](./02-Spring-Core-Framework/README.md) → [03 · Spring MVC](./03-Spring-MVC/README.md) → [05 · Security](./05-Spring-Security/README.md). Use the TL;DR + Cheat Sheet only. |
 | 🟡 **Mid (2–5 yr)** | Everything in order. Focus on [04 · JPA](./04-Spring-Data-JPA-Hibernate/README.md) (N+1, transactions), [05 · Security](./05-Spring-Security/README.md), [06 · JWT](./06-JWT-Authentication/README.md), [08 · Microservices](./08-Microservices-with-Spring-Boot/README.md). |
-| 🔴 **Senior (5+ yr)** | [02 · AOP & Proxy Mechanics](./02-Spring-Core-Framework/04-AOP-Proxy-Mechanics-and-Spring-Modules.md), [04 · Hibernate Internals](./04-Spring-Data-JPA-Hibernate/05-Hibernate-Internals-and-Performance-Tuning.md), [08 · Resilience4j](./08-Microservices-with-Spring-Boot/03-Circuit-Breaker-Resilience4j-and-Fault-Tolerance.md), [12 · System Design](./12-System-Design-for-Java-Backend/README.md). |
+| 🔴 **Senior (5+ yr)** | [02 · AOP & Proxy Mechanics](./02-Spring-Core-Framework/04-AOP-Proxy-Mechanics-and-Spring-Modules.md), [04 · Hibernate Internals](./04-Spring-Data-JPA-Hibernate/05-Hibernate-Internals-and-Performance-Tuning.md), [08 · Resilience4j](./08-Microservices-with-Spring-Boot/04-Circuit-Breaker-and-Resilience.md), [12 · System Design](./12-System-Design-for-Java-Backend/README.md). |
 | ⚫ **Mock interview tonight** | [🔥 Question Bank](#-the-question-bank) + the Counter-Questions section of every chapter. |
 | 🏃 **30-minute refresher** | [05/01 · Security Filter Chain](./05-Spring-Security/01-Architecture-and-Security-Filter-Chain.md) → [06/01 · JWT Architecture](./06-JWT-Authentication/01-JWT-Architecture-Statelessness-and-Signature-Algorithms.md) → [04/03 · Transactions](./04-Spring-Data-JPA-Hibernate/03-Transactions-Propagation-and-Isolation.md) → [03/01 · DispatcherServlet](./03-Spring-MVC/01-DispatcherServlet-and-Complete-Request-Flow.md). |
 
@@ -32,26 +32,26 @@
 
 | # | Topic | Chapters | Level | Priority | Index |
 |---|-------|----------|-------|----------|-------|
-| 01 | **Spring Boot Fundamentals** | 5 | 🟢→🔴 | ⭐⭐⭐⭐⭐ | [Open](./01-Spring-Boot-Fundamentals/README.md) |
+| 01 | **Spring Boot Fundamentals** | 6 | 🟢→⚫ | ⭐⭐⭐⭐⭐ | [Open](./01-Spring-Boot-Fundamentals/README.md) |
 | 02 | **Spring Core & Framework** | 4 | 🟡→⚫ | ⭐⭐⭐⭐⭐ | [Open](./02-Spring-Core-Framework/README.md) |
 | 03 | **Spring MVC** | 4 | 🟢→🔴 | ⭐⭐⭐⭐⭐ | [Open](./03-Spring-MVC/README.md) |
 | 04 | **Spring Data JPA & Hibernate** | 5 | 🟡→⚫ | ⭐⭐⭐⭐⭐ | [Open](./04-Spring-Data-JPA-Hibernate/README.md) |
-| 05 | **Spring Security** | 5 | 🟡→⚫ | ⭐⭐⭐⭐⭐ | [Open](./05-Spring-Security/README.md) |
+| 05 | **Spring Security** | 7 | 🟡→⚫ | ⭐⭐⭐⭐⭐ | [Open](./05-Spring-Security/README.md) |
 | 06 | **JWT Authentication** | 4 | 🟡→🔴 | ⭐⭐⭐⭐⭐ | [Open](./06-JWT-Authentication/README.md) |
 | 07 | **OAuth2 & OpenID Connect** | 4 | 🟡→🔴 | ⭐⭐⭐⭐ | [Open](./07-OAuth2-OpenID-Connect/README.md) |
-| 08 | **Microservices with Spring Boot** | 4 | 🟡→⚫ | ⭐⭐⭐⭐⭐ | [Open](./08-Microservices-with-Spring-Boot/README.md) |
+| 08 | **Microservices with Spring Boot** | 6 | 🟡→⚫ | ⭐⭐⭐⭐⭐ | [Open](./08-Microservices-with-Spring-Boot/README.md) |
 | 09 | **Messaging Systems** | 4 | 🟡→🔴 | ⭐⭐⭐⭐ | [Open](./09-Messaging-Systems/README.md) |
-| 10 | **Caching** | 3 | 🟡→🔴 | ⭐⭐⭐⭐⭐ | [Open](./10-Caching/README.md) |
-| 11 | **Database Design & Optimization** | 4 | 🟡→🔴 | ⭐⭐⭐⭐⭐ | [Open](./11-Database-Design-and-Optimization/README.md) |
-| 12 | **System Design for Java Backend** | 4 | 🟡→🔴 | ⭐⭐⭐⭐⭐ | [Open](./12-System-Design-for-Java-Backend/README.md) |
-| 13 | **Testing** | 3 | 🟢→🔴 | ⭐⭐⭐⭐⭐ | [Open](./13-Testing/README.md) |
-| 14 | **Deployment & DevOps** | 4 | 🟢→🔴 | ⭐⭐⭐⭐ | [Open](./14-Deployment-and-DevOps/README.md) |
+| 10 | **Caching** | 4 | 🟡→🔴 | ⭐⭐⭐⭐⭐ | [Open](./10-Caching/README.md) |
+| 11 | **Database Design & Optimization** | 5 | 🟡→🔴 | ⭐⭐⭐⭐⭐ | [Open](./11-Database-Design-Optimization/README.md) |
+| 12 | **System Design for Java Backend** | 6 | 🟡→🔴 | ⭐⭐⭐⭐⭐ | [Open](./12-System-Design-for-Java-Backend/README.md) |
+| 13 | **Testing** | 4 | 🟢→🔴 | ⭐⭐⭐⭐⭐ | [Open](./13-Testing/README.md) |
+| 14 | **Deployment & DevOps** | 5 | 🟢→🔴 | ⭐⭐⭐⭐ | [Open](./14-Deployment-DevOps/README.md) |
 
 ---
 
 ## 🔥 The Question Bank
 
-### Top 40 Questions by Frequency (must-master)
+### Top 55 Questions by Frequency (must-master)
 
 | # | Question | Chapter | Trap in the naive answer |
 |---|----------|---------|--------------------------|
@@ -65,7 +65,7 @@
 | 8 | Why does `@Configuration` class get CGLIB-proxied? | [02/03](./02-Spring-Core-Framework/03-Bean-Scopes-Component-Scanning-and-Configuration.md) | "For performance" — it is for **inter-bean method call interception** (`proxyBeanMethods = true`) |
 | 9 | JDK dynamic proxy vs CGLIB — when does Spring pick which? | [02/04](./02-Spring-Core-Framework/04-AOP-Proxy-Mechanics-and-Spring-Modules.md) | Saying "CGLIB for classes, JDK for interfaces" without the rule: **JDK proxy if the target implements ≥1 interface** |
 | 10 | Why does `@Transactional` not work on a self-invoked method? | [02/04](./02-Spring-Core-Framework/04-AOP-Proxy-Mechanics-and-Spring-Modules.md) | "Because of the proxy" — without saying the call never leaves the target, so the advice never runs |
-| 11 | What is the complete HTTP request lifecycle in Spring Boot? | [01/05](./01-Spring-Boot-Fundamentals/05-Internal-Working-Flow-and-Request-Lifecycle.md) | Stopping at "DispatcherServlet → Controller → Response" |
+| 11 | What is the complete HTTP request lifecycle in Spring Boot? | [01/05](./01-Spring-Boot-Fundamentals/05-Request-Lifecycle-and-Startup-Flow.md) | Stopping at "DispatcherServlet → Controller → Response" |
 | 12 | What are the 9 `DispatcherServlet` strategies? | [03/01](./03-Spring-MVC/01-DispatcherServlet-and-Complete-Request-Flow.md) | Listing only `HandlerMapping`/`HandlerAdapter`/`ViewResolver` |
 | 13 | `Filter` vs `Interceptor` vs `Aspect` — when does each run? | [03/04](./03-Spring-MVC/04-Filters-Interceptors-ArgumentResolvers-and-File-Transfer.md) | Claiming AOP runs "around everything" — it runs **only around the controller method** |
 | 14 | `@RestController` vs `@Controller`? | [03/02](./03-Spring-MVC/02-Controllers-REST-APIs-and-Content-Negotiation.md) | Only "one returns a body" — `@ResponseBody` is the actual difference |
@@ -82,9 +82,9 @@
 | 25 | Explain the Spring Security filter chain | [05/01](./05-Spring-Security/01-Architecture-and-Security-Filter-Chain.md) | Listing filters without the **ordering contract** (CORS before auth, `ExceptionTranslationFilter` last-ish) |
 | 26 | `UserDetailsService` vs `AuthenticationProvider`? | [05/02](./05-Spring-Security/02-Authentication-Flow-UserDetailsService-and-Providers.md) | Treating `UserDetailsService` as *the* authentication mechanism — it is only a **user lookup** |
 | 27 | 401 vs 403 — when is each returned? | [05/02](./05-Spring-Security/02-Authentication-Flow-UserDetailsService-and-Providers.md) | Not explaining that `ExceptionTranslationFilter` decides based on whether the `Authentication` is anonymous |
-| 28 | `@PreAuthorize` vs URL security — which wins? | [05/03](./05-Spring-Security/03-Authorization-Roles-Permissions-and-Method-Security.md) | Not knowing the URL rules run **first**, and method security runs **last** (deepest) |
-| 29 | Which password encoder should I use? | [05/04](./05-Spring-Security/04-Password-Encoding-Sessions-CSRF-and-CORS.md) | Recommending raw `BCrypt` — the production answer is `DelegatingPasswordEncoder` |
-| 30 | CSRF vs CORS — are they the same? | [05/04](./05-Spring-Security/04-Password-Encoding-Sessions-CSRF-and-CORS.md) | Saying "CORS protects against CSRF" — **it does not** |
+| 28 | `@PreAuthorize` vs URL security — which wins? | [05/03](./05-Spring-Security/03-Authorization-Roles-and-Permissions.md) | Not knowing the URL rules run **first**, and method security runs **last** (deepest) |
+| 29 | Which password encoder should I use? | [05/02](./05-Spring-Security/02-Authentication-Flow-UserDetailsService-and-Providers.md) | Recommending raw `BCrypt` — the production answer is `DelegatingPasswordEncoder` |
+| 30 | CSRF vs CORS — are they the same? | [05/04](./05-Spring-Security/04-CORS-CSRF-and-Session-Management.md) | Saying "CORS protects against CSRF" — **it does not** |
 | 31 | JWT structure and the three parts | [06/01](./06-JWT-Authentication/01-JWT-Architecture-Statelessness-and-Signature-Algorithms.md) | Not saying the payload is **base64url, not encrypted** |
 | 32 | HS256 vs RS256 — when does it matter? | [06/01](./06-JWT-Authentication/01-JWT-Architecture-Statelessness-and-Signature-Algorithms.md) | Missing that HS256 requires the **verifier to hold the signing key** (a secret-sharing problem) |
 | 33 | How do you revoke a JWT? | [06/03](./06-JWT-Authentication/03-Token-Revocation-Storage-and-Production-Design.md) | "You can't" — the answer is a **short TTL + refresh-token denylist** |
@@ -93,22 +93,23 @@
 | 36 | OAuth2 vs OIDC — what is the difference? | [07/03](./07-OAuth2-OpenID-Connect/03-Client-Credentials-Refresh-Tokens-and-OpenID-Connect.md) | "OIDC is OAuth2 with a token" — it is an **identity layer with an ID token and userinfo endpoint** |
 | 37 | Why is PKCE mandatory now? | [07/02](./07-OAuth2-OpenID-Connect/02-Authorization-Code-and-PKCE-Flows.md) | Not saying it closes the **authorization code interception** attack on public clients |
 | 38 | Monolith vs microservices — when do you NOT split? | [08/01](./08-Microservices-with-Spring-Boot/01-Monolith-vs-Microservices-and-Service-Discovery.md) | Answering "always microservices" — the trap is the **distributed monolith** |
-| 39 | Circuit breaker states and the failure modes it fixes | [08/03](./08-Microservices-with-Spring-Boot/03-Circuit-Breaker-Resilience4j-and-Fault-Tolerance.md) | Not mentioning that **timeouts must come first** — a breaker without a timeout is useless |
-| 40 | Kafka ordering guarantee — across what boundary? | [09/03](./09-Messaging-Systems/03-Consumer-Groups-Partitions-and-Ordering-Guarantees.md) | "Kafka guarantees ordering" — it guarantees it **within a partition only** |
-| 41 | How do you make a message consumer idempotent? | [09/04](./09-Messaging-Systems/04-DLQ-Retry-Idempotency-and-Event-Driven-Design.md) | Not naming the **idempotency key + dedup table** pattern |
-| 42 | Cache-aside vs write-through — when? | [10/02](./10-Caching/02-Cache-Aside-Pattern-and-Distributed-Caching.md) | Not naming the **stale window** trade-off that cache-aside accepts |
-| 43 | How do you prevent a cache stampede? | [10/02](./10-Caching/02-Cache-Aside-Pattern-and-Distributed-Caching.md) | Only saying "use a lock" — not the **single-flight / stale-while-revalidate** variants |
-| 44 | Composite index and the leftmost prefix rule | [11/01](./11-Database-Design-and-Optimization/01-Indexing-and-Query-Optimization.md) | Not explaining **why** `WHERE b = ?` cannot use `(a, b)` |
-| 45 | What causes a deadlock and how do you find it? | [11/03](./11-Database-Design-and-Optimization/03-Deadlocks-and-Concurrency-Troubleshooting.md) | Not naming the **wait-for graph** or `SHOW ENGINE INNODB STATUS` |
-| 46 | How do you size a connection pool? | [11/04](./11-Database-Design-and-Optimization/04-Connection-Pooling-HikariCP-and-Database-Scaling.md) | "Set it to 20" — not **Little's law** (`pool ≈ concurrent requests × latency`) |
-| 47 | Design a URL shortener | [12/02](./12-System-Design-for-Java-Backend/02-URL-Shortener-and-Rate-Limiter.md) | Not covering **key generation at scale** and **hot-key redirects** |
-| 48 | Token bucket vs sliding window for rate limiting? | [12/02](./12-System-Design-for-Java-Backend/02-URL-Shortener-and-Rate-Limiter.md) | Not mentioning the **Redis atomicity** requirement |
-| 49 | Unit vs integration vs E2E — where does each live? | [13/01](./13-Testing/01-JUnit5-and-Mockito.md) | Describing the pyramid's shape without the **slice-test** concept |
-| 50 | Why is your integration test flaky? | [13/02](./13-Testing/02-Integration-Testing-and-Testcontainers.md) | Not knowing the three usual causes: **time, shared state, ordering** |
-| 51 | How do you containerise a Spring Boot app properly? | [14/01](./14-Deployment-and-DevOps/01-Docker-and-Docker-Compose.md) | Not mentioning the **layered JAR / `jarmode=layertools`** extraction |
-| 52 | Liveness vs readiness probe — what happens if you get it wrong? | [14/02](./14-Deployment-and-DevOps/02-Kubernetes-Basics.md) | Not knowing that a **failing liveness probe on a slow warm-up causes a crash loop** |
-| 53 | What are the four golden signals? | [14/04](./14-Deployment-and-DevOps/04-Monitoring-Logging-and-Observability.md) | Not being able to name **latency, traffic, errors, saturation** |
-| 54 | Structured logging and correlation IDs | [14/04](./14-Deployment-and-DevOps/04-Monitoring-Logging-and-Observability.md) | Not knowing that the **correlation ID must be propagated to every downstream call** |
+| 39 | Circuit breaker states and the failure modes it fixes | [08/04](./08-Microservices-with-Spring-Boot/04-Circuit-Breaker-and-Resilience.md) | Not mentioning that **timeouts must come first** — a breaker without a timeout is useless |
+| 40 | Kafka ordering guarantee — across what boundary? | [09/01](./09-Messaging-Systems/01-Kafka-Architecture-and-Fundamentals.md) | "Kafka guarantees ordering" — it guarantees it **within a partition only** |
+| 41 | How do you make a message consumer idempotent? | [09/04](./09-Messaging-Systems/04-Reliable-Messaging-and-Event-Driven-Architecture.md) | Not naming the **idempotency key + dedup table** pattern |
+| 42 | Cache-aside vs write-through — when? | [10/01](./10-Caching/01-Caching-Fundamentals-and-Patterns.md) | Not naming the **stale window** trade-off that cache-aside accepts |
+| 43 | How do you prevent a cache stampede? | [10/03](./10-Caching/03-Cache-Consistency-Invalidation-and-Stampedes.md) | Only saying "use a lock" — not the **single-flight / stale-while-revalidate** variants |
+| 44 | Composite index and the leftmost prefix rule | [11/02](./11-Database-Design-Optimization/02-Indexing-Deep-Dive.md) | Not explaining **why** `WHERE b = ?` cannot use `(a, b)` |
+| 45 | What causes a deadlock and how do you find it? | [11/04](./11-Database-Design-Optimization/04-Transactions-Locking-and-Isolation.md) | Not naming the **wait-for graph** or `SHOW ENGINE INNODB STATUS` |
+| 46 | How do you size a connection pool? | [11/05](./11-Database-Design-Optimization/05-Scaling-Partitioning-and-Replication.md) | "Set it to 20" — not **Little's law** (`pool ≈ concurrent requests × latency`) |
+| 47 | Design a URL shortener | [12/03](./12-System-Design-for-Java-Backend/03-Classic-Design-Problems.md) | Not covering **key generation at scale** and **hot-key redirects** |
+| 48 | Token bucket vs sliding window for rate limiting? | [12/03](./12-System-Design-for-Java-Backend/03-Classic-Design-Problems.md) | Not mentioning the **Redis atomicity** requirement |
+| 49 | Unit vs integration vs E2E — where does each live? | [13/02](./13-Testing/02-Unit-and-Slice-Testing.md) | Describing the pyramid's shape without the **slice-test** concept |
+| 50 | Why is your integration test flaky? | [13/03](./13-Testing/03-Testcontainers-and-Contract-Testing.md) | Not knowing the three usual causes: **time, shared state, ordering** |
+| 51 | How do you containerise a Spring Boot app properly? | [14/01](./14-Deployment-DevOps/01-Containerizing-Spring-Boot-with-Docker.md) | Not mentioning the **layered JAR / `jarmode=layertools`** extraction |
+| 52 | Liveness vs readiness probe — what happens if you get it wrong? | [14/02](./14-Deployment-DevOps/02-Kubernetes-for-Java-Developers.md) | Not knowing that a **failing liveness probe on a slow warm-up causes a crash loop** |
+| 53 | What are the four golden signals? | [14/04](./14-Deployment-DevOps/04-Observability-SRE-and-Incident-Response.md) | Not being able to name **latency, traffic, errors, saturation** |
+| 54 | Structured logging and correlation IDs | [14/04](./14-Deployment-DevOps/04-Observability-SRE-and-Incident-Response.md) | Not knowing that the **correlation ID must be propagated to every downstream call** |
+| 55 | Which Spring annotations are **silently doing nothing** in your codebase? | [01/06](./01-Spring-Boot-Fundamentals/06-Spring-Boot-Annotations-Complete-Reference.md) | Not knowing the **six silent-failure rules**: self-invocation, non-proxyable methods, a missing `@Enable*`, a condition that did not match, JDK-proxy vs CGLIB, and a misconfigured default (`securedEnabled = false`, `ignoreUnknownFields = true`, `EnumType.ORDINAL`) |
 
 > 💡 **How to use the bank:** don't memorise answers. For each question, say the *naive*
 > answer first, then name the trap, then give the expert answer. That structure alone
@@ -206,30 +207,31 @@ WEEK 8 — DevOps & Polish
 | Topic | Cheat Sheet |
 |-------|-------------|
 | Spring Boot auto-configuration | [01/02](./01-Spring-Boot-Fundamentals/02-Auto-Configuration-and-Conditional-Internals.md) |
+| **Every Spring annotation + the 6 silent-failure rules** | **[01/06](./01-Spring-Boot-Fundamentals/06-Spring-Boot-Annotations-Complete-Reference.md)** |
 | Bean lifecycle | [02/02](./02-Spring-Core-Framework/02-Dependency-Injection-and-Bean-Lifecycle.md) |
 | Bean scopes | [02/03](./02-Spring-Core-Framework/03-Bean-Scopes-Component-Scanning-and-Configuration.md) |
 | AOP proxy mechanics | [02/04](./02-Spring-Core-Framework/04-AOP-Proxy-Mechanics-and-Spring-Modules.md) |
-| Request lifecycle | [01/05](./01-Spring-Boot-Fundamentals/05-Internal-Working-Flow-and-Request-Lifecycle.md) |
+| Request lifecycle | [01/05](./01-Spring-Boot-Fundamentals/05-Request-Lifecycle-and-Startup-Flow.md) |
 | DispatcherServlet strategies | [03/01](./03-Spring-MVC/01-DispatcherServlet-and-Complete-Request-Flow.md) |
 | Filter vs Interceptor vs Aspect | [03/04](./03-Spring-MVC/04-Filters-Interceptors-ArgumentResolvers-and-File-Transfer.md) |
 | Entity states | [04/02](./04-Spring-Data-JPA-Hibernate/02-Entity-Lifecycle-Persistence-Context-and-Caches.md) |
 | Transaction propagation | [04/03](./04-Spring-Data-JPA-Hibernate/03-Transactions-Propagation-and-Isolation.md) |
 | N+1 & fetch strategies | [04/04](./04-Spring-Data-JPA-Hibernate/04-Lazy-Eager-N-plus-1-and-Fetch-Strategies.md) |
 | Security filter chain | [05/01](./05-Spring-Security/01-Architecture-and-Security-Filter-Chain.md) |
-| Password encoding | [05/04](./05-Spring-Security/04-Password-Encoding-Sessions-CSRF-and-CORS.md) |
+| Password encoding | [05/02](./05-Spring-Security/02-Authentication-Flow-UserDetailsService-and-Providers.md) |
 | JWT structure & algorithms | [06/01](./06-JWT-Authentication/01-JWT-Architecture-Statelessness-and-Signature-Algorithms.md) |
 | OAuth2 flows | [07/02](./07-OAuth2-OpenID-Connect/02-Authorization-Code-and-PKCE-Flows.md) |
-| Circuit breaker | [08/03](./08-Microservices-with-Spring-Boot/03-Circuit-Breaker-Resilience4j-and-Fault-Tolerance.md) |
-| Kafka partitions & ordering | [09/03](./09-Messaging-Systems/03-Consumer-Groups-Partitions-and-Ordering-Guarantees.md) |
-| Cache patterns | [10/02](./10-Caching/02-Cache-Aside-Pattern-and-Distributed-Caching.md) |
-| Indexing rules | [11/01](./11-Database-Design-and-Optimization/01-Indexing-and-Query-Optimization.md) |
-| Isolation levels | [11/02](./11-Database-Design-and-Optimization/02-ACID-Isolation-Levels-and-Locks.md) |
-| Connection pool sizing | [11/04](./11-Database-Design-and-Optimization/04-Connection-Pooling-HikariCP-and-Database-Scaling.md) |
-| REST API design | [12/01](./12-System-Design-for-Java-Backend/01-API-Design-Best-Practices-and-Scalability-Patterns.md) |
-| Test pyramid | [13/01](./13-Testing/01-JUnit5-and-Mockito.md) |
-| Docker layered JAR | [14/01](./14-Deployment-and-DevOps/01-Docker-and-Docker-Compose.md) |
-| K8s probes | [14/02](./14-Deployment-and-DevOps/02-Kubernetes-Basics.md) |
-| Golden signals | [14/04](./14-Deployment-and-DevOps/04-Monitoring-Logging-and-Observability.md) |
+| Circuit breaker | [08/04](./08-Microservices-with-Spring-Boot/04-Circuit-Breaker-and-Resilience.md) |
+| Kafka partitions & ordering | [09/01](./09-Messaging-Systems/01-Kafka-Architecture-and-Fundamentals.md) |
+| Cache patterns | [10/01](./10-Caching/01-Caching-Fundamentals-and-Patterns.md) |
+| Indexing rules | [11/02](./11-Database-Design-Optimization/02-Indexing-Deep-Dive.md) |
+| Isolation levels | [11/04](./11-Database-Design-Optimization/04-Transactions-Locking-and-Isolation.md) |
+| Connection pool sizing | [11/05](./11-Database-Design-Optimization/05-Scaling-Partitioning-and-Replication.md) |
+| REST API design | [12/01](./12-System-Design-for-Java-Backend/01-System-Design-Framework.md) |
+| Test pyramid | [13/02](./13-Testing/02-Unit-and-Slice-Testing.md) |
+| Docker layered JAR | [14/01](./14-Deployment-DevOps/01-Containerizing-Spring-Boot-with-Docker.md) |
+| K8s probes | [14/02](./14-Deployment-DevOps/02-Kubernetes-for-Java-Developers.md) |
+| Golden signals | [14/04](./14-Deployment-DevOps/04-Observability-SRE-and-Incident-Response.md) |
 
 ---
 
@@ -272,10 +274,10 @@ If you only have 30 seconds, these are the ones that come up again and again:
 |--------|----------|
 | [`CORE_JAVA`](../CORE_JAVA/) | Java language, JVM, concurrency, collections — the foundation this folder assumes |
 | [`JAVA_DSA`](../JAVA_DSA/) | Full problem-by-problem DSA solutions |
-| [`DATABASE_CACHING`](../DATABASE_CACHING/) | SQL, indexing, Redis, caching patterns (placeholder — the Spring view lives in [10-Caching](./10-Caching/) and [11-Database](./11-Database-Design-and-Optimization/)) |
+| [`DATABASE_CACHING`](../DATABASE_CACHING/) | SQL, indexing, Redis, caching patterns (placeholder — the Spring view lives in [10-Caching](./10-Caching/) and [11-Database](./11-Database-Design-Optimization/)) |
 | [`SYSTEM_DESIGN`](../SYSTEM_DESIGN/) | System design round preparation (placeholder — the Spring view lives in [12-System-Design](./12-System-Design-for-Java-Backend/)) |
-| [`CLOUD_DEVOPS`](../CLOUD_DEVOPS/) | Cloud & DevOps (placeholder — the Spring view lives in [14-Deployment-and-DevOps](./14-Deployment-and-DevOps/)) |
-| [`DOCKER_JAVA_BACKEND`](../DOCKER_JAVA_BACKEND/) | Containerising Java apps (placeholder — see [14/01](./14-Deployment-and-DevOps/01-Docker-and-Docker-Compose.md)) |
+| [`CLOUD_DEVOPS`](../CLOUD_DEVOPS/) | Cloud & DevOps (placeholder — the Spring view lives in [14-Deployment-DevOps](./14-Deployment-DevOps/)) |
+| [`DOCKER_JAVA_BACKEND`](../DOCKER_JAVA_BACKEND/) | Containerising Java apps (placeholder — see [14/01](./14-Deployment-DevOps/01-Containerizing-Spring-Boot-with-Docker.md)) |
 
 ---
 

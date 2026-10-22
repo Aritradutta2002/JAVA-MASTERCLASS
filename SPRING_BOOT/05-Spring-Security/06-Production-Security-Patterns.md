@@ -2,7 +2,7 @@
 
 > **Level:** Advanced → Expert
 > **Interview Frequency:** ★★★★☆ ("How would you secure this in production?")
-> **Prerequisite:** [01 · Security Architecture](./01-Security-Architecture-and-Filter-Chain.md)
+> **Prerequisite:** [01 · Security Architecture](./01-Architecture-and-Security-Filter-Chain.md)
 > **Last Updated:** 2026
 
 ---
@@ -2214,7 +2214,7 @@ A) The XSS's defence  B) The HTTPS's enforcement  C) The CSRF  D) The CORS
 - → [07 · Security Best Practices](./07-Security-Best-Practices.md) — the consolidated
   checklist.
 - → [06 · JWT Authentication](../06-JWT-Authentication/README.md) — the token's design.
-- → [07 · OAuth2 & OIDC](../07-OAuth2-OIDC/README.md) — the identity providers.
+- → [07 · OAuth2 & OIDC](../07-OAuth2-OpenID-Connect/README.md) — the identity providers.
 - → [14 · Deployment & DevOps](../14-Deployment-DevOps/README.md) — the secrets, the
   monitoring, the CI/CD.
 

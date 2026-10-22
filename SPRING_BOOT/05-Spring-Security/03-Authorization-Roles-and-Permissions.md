@@ -2,7 +2,7 @@
 
 > **Level:** Beginner → Advanced
 > **Interview Frequency:** ★★★★★ ("How do you implement authorization in Spring Security?")
-> **Prerequisite:** [02 · Authentication Flow](./02-Authentication-Flow-and-UserDetails.md)
+> **Prerequisite:** [02 · Authentication Flow](./02-Authentication-Flow-UserDetailsService-and-Providers.md)
 > **Last Updated:** 2026
 
 ---
@@ -2317,4 +2317,4 @@ A) `context`  B) `authentication`  C) `principal` only  D) `user`
 
 ---
 **Next Chapter:** → [04 · CORS, CSRF & Session Management](./04-CORS-CSRF-and-Session-Management.md)
-**Previous Chapter:** ← [02 · Authentication Flow](./02-Authentication-Flow-and-UserDetails.md)
+**Previous Chapter:** ← [02 · Authentication Flow](./02-Authentication-Flow-UserDetailsService-and-Providers.md)

@@ -11,9 +11,10 @@
 |---------|----------|-------|-----------|----------------|
 | [01 · Core Concepts & Architecture](01-Core-Concepts-and-Architecture.md) | ⭐⭐⭐⭐⭐ | 🟢→🔴 | ~55 min | The vocabulary every other Spring interview question assumes: Boot vs Spring vs Jakarta, the 5 core features, `@SpringBootApplication`, and where the application boundary is drawn. |
 | [02 · Auto-Configuration & Conditional Internals](02-Auto-Configuration-and-Conditional-Internals.md) | ⭐⭐⭐⭐⭐ | 🟡→⚫ | ~60 min | **The #1 most-asked Boot question.** How `@Conditional` decides, why `AutoConfiguration.imports` replaced `spring.factories`, and how to debug "my bean was never created". |
-| [03 · Starters, Embedded Servers & Configuration Properties](03-Starters-Embedded-Servers-and-Configuration-Properties.md) | ⭐⭐⭐⭐ | 🟢→🔴 | ~50 min | Why a "starter" is usually just a POM, how BOM-managed versions work, Tomcat vs Jetty vs Undertow, and type-safe `@ConfigurationProperties` with validation. |
-| [04 · Profiles, Environment, Actuator & DevTools](04-Profiles-Environment-Actuator-and-DevTools.md) | ⭐⭐⭐⭐ | 🟡→🔴 | ~50 min | Property precedence, profile resolution, the Actuator endpoint catalogue and its security traps, and how DevTools' restart classloader actually works. |
-| [05 · Internal Working Flow & Request Lifecycle](05-Internal-Working-Flow-and-Request-Lifecycle.md) | ⭐⭐⭐⭐⭐ | 🔴→⚫ | ~70 min | The deepest chapter: `SpringApplication.run` phase by phase, the 12 steps of `refresh()`, the servlet container boot, and the full HTTP request chain down to the byte write. |
+| [03 · Externalized Configuration, Profiles & Environment](03-Configuration-and-Profiles.md) | ⭐⭐⭐⭐ | 🟢→🔴 | ~50 min | Property precedence, profile resolution, type-safe `@ConfigurationProperties` with validation, and how the `Environment` actually resolves a placeholder. |
+| [04 · Actuator, DevTools & Observability](04-Actuator-and-Observability.md) | ⭐⭐⭐⭐ | 🟡→🔴 | ~50 min | The Actuator endpoint catalogue and its security traps, custom health indicators, metrics export, and how DevTools' restart classloader actually works. |
+| [05 · Internal Working Flow & Request Lifecycle](05-Request-Lifecycle-and-Startup-Flow.md) | ⭐⭐⭐⭐⭐ | 🔴→⚫ | ~70 min | The deepest chapter: `SpringApplication.run` phase by phase, the 12 steps of `refresh()`, the servlet container boot, and the full HTTP request chain down to the byte write. |
+| [06 · The Complete Spring Boot Annotation Reference](06-Spring-Boot-Annotations-Complete-Reference.md) | ⭐⭐⭐⭐⭐ | 🟢→⚫ | ~120 min | **Every Spring Boot annotation in one place** — ~140 annotations with verified defaults, the framework class that processes each one, the six silent-failure rules, and 51 interview questions with expert answers. |
 
 ---
 
@@ -31,6 +32,10 @@
 | What is the default Actuator web exposure? | Saying "all endpoints". The default is **`health` only**. `management.endpoints.web.exposure.include=*` is a **critical security finding** in most codebases. |
 | Why is my `application.yml` value ignored? | 99% of the time it is **property-source precedence** (a command-line arg or env var outranks the file), or the value is in the **wrong profile document**. |
 | What happens between the socket accept and the response write? | Stopping at "DispatcherServlet → Controller → Response". The full chain is **Tomcat connector → `CoyoteAdapter` → `StandardWrapperValve` → Spring Security `FilterChainProxy` → `DispatcherServlet` → `HandlerMapping` → `HandlerAdapter` → controller → `HttpMessageConverter` → write**. |
+| What does `@SpringBootApplication` actually contain — and what does each part *do*? | Naming the three annotations is only half. You must also say that **`@ComponentScan` carries two exclude filters** (`TypeExcludeFilter`, `AutoConfigurationExcludeFilter`) and that the **package of the class becomes the scan base** — which is why a controller outside it 404s with no warning. |
+| Why does `@Transactional` not work on a self-invoked method? | "Because of the proxy" — without saying the call **never leaves the target**, so the advice never runs and there is no transaction at all. The same six silent-failure rules apply to `@Cacheable`, `@Async`, `@Retryable` and `@PreAuthorize`. |
+| Which security annotations are **off** by default on `@EnableMethodSecurity`? | Everyone assumes `@Secured` works. It does **not** — `securedEnabled` and `jsr250Enabled` both default to **`false`**, so `@Secured` and `@RolesAllowed` are **silent no-ops** unless you switch them on explicitly. |
+| `@Valid` or `@Validated`? | Not naming that **`@Valid` on a `@RequestBody` throws `MethodArgumentNotValidException` while `@Validated` on the class throws `ConstraintViolationException`** — two different types, two different handlers, and the difference between a **400 and a 500**. |
 
 ---
 
@@ -81,6 +86,7 @@ conveniences and you have plain Spring Framework.
 - [ ] **Property-source precedence order.** If you cannot rank command-line args vs `application.yml` vs `@PropertySource`, debugging config becomes guesswork.
 - [ ] **Actuator exposure defaults.** `health` only over the web — everything else is opt-in, and exposing `*` is a CVE waiting to happen.
 - [ ] **Tomcat vs Jetty vs Undertow.** Thread models differ, and Undertow is **deprecated as of Boot 3.4** — do not propose it in a new design.
+- [ ] **The six silent-failure rules for annotations.** Self-invocation, non-proxyable methods, a missing enabling annotation, a condition that did not match, JDK-proxy vs CGLIB, and a misconfigured default — if you can only name the annotation but not the failure mode, you are not ready for a senior round. See [06 · Annotation Reference](06-Spring-Boot-Annotations-Complete-Reference.md).
 
 ---
 
