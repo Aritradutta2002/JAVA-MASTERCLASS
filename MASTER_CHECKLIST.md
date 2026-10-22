@@ -158,14 +158,21 @@ This master checklist covers all 6 major technical areas for comprehensive Java 
 **Estimated Time**: 2-3 weeks  
 **Scenario Count**: 25+
 
-### Databases (Week 1-2)
-- [ ] 01. SQL Databases - PostgreSQL, MySQL, ACID, Transactions
-- [ ] 02. NoSQL Databases - MongoDB, Cassandra, DynamoDB, CAP Theorem
-- [ ] 03. Query Optimization - Indexing, Explain Plans, N+1 Problem
+### SQL Databases & Engine Architecture (Senior Interview Ready Kit)
+- [ ] 01. [Relational Engine & Storage Internals](./DATABASE_CACHING/01-SQL-Databases/01-Relational-Engine-and-Storage-Internals.md) - Pages, Slot Directory, Clock-Sweep, WAL, ARIES, Doublewrite
+- [ ] 02. [Indexing Architecture & B+ Tree Physics](./DATABASE_CACHING/01-SQL-Databases/02-Indexing-Architecture-and-B-Trees.md) - Branching Factor, 50/50 Splits, Clustered vs Heap, Leftmost Prefix, Covering INCLUDE, GIN/BRIN
+- [ ] 03. [Advanced SQL, Window Functions & CTEs](./DATABASE_CACHING/01-SQL-Databases/03-Advanced-SQL-Window-Functions-and-CTEs.md) - Execution Order, ROWS vs RANGE Frames, Recursive CTEs, LATERAL Joins
+- [ ] 04. [Query Planner, Optimizer & Execution Plans](./DATABASE_CACHING/01-SQL-Databases/04-Query-Planner-Optimizer-and-Explain.md) - CBO Model, Hash vs Merge vs Nested Loop, EXPLAIN BUFFERS, Memory Spills
+- [ ] 05. [Transactions, ACID, MVCC & Locking](./DATABASE_CACHING/01-SQL-Databases/05-Transactions-ACID-MVCC-and-Locking.md) - 6 Anomalies, Snapshot Isolation vs SSI, Postgres Bloat vs InnoDB Undo Logs, Gap Locks
+- [ ] 06. [Schema Design, Modeling & Zero-Downtime Migrations](./DATABASE_CACHING/01-SQL-Databases/06-Schema-Design-Modeling-and-Migrations.md) - 1NF-BCNF, UUIDv7 vs BIGINT, Financial DECIMAL, JSONB, Expand-Contract
+- [ ] 07. [Replication, High Availability & Scaling](./DATABASE_CACHING/01-SQL-Databases/07-Replication-High-Availability-and-Scaling.md) - WAL Streaming vs Binlog, Read-After-Write, HikariCP Sizing Math, PgBouncer, Sharding
+- [ ] 08. [Senior Backend Interview Q&A & Scenarios](./DATABASE_CACHING/01-SQL-Databases/08-Senior-Backend-Interview-QA-and-Scenarios.md) - 40+ Senior/Principal Q&A, Naive -> Trap -> Masterclass Answers
+- [ ] 09. [Complex SQL Interview Drills & Solutions](./DATABASE_CACHING/01-SQL-Databases/09-Complex-SQL-Interview-Drills.md) - 10 Hard Drills: Gaps & Islands, Sessionization, Org Charts, Keyset Paging
 
-### Caching & Pooling (Week 2-3)
-- [ ] 04. Caching Strategies - Redis, Memcached, Cache Patterns
-- [ ] 05. Connection Pooling - HikariCP, Connection Management
+### NoSQL, Caching & Connection Management
+- [ ] 10. NoSQL Databases - MongoDB, Cassandra, DynamoDB, CAP Theorem
+- [ ] 11. Caching Strategies - Redis, Memcached, Cache-Aside, Eviction Policies
+- [ ] 12. Connection Pooling - HikariCP Configuration, Sizing Math, Leaks & Timeouts
 
 ---
 
