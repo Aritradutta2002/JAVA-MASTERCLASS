@@ -2,7 +2,7 @@
 
 > **Level:** Intermediate → Advanced
 > **Interview Frequency:** ★★★★☆ ("How do your services talk to each other?")
-> **Prerequisite:** [01 · Monolith vs Microservices](./01-Monolith-vs-Microservices-and-When-to-Use-Which.md)
+> **Prerequisite:** [01 · Monolith vs Microservices](./01-Monolith-vs-Microservices-and-Service-Discovery.md)
 > **Last Updated:** 2026
 
 ---

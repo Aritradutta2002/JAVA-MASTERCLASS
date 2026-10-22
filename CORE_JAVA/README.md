@@ -204,7 +204,7 @@ Cheat Sheet → Production Notes → Next Steps
 
 | Folder | Contents |
 |--------|----------|
-| [`SPRING_SPRINGBOOT`](../SPRING_SPRINGBOOT/) | Spring & Spring Boot interview notes |
+| [`SPRING_BOOT`](../SPRING_BOOT/) | Spring Boot interview notes — the complete 3-4+ years backend roadmap |
 | [`DATABASE_CACHING`](../DATABASE_CACHING/) | SQL, indexing, Redis, caching patterns |
 | [`SYSTEM_DESIGN`](../SYSTEM_DESIGN/) | System design round preparation |
 | [`JAVA_DSA`](../JAVA_DSA/) | Full problem-by-problem DSA solutions |

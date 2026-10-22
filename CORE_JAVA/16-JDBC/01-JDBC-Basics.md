@@ -1802,7 +1802,7 @@ the "connection held during slow computation", and the "connection not closed" b
 | Topic | Where to go next |
 |---|---|
 | Connection pools and `ThreadPoolExecutor` | [08 · Executor Framework](../08-Multithreading-Concurrency/02-Executor-Framework.md) |
-| Transactions in Spring | `SPRING_SPRINGBOOT/` |
+| Transactions in Spring | [04 · Transactions, Propagation & Isolation](../../SPRING_BOOT/04-Spring-Data-JPA-Hibernate/03-Transactions-Propagation-and-Isolation.md) |
 | SQL, indexing, and the query planner | `DATABASE_CACHING/` |
 | The `ResultSet` and streams | [06 · Stream API](../06-Java-8-Features/02-Stream-API.md) |
 | The JDBC spec | The `java.sql` package in the JDK; the JDBC 4.2 specification |

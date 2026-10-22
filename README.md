@@ -8,7 +8,7 @@
 
 > **Your complete preparation kit for Java technical interviews at top tech companies**
 
-A comprehensive repository covering **Core Java**, **Spring Boot (72 chapters)**, **Data Structures & Algorithms**, and **System Design** - all organized for efficient interview preparation.
+A comprehensive repository covering **Core Java concepts**, **Spring Boot & the Spring ecosystem**, **Data Structures & Algorithms**, and **System Design** - all organized for efficient interview preparation.
 
 ---
 
@@ -29,29 +29,25 @@ Interview-Ready-with-Java/
 │   ├── 10-SOLID-Principles/   # SOLID Principles
 │   └── 11-DSA/                # DSA Quick Reference
 │
-├── 📂 SPRING_BOOT/            # Spring Boot interview roadmap (14 topics, 72 chapters)
-│   ├── README.md              # Master index + Top-50 question bank + 8-week plan
-│   ├── STANDARD.md            # The documentation standard every chapter follows
-│   ├── 01-Spring-Boot-Fundamentals/   # Startup, auto-config, config, actuator
-│   ├── 02-Spring-Core/        # IoC, DI, bean lifecycle, AOP
-│   ├── 03-Spring-MVC/         # DispatcherServlet, REST, validation, filters
-│   ├── 04-Spring-Data-JPA-Hibernate/  # Persistence context, fetching, transactions
-│   ├── 05-Spring-Security/    # Filter chain, authN/authZ, CORS/CSRF
-│   ├── 06-JWT-Authentication/ # Tokens, rotation, attack matrix
-│   ├── 07-OAuth2-OIDC/        # PKCE, OIDC, Keycloak, enterprise SSO
-│   ├── 08-Microservices-with-Spring-Boot/ # Contracts, gateway, resilience, sagas
-│   ├── 09-Messaging-Systems/  # Kafka, RabbitMQ, reliable EDA
-│   ├── 10-Caching/            # Patterns, Redis, invalidation, multi-level
-│   ├── 11-Database-Design-Optimization/ # Schema, indexing, plans, scaling
-│   ├── 12-System-Design-for-Java-Backend/ # Framework, capacity, case studies
-│   ├── 13-Testing/            # Pyramid, slices, Testcontainers, CI
-│   └── 14-Deployment-DevOps/  # Docker, K8s, CI/CD, SRE, IaC
+├── 📂 SPRING_BOOT/             # Spring Boot Interview Preparation Roadmap
+│   ├── 01-Spring-Boot-Fundamentals/  # Auto-config, starters, profiles, request lifecycle
+│   ├── 02-Spring-Core-Framework/     # IoC, DI, bean lifecycle, AOP & proxy mechanics
+│   ├── 03-Spring-MVC/                 # DispatcherServlet, REST, validation, filters
+│   ├── 04-Spring-Data-JPA-Hibernate/  # ORM, persistence context, transactions, N+1
+│   ├── 05-Spring-Security/            # Filter chain, authentication, authorization
+│   ├── 06-JWT-Authentication/         # Tokens, rotation, revocation, production design
+│   ├── 07-OAuth2-OpenID-Connect/      # Auth code + PKCE, OIDC, Keycloak, SSO
+│   ├── 08-Microservices-with-Spring-Boot/ # Discovery, gateway, circuit breakers, tracing
+│   ├── 09-Messaging-Systems/          # Kafka, RabbitMQ, DLQ, idempotency
+│   ├── 10-Caching/                    # Redis, Spring Cache, cache-aside, eviction
+│   ├── 11-Database-Design-and-Optimization/ # Indexing, isolation, locks, HikariCP
+│   ├── 12-System-Design-for-Java-Backend/  # URL shortener, notifications, e-commerce, chat
+│   ├── 13-Testing/                    # JUnit 5, Mockito, Testcontainers, security testing
+│   └── 14-Deployment-and-DevOps/      # Docker, Kubernetes, CI/CD, observability
 │
-├── 📂 SPRING_SPRINGBOOT/      # Legacy 7-topic Spring index (superseded)
-├── 📂 SYSTEM_DESIGN/          # System design rounds
-├── 📂 DATABASE_CACHING/       # SQL, indexing, Redis
-├── 📂 CLOUD_DEVOPS/           # Docker, K8s, CI/CD
-├── 📂 DOCKER_JAVA_BACKEND/    # Containerising Java apps
+├── 📂 JAVA_BACKEND_INTERVIEW/ # End-to-end backend interview roadmap
+│   ├── README.md              # March-to-May 2026 roadmap
+│   └── CHECKLIST.md           # Self-assessment checklist
 │
 └── 📂 JAVA_DSA/               # Data Structures & Algorithms
     ├── ARRAYS/                # Array problems & patterns
@@ -119,27 +115,37 @@ Click on any folder to explore detailed interview notes and concepts.
 
 ---
 
-## 🚀 SPRING_BOOT - Spring Boot Interview Roadmap
+## 🌱 SPRING_BOOT - Spring Boot Interview Preparation
 
-**14 topics · 72 deep-dive chapters · 1,200+ questions with counter-questions · Spring Boot 3.3 / Java 17-21**
+**The complete 3-4+ years Java Backend Developer roadmap** — 14 topic areas, 57 deep-dive
+chapters, 400+ interview questions with expert answers, counter-questions (interviewer
+push-back), production incident walkthroughs and system design solutions.
 
-| # | Topic | Ch | # | Topic | Ch |
-|---|-------|---:|---|-------|---:|
-| 01 | [Spring Boot Fundamentals](SPRING_BOOT/01-Spring-Boot-Fundamentals/README.md) | 5 | 08 | [Microservices](SPRING_BOOT/08-Microservices-with-Spring-Boot/README.md) | 6 |
-| 02 | [Spring Core](SPRING_BOOT/02-Spring-Core/README.md) | 5 | 09 | [Messaging Systems](SPRING_BOOT/09-Messaging-Systems/README.md) | 4 |
-| 03 | [Spring MVC](SPRING_BOOT/03-Spring-MVC/README.md) | 5 | 10 | [Caching](SPRING_BOOT/10-Caching/README.md) | 4 |
-| 04 | [Spring Data JPA & Hibernate](SPRING_BOOT/04-Spring-Data-JPA-Hibernate/README.md) | 6 | 11 | [Database Design & Optimisation](SPRING_BOOT/11-Database-Design-Optimization/README.md) | 5 |
-| 05 | [Spring Security](SPRING_BOOT/05-Spring-Security/README.md) | 7 | 12 | [System Design for Java Backend](SPRING_BOOT/12-System-Design-for-Java-Backend/README.md) | 6 |
-| 06 | [JWT Authentication](SPRING_BOOT/06-JWT-Authentication/README.md) | 4 | 13 | [Testing](SPRING_BOOT/13-Testing/README.md) | 4 |
-| 07 | [OAuth2 & OpenID Connect](SPRING_BOOT/07-OAuth2-OIDC/README.md) | 6 | 14 | [Deployment & DevOps](SPRING_BOOT/14-Deployment-DevOps/README.md) | 5 |
+| Folder | Topics Covered | Link |
+|--------|---------------|------|
+| **01-Spring-Boot-Fundamentals** | Boot vs Framework, Auto-Configuration, Starters, Embedded Servers, Configuration Properties, Profiles, Actuator, DevTools, Request Lifecycle | [Open Folder](SPRING_BOOT/01-Spring-Boot-Fundamentals) |
+| **02-Spring-Core-Framework** | IoC Container, Dependency Injection, Bean Lifecycle, Bean Scopes, Component Scanning, AOP & Proxy Mechanics | [Open Folder](SPRING_BOOT/02-Spring-Core-Framework) |
+| **03-Spring-MVC** | DispatcherServlet, Request Flow, Controllers, REST APIs, Validation, Exception Handling, Interceptors, Filters, Argument Resolvers, File Upload/Download | [Open Folder](SPRING_BOOT/03-Spring-MVC) |
+| **04-Spring-Data-JPA-Hibernate** | ORM Theory, JPA Internals, Entity Lifecycle, Persistence Context, L1/L2 Cache, Transactions, Lazy vs Eager, N+1, Fetch Strategies, Entity Graphs, Hibernate Internals, Tuning | [Open Folder](SPRING_BOOT/04-Spring-Data-JPA-Hibernate) |
+| **05-Spring-Security** | Security Architecture, Authentication & Authorization Flow, Security Filter Chain, UserDetailsService, AuthenticationProvider, Password Encoders, Roles & Permissions, Method Security, CSRF, CORS, Sessions, Production Patterns | [Open Folder](SPRING_BOOT/05-Spring-Security) |
+| **06-JWT-Authentication** | JWT Architecture, Stateless Auth, Access & Refresh Tokens, Token Rotation, Revocation, Signature Algorithms, Security Risks, Production Design, Complete Flows | [Open Folder](SPRING_BOOT/06-JWT-Authentication) |
+| **07-OAuth2-OpenID-Connect** | OAuth2 Architecture, Authorization Code, PKCE, Client Credentials, Refresh Tokens, OpenID Connect, Google/GitHub Login, Keycloak, Enterprise SSO | [Open Folder](SPRING_BOOT/07-OAuth2-OpenID-Connect) |
+| **08-Microservices-with-Spring-Boot** | Monolith vs Microservices, Service Discovery, API Gateway, Config Server, Circuit Breaker, Resilience4j, Distributed Tracing, Inter-Service Communication, Event-Driven Design | [Open Folder](SPRING_BOOT/08-Microservices-with-Spring-Boot) |
+| **09-Messaging-Systems** | Kafka, RabbitMQ, Event-Driven Systems, Consumer Groups, Partitions, Dead Letter Queues, Retry, Idempotency, Ordering Guarantees | [Open Folder](SPRING_BOOT/09-Messaging-Systems) |
+| **10-Caching** | Redis, Spring Cache, Cache-Aside Pattern, Distributed Caching, Eviction Strategies, Production Use Cases | [Open Folder](SPRING_BOOT/10-Caching) |
+| **11-Database-Design-and-Optimization** | Indexing, Query Optimization, ACID, Isolation Levels, Locks, Deadlocks, Connection Pooling, HikariCP, Database Scaling | [Open Folder](SPRING_BOOT/11-Database-Design-and-Optimization) |
+| **12-System-Design-for-Java-Backend** | URL Shortener, Notification System, E-Commerce Backend, Chat Application, File Storage, Rate Limiter, API Design, Scalability Patterns | [Open Folder](SPRING_BOOT/12-System-Design-for-Java-Backend) |
+| **13-Testing** | JUnit 5, Mockito, Integration Testing, Testcontainers, API Testing, Security Testing, Best Practices | [Open Folder](SPRING_BOOT/13-Testing) |
+| **14-Deployment-and-DevOps** | Docker, Docker Compose, Kubernetes Basics, CI/CD, GitHub Actions, Monitoring, Logging, Observability | [Open Folder](SPRING_BOOT/14-Deployment-and-DevOps) |
 
-> 🧭 Start at the **[SPRING_BOOT master index](SPRING_BOOT/README.md)** — it has the **Top-50
-> question bank**, the **counter-question technique**, the **8-week master plan**, and one-page
-> cheat sheets.
+> ☕ **Every chapter** follows the [SPRING_BOOT Standard](./SPRING_BOOT/STANDARD.md):
+> TL;DR → theory (beginner→expert) → internal mechanism → execution flow → visuals →
+> worked examples → production code → pitfalls → performance → security → best practices →
+> exercises → level-wise Q&A → scenarios → **counter-questions** → debugging scenarios →
+> architecture design → MCQ bank → cheat sheet.
 >
-> 📌 Every chapter follows the [SPRING_BOOT standard](SPRING_BOOT/STANDARD.md):
-> TL;DR → Theory → Internals → Visualisations → Production Code → Pitfalls → Level-wise Q&A
-> → **Counter-Questions & Traps** → MCQs → Cheat Sheet → Production Notes.
+> 🔥 Start with the **[SPRING_BOOT Master Index](./SPRING_BOOT/README.md)** — it has the
+> **Top-54 question bank**, the 8-week study plan, and the counter-question technique.
 
 ---
 
@@ -212,9 +218,11 @@ Click on any folder to explore detailed interview notes and concepts.
 
 ### Java Backend Track
 
-- Follow the end-to-end Spring roadmap in [SPRING_BOOT/README.md](SPRING_BOOT/README.md) (14 topics, 72 chapters)
-- Track your progress with the self-review sheet in [MASTER_CHECKLIST.md](MASTER_CHECKLIST.md)
-- Best fit for candidates targeting Java backend rounds within 8-12 weeks
+- **Start with the Spring Boot roadmap** in [SPRING_BOOT/README.md](SPRING_BOOT/README.md) — 14 topic areas, 57 deep-dive chapters, built for 3-4+ years backend roles
+- Work the [SPRING_BOOT master checklist](MASTER_CHECKLIST.md#2-spring--spring-boot) to track chapter-by-chapter progress
+- Use the end-to-end roadmap in [JAVA_BACKEND_INTERVIEW/README.md](JAVA_BACKEND_INTERVIEW/README.md)
+- Use the self-review sheet in [JAVA_BACKEND_INTERVIEW/CHECKLIST.md](JAVA_BACKEND_INTERVIEW/CHECKLIST.md)
+- Best fit for candidates targeting Java backend rounds by **May 31, 2026**
 
 ### For Beginners
 1. Start with [BASICS](JAVA_DSA/BASICS) and [ARRAYS](JAVA_DSA/ARRAYS)
@@ -302,7 +310,6 @@ java JAVA_DSA.ARRAYS.LeetCode.TwoSum_Leetcode1
 
 ### Week 1-2: Fundamentals
 - [CORE_JAVA](CORE_JAVA) - OOP, Collections, Java 8
-- [SPRING_BOOT topics 01-03](SPRING_BOOT/README.md) - Boot internals, Spring Core, MVC
 - [ARRAYS](JAVA_DSA/ARRAYS) - All easy problems
 - [STRINGS](JAVA_DSA/STRINGS) - Basic problems
 
@@ -319,11 +326,15 @@ java JAVA_DSA.ARRAYS.LeetCode.TwoSum_Leetcode1
 - [SORTING](JAVA_DSA/SORTING)
 
 ### Week 7-8: Advanced
-- [SPRING_BOOT topics 08-14](SPRING_BOOT/README.md) - Microservices, messaging, caching, DB tuning, system design, testing, DevOps
 - [DYNAMIC_PROGRAMMING](JAVA_DSA/DYNAMIC_PROGRAMMING)
 - [GRAPHS](JAVA_DSA/GRAPHS)
 - [BACKTRACKING](JAVA_DSA/BACKTRACKING)
 - [SYSTEM_DESIGN](JAVA_DSA/SYSTEM_DESIGN)
+
+### Spring Boot Track (8 weeks)
+- [SPRING_BOOT](SPRING_BOOT) - the complete 3-4+ years Java backend roadmap
+- Weeks 1-2: Boot fundamentals + Spring Core · Weeks 3-4: Spring MVC + JPA
+- Weeks 5-6: Spring Security + JWT + OAuth2 · Weeks 7-8: Microservices, messaging, caching, system design, DevOps
 
 ---
 

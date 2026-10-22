@@ -1,198 +1,125 @@
-# 06 — JWT Authentication (Deep Dive)
+# 06 — JWT Authentication · Interview Notes Index
 
-> **Level:** Intermediate → Expert
-> **Interview Frequency:** ★★★★★ (the single most-asked auth topic in Java backend interviews)
-> **Prerequisite:** [05 · Spring Security](../05-Spring-Security/README.md)
-> **Last Updated:** 2026
+> JWT is **not** a session, and it is **not** encryption. The single idea that makes the
+> whole topic click: **a JWT is a set of claims plus an integrity guarantee, and nothing
+> else.** Anyone can *read* the claims; only the holder of the signing key can *prove*
+> they are genuine. Every design decision in this folder — the 5-minute access token,
+> the hashed refresh token, the denylist, the `kid` rotation — is a consequence of that
+> one sentence.
 
----
+| Priority | Chapters | Level | Read Time | Why It Matters |
+|----------|----------|-------|-----------|----------------|
+| ⭐⭐⭐⭐⭐ | [01 · JWT Architecture, Statelessness & Signature Algorithms](01-JWT-Architecture-Statelessness-and-Signature-Algorithms.md) | 🟢→⚫ | 55 min | JOSE/JWS/JWE, the 3-part structure, base64url, the 7 registered claims, HS/RS/PS/ES/EdDSA, algorithm confusion, the `JwtDecoder` → `Jwt` → `JwtAuthenticationToken` chain, JWKS rotation |
+| ⭐⭐⭐⭐⭐ | [02 · Access & Refresh Tokens and Token Rotation](02-Access-Refresh-Tokens-and-Token-Rotation.md) | 🟡→🔴 | 50 min | The two-token model, the refresh flow, rotation with **reuse detection**, sliding vs absolute expiry, hashed storage, the `HttpOnly` cookie decision, device/session management |
+| ⭐⭐⭐⭐⭐ | [03 · Token Revocation, Storage & Production Design](03-Token-Revocation-Storage-and-Production-Design.md) | 🔴→⚫ | 50 min | Why you **cannot un-sign** a JWT, the 6 revocation strategies and their per-request cost, the token-version claim, denylist TTL maths, key-rotation overlap windows, fail-open vs fail-closed |
+| ⭐⭐⭐⭐⭐ | [04 · Security Risks, Complete Flows & Real Examples](04-Security-Risks-Complete-Flows-and-Real-Examples.md) | 🔴→⚫ | 55 min | The 11 attacks and their defences, login/refresh/logout/service-to-service flows, claim→authority mapping, banking / multi-tenant SaaS / service-mesh designs, a 25-item hardening checklist |
 
-## 🎯 Why This Topic Is Separate
-
-Spring Security teaches you **how to plug in a filter chain**. JWT teaches you **what the
-credential actually is** — and where it breaks. Most "3-year Java developer" interviews expect
-you to have *shipped* JWT-based auth, including the parts nobody puts in a tutorial:
-
-- Why the refresh token is **opaque**, not a JWT
-- How **rotation with reuse detection** actually works (and why it logs users out when you get
-  the race wrong)
-- Why a JWT **cannot be revoked**, and what you do about that
-- The **algorithm confusion** attack — and why it still happens in 2026
-- How you **rotate the signing key** without logging out every user
+> **Total:** ~4 chapters · 210 min of reading · 70+ interview questions · 38 counter-questions · 50 MCQs · 16 production debugging scenarios
 
 ---
 
-## 📚 Chapters
+## 🎯 Most Asked in Interviews
 
-| # | Chapter | Core Idea | Difficulty |
-|---|---------|-----------|------------|
-| 01 | [JWT Architecture & Anatomy](./01-JWT-Architecture-and-Anatomy.md) | JOSE structure, claims, `alg: none` | ⭐⭐ |
-| 02 | [Stateless Authentication & Flow](./02-Stateless-Authentication-and-Flow.md) | The three architectures, login/refresh flows, the error contract | ⭐⭐⭐ |
-| 03 | [Access & Refresh Tokens, Rotation, Revocation](./03-Access-Refresh-Tokens-and-Rotation.md) | Token lifecycle, rotation, reuse detection, five revocation strategies | ⭐⭐⭐⭐ |
-| 04 | [Security Risks & Production Design](./04-Security-Risks-and-Production-Design.md) | Attack taxonomy, key management, multi-tenant isolation | ⭐⭐⭐⭐⭐ |
+| Question | The Trap |
+|----------|----------|
+| Is a JWT encrypted? | Saying "yes" — the payload is **base64url-encoded, not encrypted**. Anyone holding the token can decode it with `echo $TOKEN | cut -d. -f2 \| base64 -d` |
+| Why is the access token only 5–15 minutes? | "Because it's short" — the real reason is that **the TTL *is* the revocation mechanism**, and every extra minute is a minute of unrevocable authority |
+| HS256 vs RS256 — when do you use which? | "RS256 is more secure" — it is not. HS256 is fine; the difference is **key distribution**: with HS256 *every verifier can also mint tokens* |
+| What is the algorithm-confusion attack? | Describing it as "the attacker changes `alg`" without the crucial second half: the server must then use the **public key as the HMAC secret** for the forgery to work |
+| How do you revoke a JWT? | "Add it to a blacklist" — without saying **the access token still works until it expires**; the blacklist only stops *future* presentations |
+| How do you implement "log out everywhere"? | Only mentioning the denylist — the scalable answer is the **token-version claim** compared against one Redis key, which is O(1) and kills every outstanding token at once |
+| How is the refresh token stored? | "In the DB" — it must be stored **hashed**; and for a browser SPA it must live in an `HttpOnly; Secure; SameSite=Strict` cookie, not `localStorage` |
+| What is refresh-token rotation? | Only "we issue a new refresh token" — the point is **reuse detection**: presenting a consumed token means it was stolen, so the whole token *family* is revoked |
+| Why validate `aud`? | "For security" — the concrete attack is a **confused deputy**: a token minted for `billing-api` being accepted by `orders-api` because `aud` was never checked |
+| Why not put the role in the token? | Missing the **claim→authority mapping** point: a blanket "map every claim to an authority" is how a mis-typed claim becomes a privilege escalation |
+| What happens if the JWKS endpoint is down? | "The API breaks" — the correct behaviour is that the **JWKS cache keeps serving the last known keys** for a bounded overlap window; only a *cache miss for an unknown `kid`* is fatal |
+| How do you rotate signing keys? | "Generate a new key and swap it" — without the **overlap window**: publish the new public key first, keep the old one valid for the maximum token lifetime, *then* remove it, or every live token dies at once |
 
 ---
 
-## 🧠 The One Mental Model That Covers Everything
+## 🧠 The JWT World, in One Picture
 
 ```text
-  ┌─────────────────┐   the HOT path (every request)   ┌─────────────────┐
-  │  ACCESS token   │ ────────────────────────────────▶ │  RESOURCE       │
-  │  JWT, 5-15 min  │   verify locally, no store        │  SERVER         │
-  └─────────────────┘                                   └─────────────────┘
-         ▲ expired
-         │
-  ┌─────────────────┐   the COLD path (every ~15 min)   ┌─────────────────┐
-  │  REFRESH token  │ ────────────────────────────────▶ │  AUTH SERVER    │
-  │  opaque, 7-30 d │   hashed, rotating, revocable     │  (the state)    │
-  └─────────────────┘                                   └─────────────────┘
+                        ┌───────────────────────────────────────────────────┐
+                        │                   THE ISSUER                    │
+                        │   (your auth service — it holds the PRIVATE key) │
+                        │                                                   │
+                        │   sign(claims) ──▶ header.payload.signature       │
+                        └───────────────────────────┬───────────────────────┘
+                                                    │  ① access token (5–15 min)
+                                                    │     → travels as: Authorization: Bearer <jwt>
+                                                    │     → verified LOCALLY, no server state
+                                                    ▼
+   ┌──────────────────────────────────────────────────────────────────────────┐
+   │                        THE RESOURCE SERVER (the API)                     │
+   │                                                                          │
+   │   BearerTokenAuthenticationFilter                                        │
+   │        └─▶ DefaultBearerTokenResolver   "Bearer eyJhbGci…"               │
+   │        └─▶ JwtDecoder ─▶ NimbusJwtDecoder                                │
+   │               ├─ verify SIGNATURE  (public key from JWKS, alg PINNED)     │
+   │               ├─ validate CLAIMS    (exp / nbf / iss / aud / jti)          │
+   │               └─ validate REVOCATION (denylist or token version)          │
+   │        └─▶ JwtAuthenticationToken ─▶ JwtAuthenticationConverter          │
+   │        └─▶ SecurityContextHolder ─▶ AuthorizationFilter                   │
+   └──────────────────────────────────────────────────────────────────────────┘
+                                                    ▲
+   ┌────────────────────────────────────────────────┴───────────────────────┐
+   │                      THE REFRESH TOKEN (7–30 days)                      │
+   │   stored HASHED server-side · rotated on every use · family-tracked      │
+   │   sent only to /refresh — NEVER used as an API credential                │
+   └──────────────────────────────────────────────────────────────────────────┘
+
+   ★ THE ONE-LINE VERSION FOR THE INTERVIEW
+   ──────────────────────────────────────────
+   "A JWT lets the API verify a token with nothing but a public key — no session
+    store, no database hit on the hot path — and I pay for that by making the
+    token short-lived and by keeping the long-lived power in a separate, revocable,
+    server-side refresh token."
 ```
 
-> **The state lives in the cold path, not the hot path.** Every design decision follows from
-> this one picture.
+> **Caption:** The split that matters is **access token = stateless bearer of
+> authority** and **refresh token = stateful, revocable, server-side secret**.
+> Everything in this folder exists to make that split work without turning the API
+> into a session server, and to keep the blast radius of a stolen token bounded.
 
 ---
 
-## 📊 The Design Decision Matrix
+## ⚠️ Weakest Areas to Brush Up
 
-| Decision | Default | Alternative | Trade-off |
-|----------|---------|-------------|-----------|
-| **Access token** | JWT, 15 min | Opaque + Redis | Redis dependency vs immediate revocation |
-| **Refresh token** | Opaque, hashed, 30 d | JWT | Revocability vs simplicity |
-| **Rotation** | On, with a 60-second grace window | Off | Theft detection vs network races |
-| **Revocation** | TTL + a version counter | Introspection / blocklist | Immediacy vs hot-path cost |
-| **Algorithm** | RS256 | HS256 | Key distribution vs minting risk |
-| **Storage (web)** | Access in memory, refresh in an httpOnly cookie | Both in `localStorage` | XSS surface vs CSRF complexity |
-| **Scoping** | One `aud` per API | One `aud` for all | Isolation vs client friction |
-
----
-
-## ⚠️ The Traps (the ones that cost people interviews)
-
-| Trap | The wrong answer | The right answer |
-|------|------------------|------------------|
-| "The JWT is stateless" | "Yes, there's no session" | "The **access** token is; the **refresh** token is stateful — that's where revocation lives" |
-| "How do you revoke it?" | "You can't" | "You can't revoke an access token directly — revoke the **refresh**, bump the **version**, or **blocklist** the `jti`" |
-| "The algorithm" | "HS256" | "RS256/ES256 — symmetric means every verifier can **mint** tokens" |
-| "Where do you store the refresh token?" | "In the DB" | "In the DB **hashed**; on the client in an **httpOnly cookie**" |
-| "Refresh rotation" | "You issue a new one" | "And **revoke the old**; if an already-used one comes back, revoke the **whole family**" |
-| "The claims" | "User id, name, email, roles" | "`sub`, `aud`, `iss`, `jti`, `scope`, `ver` — **no PII**, the token is readable" |
-| "Multi-tenancy" | "The token's `tenantId`" | "The claim **plus** query scoping **plus** DB RLS — one layer is not enough" |
-| "Key rotation" | "Generate a new key" | "**Publish → sign → wait → remove.** Remove last, or you log everyone out" |
+- [ ] **The exact 3-part structure and what each part is.** `base64url(header).base64url(payload).base64url(signature)` — and the fact that the *header* is part of the signed input, so it cannot be tampered with.
+- [ ] **base64 vs base64url.** The `+`, `/` and `=` characters break URL and header transport. If a token works in `curl` but not in a browser, this is why.
+- [ ] **The 7 registered claims with their *validation* rules** — `iss`, `sub`, `aud` (string **or** array), `exp`, `nbf`, `iat`, `jti`. Knowing the names is worthless; knowing *how each is validated* is the answer.
+- [ ] **Algorithm confusion.** The attack only works if the server *reads `alg` from the token*. Pin the algorithm server-side and the entire class of attack dies.
+- [ ] **HS256 vs RS256 vs ES256 vs EdDSA** — the key-distribution trade-off, not the "security level". Every verifier of an HS256 token can also **mint** one.
+- [ ] **What "stateless" actually means.** The *access token* is stateless; the *system* is not — refresh-token storage, denylists and `jti` tracking are all server state.
+- [ ] **The `JwtDecoder` → `Jwt` → `JwtAuthenticationToken` chain** and exactly where `SecurityContextHolder` is populated.
+- [ ] **The refresh flow end to end**, including the 401 → refresh → **retry once** client pattern, and why the retry must happen exactly once.
+- [ ] **Refresh-token rotation with reuse detection.** The *family* concept and why a stolen token used twice kills every token in the family.
+- [ ] **Why the refresh token is hashed, and why SHA-256 is fine there but terrible for a password.** High-entropy random token ≠ low-entropy user-chosen secret.
+- [ ] **Cookie vs body vs `localStorage`** for the refresh token, and the XSS/CSRF exposure of each.
+- [ ] **The 6 revocation strategies and their per-request cost.** "Add a blacklist" without the cost model is a half-answer.
+- [ ] **The token-version (`ver`) claim** — the O(1) "log out everywhere" mechanism that most candidates never mention.
+- [ ] **Key rotation with an overlap window**, and the 401 storm that happens when you get it wrong.
+- [ ] **The `none`-algorithm attack and the `alg: none` rejection** — what the error actually says.
+- [ ] **Claim → authority mapping.** `scope` → `SCOPE_`, a custom `roles` claim → `ROLE_`, and why mapping *every* claim is dangerous.
 
 ---
 
-## 🎤 The 20 Questions to Expect
+## 🧪 Coding Drill
 
-| # | Question | Where it's covered |
-|---|----------|--------------------|
-| 1 | What are the parts of a JWT? | [Ch 01](./01-JWT-Architecture-and-Anatomy.md) |
-| 2 | Is a JWT encrypted? | [Ch 01](./01-JWT-Architecture-and-Anatomy.md) |
-| 3 | How does the server verify it? | [Ch 01](./01-JWT-Architecture-and-Anatomy.md) |
-| 4 | What's the difference between access and refresh tokens? | [Ch 03](./03-Access-Refresh-Tokens-and-Rotation.md) |
-| 5 | Walk me through your login flow. | [Ch 02](./02-Stateless-Authentication-and-Flow.md) |
-| 6 | Why is the access token short-lived? | [Ch 03](./03-Access-Refresh-Tokens-and-Rotation.md) |
-| 7 | How do you refresh? | [Ch 02](./02-Stateless-Authentication-and-Flow.md) |
-| 8 | What happens if the refresh token is stolen? | [Ch 03](./03-Access-Refresh-Tokens-and-Rotation.md) |
-| 9 | What is rotation with reuse detection? | [Ch 03](./03-Access-Refresh-Tokens-and-Rotation.md) |
-| 10 | How do you revoke a JWT? | [Ch 03](./03-Access-Refresh-Tokens-and-Rotation.md) |
-| 11 | What is `jti`? | [Ch 03](./03-Access-Refresh-Tokens-and-Rotation.md) |
-| 12 | `aud` vs `iss`? | [Ch 01](./01-JWT-Architecture-and-Anatomy.md) |
-| 13 | What is the algorithm confusion attack? | [Ch 04](./04-Security-Risks-and-Production-Design.md) |
-| 14 | RS256 vs HS256? | [Ch 04](./04-Security-Risks-and-Production-Design.md) |
-| 15 | How do you rotate the signing key? | [Ch 04](./04-Security-Risks-and-Production-Design.md) |
-| 16 | Where do you store tokens on the client? | [Ch 02](./02-Stateless-Authentication-and-Flow.md) |
-| 17 | How do you handle multi-tenancy? | [Ch 04](./04-Security-Risks-and-Production-Design.md) |
-| 18 | How do you prevent token leakage? | [Ch 04](./04-Security-Risks-and-Production-Design.md) |
-| 19 | How do you scale it to 10M users? | [Ch 03](./03-Access-Refresh-Tokens-and-Rotation.md) |
-| 20 | Design the auth for a multi-tenant SaaS. | [Ch 04](./04-Security-Risks-and-Production-Design.md) |
+- [ ] Decode a token **by hand**: split on `.`, base64url-decode parts 1 and 2, and read the `exp` as an epoch second — then convert it to a local time and check it against the clock.
+- [ ] Build a `JwtDecoder` with `NimbusJwtDecoder.withSecretKey(...)`, pin `MacAlgorithm.HS256`, and add a `JwtValidators.createDefaultWithIssuer(...)` plus a `JwtClaimValidator` for `aud`.
+- [ ] Write a test that **proves** a token signed with `HS256` using the *public key* as the secret is rejected by a pinned-`RS256` decoder — the algorithm-confusion regression test.
+- [ ] Implement `NimbusJwtEncoder.withSecretKey(...)` and issue a token with `jti`, then prove the `jti` is stable across a refresh of the same session.
+- [ ] Implement `RefreshTokenService` with issue → rotate → **reuse detection**, and write the test that presents a consumed token and asserts the whole family is revoked.
+- [ ] Add a **token-version** check (`ver` claim vs a Redis counter) and prove that incrementing the counter invalidates an access token that is still within its TTL.
+- [ ] Implement a **denylist** with `SETEX` whose TTL equals the token's remaining lifetime — then prove with `redis-cli TTL` that no entry outlives its token.
+- [ ] Publish a JWKS endpoint, rotate the key, and prove that **a token signed with the old key still validates** during the overlap window and fails after it.
+- [ ] Add a `JwtAuthenticationConverter` that maps **only** `roles` and `scope`, and assert that an unexpected claim (e.g. `admin: true`) produces **zero** authorities.
+- [ ] Turn on Spring Security's debug logging (`logging.level.org.springframework.security=DEBUG`) and capture the exact 401 body for an expired token, an `aud` mismatch and an unknown `kid`.
 
 ---
 
-## 🛠️ The Code You'll Actually Write
-
-| Class | What it does | Where |
-|-------|--------------|-------|
-| `JwtService` | Issuance (claims, signing, hashing) | [Ch 02](./02-Stateless-Authentication-and-Flow.md), [Ch 03](./03-Access-Refresh-Tokens-and-Rotation.md) |
-| `AuthService` | Login, refresh (rotation + detection), logout | [Ch 02](./02-Stateless-Authentication-and-Flow.md) |
-| `RefreshTokenRepository` | Atomic rotation (the `version` check) | [Ch 03](./03-Access-Refresh-Tokens-and-Rotation.md) |
-| `JwtDecoderConfig` | Pinned algorithm + five validators | [Ch 04](./04-Security-Risks-and-Production-Design.md) |
-| `JwtAuthenticationConverter` | Claims → authorities | [Ch 02](./02-Stateless-Authentication-and-Flow.md) |
-| `TokenVersionValidator` | The `ver` check (revocation on the hot path) | [Ch 03](./03-Access-Refresh-Tokens-and-Rotation.md) |
-| `KeyRotationService` | Publish → sign → wait → remove | [Ch 04](./04-Security-Risks-and-Production-Design.md) |
-| `SecurityAuditLogger` | Audit trail + alerts | [Ch 04](./04-Security-Risks-and-Production-Design.md) |
-
----
-
-## 🔗 The Spring Boot 3 Setup (the minimum)
-
-```yaml
-spring:
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://auth.example.com
-          # the audience validator is NOT automatic — add it yourself
-```
-
-```java
-@Bean
-SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http
-        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(a -> a
-            .requestMatchers("/api/auth/**").permitAll()
-            .anyRequest().authenticated())
-        .oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()));
-    return http.build();
-}
-```
-
----
-
-## 📐 The Reference Architecture
-
-```text
-   the CLIENT (the SPA)                the AUTH SERVER              the API
-   ┌──────────────────┐                ┌──────────────────┐       ┌──────────┐
-   │ access (memory)  │─── Bearer ────▶│ verify (JWKS)    │       │          │
-   │ refresh (cookie) │─── POST ──────▶│ the DB (hashed)  │       │ verify   │
-   └──────────────────┘                │ the KMS (sign)   │       │ (JWKS)   │
-                                       └──────────────────┘       └──────────┘
-                                               │
-                                        the JWKS (public)
-```
-
----
-
-## ✅ The Self-Check
-
-- [ ] I can explain the **three architectures** (fully stateless, hybrid, opaque) and when to use each.
-- [ ] I can draw the **login → request → refresh → logout** flow from memory.
-- [ ] I can explain **rotation with reuse detection** and why the whole **family** must die.
-- [ ] I can name the **five revocation strategies** and their costs.
-- [ ] I can explain the **algorithm confusion** attack and its one-line fix.
-- [ ] I can explain the **key rotation ordering** and what happens if you get it wrong.
-- [ ] I know the **five mandatory validation checks** (signature, exp/nbf, iss, aud, authorization).
-- [ ] I know why **claims must not contain PII** and what the **size budget** is.
-- [ ] I can describe **multi-tenant defence in depth** (three or more layers).
-- [ ] I know the **client-side storage** trade-offs and the **single-flight** refresh.
-
----
-
-## 🧪 The Coding Drill
-
-- [ ] Build **login / refresh / logout** with hashed storage and atomic rotation.
-- [ ] Write the **negative test suite**: `alg: none`, HS256 signed with the public key, expired, wrong `aud`, wrong `iss`, missing `exp`, unknown `kid`.
-- [ ] Implement the **grace window** and prove a duplicate request returns the same successor.
-- [ ] Prove **reuse detection** revokes the entire family.
-- [ ] Implement **key rotation** (publish → sign → wait → remove) and prove nobody is logged out.
-- [ ] Add the **`ver` claim** and a cached check; prove revocation takes effect within the TTL.
-- [ ] Write the **single-flight** interceptor for the SPA and prove concurrent 401s cause one refresh.
-
----
-
-**Related folders:** ← [05 · Spring Security](../05-Spring-Security/README.md) · → [07 · OAuth2 & OIDC](../07-OAuth2-OIDC/README.md)
+**Related folders:** ← [05 · Spring Security](../05-Spring-Security/README.md) · → [07 · OAuth2 & OpenID Connect](../07-OAuth2-OpenID-Connect/README.md) · ↑ [Master Index](../README.md)
 
 **Standard followed:** [../STANDARD.md](../STANDARD.md)

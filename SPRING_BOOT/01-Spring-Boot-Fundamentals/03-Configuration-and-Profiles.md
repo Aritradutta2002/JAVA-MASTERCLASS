@@ -2,7 +2,7 @@
 
 > **Level:** Beginner → Advanced
 > **Interview Frequency:** ★★★★☆ (Very common; the "where do I put this?" question)
-> **Prerequisite:** [02 · Auto-Configuration & Starters](./02-Auto-Configuration-and-Starters.md)
+> **Prerequisite:** [02 · Auto-Configuration & Starters](./02-Auto-Configuration-and-Conditional-Internals.md)
 > **Last Updated:** 2026
 
 ---
