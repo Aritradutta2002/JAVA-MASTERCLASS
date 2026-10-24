@@ -1,4 +1,4 @@
-# 01 · Relational Engine & Storage Architecture Internals
+# 03 · Relational Engine & Storage Architecture Internals
 
 > **Level:** Intermediate → Expert  
 > **Interview Frequency:** ★★★★★ (Core differentiator in Senior / Staff backend loops)  
@@ -533,5 +533,5 @@ Pages read ahead 0.00/s, evicted without access 0.00/s
 ---
 
 ## 13. Follow-up Learning
-- **Next Chapter:** → [02 · Indexing Architecture & B+ Tree Physics](./02-Indexing-Architecture-and-B-Trees.md)
+- **Next Chapter:** → [04 · Indexing Architecture & B+ Tree Physics](./04-Indexing-Architecture-and-B-Trees.md)
 - **Deepening Reading:** C. Mohan's original paper: *ARIES: A Transaction Recovery Method Supporting Fine-Granularity Locking and Partial Rollbacks Using Write-Ahead Logging* (ACM TODS).

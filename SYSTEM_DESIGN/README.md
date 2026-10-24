@@ -6,14 +6,19 @@ This area covers system design concepts and patterns for backend engineers. Topi
 
 ## Quick Navigation
 
-| # | Topic | Priority | Status |
-|---|-------|----------|--------|
-| 01 | [Design Fundamentals](./01-Design-Fundamentals/) | ⭐⭐⭐⭐⭐ | 🚧 Planned |
-| 02 | [Scalability Patterns](./02-Scalability-Patterns/) | ⭐⭐⭐⭐⭐ | 🚧 Planned |
-| 03 | [Microservices](./03-Microservices/) | ⭐⭐⭐⭐ | 🚧 Planned |
-| 04 | [Event-Driven Architecture](./04-Event-Driven-Architecture/) | ⭐⭐⭐⭐ | 🚧 Planned |
-| 05 | [Common System Designs](./05-Common-System-Designs/) | ⭐⭐⭐⭐⭐ | 🚧 Planned |
-| 06 | [Case Studies](./06-Case-Studies/) | ⭐⭐⭐ | 🚧 Planned |
+> The material below is written, but it lives across
+> **[SPRING_BOOT/12-System-Design-for-Java-Backend](../SPRING_BOOT/12-System-Design-for-Java-Backend/)**
+> and the microservices / messaging tracks rather than being duplicated here. This folder keeps the
+> syllabus; the chapters are canonical over there.
+
+| # | Topic | Priority | Where it is written |
+|---|-------|----------|---------------------|
+| 01 | [Design Fundamentals](../SPRING_BOOT/12-System-Design-for-Java-Backend/01-System-Design-Framework.md) | ⭐⭐⭐⭐⭐ | Ch. 01 The System Design Framework |
+| 02 | [Scalability Patterns](../SPRING_BOOT/12-System-Design-for-Java-Backend/02-Scalability-Availability-and-Reliability.md) | ⭐⭐⭐⭐⭐ | Ch. 02 Scalability, Availability & Reliability |
+| 03 | [Microservices](../SPRING_BOOT/08-Microservices-with-Spring-Boot/01-Monolith-vs-Microservices-and-Service-Discovery.md) | ⭐⭐⭐⭐ | [SPRING_BOOT/08 — 6 chapters](../SPRING_BOOT/08-Microservices-with-Spring-Boot/README.md) |
+| 04 | [Event-Driven Architecture](../SPRING_BOOT/09-Messaging-Systems/04-Reliable-Messaging-and-Event-Driven-Architecture.md) | ⭐⭐⭐⭐ | [SPRING_BOOT/09 — 4 chapters](../SPRING_BOOT/09-Messaging-Systems/README.md) |
+| 05 | [Common System Designs](../SPRING_BOOT/12-System-Design-for-Java-Backend/03-Classic-Design-Problems.md) | ⭐⭐⭐⭐⭐ | Ch. 03 Classic Design Problems · Ch. 04 Data-Intensive Designs |
+| 06 | [Case Studies](../SPRING_BOOT/12-System-Design-for-Java-Backend/06-End-to-End-Case-Studies.md) | ⭐⭐⭐ | Ch. 06 End-to-End Case Studies |
 
 ## Learning Path
 

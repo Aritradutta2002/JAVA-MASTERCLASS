@@ -1,4 +1,4 @@
-# 02 · Indexing Architecture & B+ Tree Physics
+# 04 · Indexing Architecture & B+ Tree Physics
 
 > **Level:** Intermediate → Expert  
 > **Interview Frequency:** ★★★★★ (Tested in 100% of Senior Backend & Data Engineering loops)  
@@ -529,5 +529,5 @@ Because `random_page_cost` is weighted higher (historically modeling disk seek l
 ---
 
 ## 13. Follow-up Learning
-- **Next Chapter:** → [03 · Advanced SQL, Window Functions & CTEs](./03-Advanced-SQL-Window-Functions-and-CTEs.md)
-- **Previous Chapter:** ← [01 · Relational Engine & Storage Architecture Internals](./01-Relational-Engine-and-Storage-Internals.md)
+- **Next Chapter:** → [05 · Advanced SQL, Window Functions & CTEs](./05-Advanced-SQL-Window-Functions-and-CTEs.md)
+- **Previous Chapter:** ← [03 · Relational Engine & Storage Architecture Internals](./03-Relational-Engine-and-Storage-Internals.md)

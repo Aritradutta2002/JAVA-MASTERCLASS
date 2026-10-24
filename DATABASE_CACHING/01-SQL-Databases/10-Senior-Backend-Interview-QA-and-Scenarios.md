@@ -1,4 +1,4 @@
-# 08 · Senior & Principal Backend Interview Q&A + Counter-Questions
+# 10 · Senior & Principal Backend Interview Q&A + Counter-Questions
 
 > **Level:** Senior → Principal / Staff Backend Engineer  
 > **Interview Focus:** Technical Trade-offs, Failure Modes, Concurrency Edge Cases & Internal Mechanics  
@@ -263,5 +263,5 @@ Junior candidates recite syntax. Mid-level candidates explain what things do. **
 ---
 
 ## 8. Follow-up Learning
-- **Next Chapter:** → [09 · Complex SQL Interview Drills & Problem Solving](./09-Complex-SQL-Interview-Drills.md)
-- **Previous Chapter:** ← [07 · Replication, High Availability & Scaling](./07-Replication-High-Availability-and-Scaling.md)
+- **Next Chapter:** → [11 · Complex SQL Interview Drills & Problem Solving](./11-Complex-SQL-Interview-Drills.md)
+- **Previous Chapter:** ← [09 · Replication, High Availability & Scaling](./09-Replication-High-Availability-and-Scaling.md)

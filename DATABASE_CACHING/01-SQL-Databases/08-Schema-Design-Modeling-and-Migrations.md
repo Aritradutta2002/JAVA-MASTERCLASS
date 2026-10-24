@@ -1,4 +1,4 @@
-# 06 · Schema Design, Modeling & Zero-Downtime Migrations
+# 08 · Schema Design, Modeling & Zero-Downtime Migrations
 
 > **Level:** Intermediate → Expert  
 > **Interview Frequency:** ★★★★★ (Core test of architectural maturity in Senior / Staff design interviews)  
@@ -507,5 +507,5 @@ UUIDv7 embeds a 48-bit millisecond UNIX timestamp in the most significant bits, 
 ---
 
 ## 13. Follow-up Learning
-- **Next Chapter:** → [07 · Replication, High Availability & Scaling](./07-Replication-High-Availability-and-Scaling.md)
-- **Previous Chapter:** ← [05 · Transactions, ACID, MVCC & Locking](./05-Transactions-ACID-MVCC-and-Locking.md)
+- **Next Chapter:** → [09 · Replication, High Availability & Scaling](./09-Replication-High-Availability-and-Scaling.md)
+- **Previous Chapter:** ← [07 · Transactions, ACID, MVCC & Locking](./07-Transactions-ACID-MVCC-and-Locking.md)

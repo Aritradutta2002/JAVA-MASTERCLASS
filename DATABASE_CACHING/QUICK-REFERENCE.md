@@ -4,18 +4,29 @@
 
 | Topic | Frequency | Key Points | Masterclass Chapter |
 |---|:---:|---|---|
-| **Storage & WAL** | ⭐⭐⭐⭐⭐ | Pages, Slot Directory, Clock-Sweep, ARIES Recovery | [01 · Storage Internals](./01-SQL-Databases/01-Relational-Engine-and-Storage-Internals.md) |
-| **B+ Tree Indexing** | ⭐⭐⭐⭐⭐ | Splits, Leftmost Prefix, Covering `INCLUDE`, GIN/BRIN | [02 · Indexing Architecture](./01-SQL-Databases/02-Indexing-Architecture-and-B-Trees.md) |
-| **Advanced SQL** | ⭐⭐⭐⭐⭐ | Window Frames (`ROWS` vs `RANGE`), Recursive CTEs, LATERAL | [03 · Advanced SQL & CTEs](./01-SQL-Databases/03-Advanced-SQL-Window-Functions-and-CTEs.md) |
-| **Query Plans** | ⭐⭐⭐⭐⭐ | CBO models, Hash vs Merge vs Nested Loop, EXPLAIN BUFFERS | [04 · Query Planner & EXPLAIN](./01-SQL-Databases/04-Query-Planner-Optimizer-and-Explain.md) |
-| **ACID & MVCC** | ⭐⭐⭐⭐⭐ | 6 Anomalies, Snapshot Isolation, Gap Locks, Deadlocks | [05 · Transactions & MVCC](./01-SQL-Databases/05-Transactions-ACID-MVCC-and-Locking.md) |
-| **Schema Design** | ⭐⭐⭐⭐ | 1NF-BCNF, UUIDv7 vs BIGINT, Expand-Contract Migrations | [06 · Schema & Migrations](./01-SQL-Databases/06-Schema-Design-Modeling-and-Migrations.md) |
-| **Replication & Scale**| ⭐⭐⭐⭐⭐ | WAL Streaming, HikariCP sizing formula, PgBouncer | [07 · Replication & Scaling](./01-SQL-Databases/07-Replication-High-Availability-and-Scaling.md) |
-| **Senior Q&A** | ⭐⭐⭐⭐⭐ | 40+ Senior/Principal Q&A, Naive → Trap → Masterclass | [08 · Senior Interview Q&A](./01-SQL-Databases/08-Senior-Backend-Interview-QA-and-Scenarios.md) |
-| **Whiteboard Drills**| ⭐⭐⭐⭐⭐ | 10 Hard Drills: Gaps & Islands, Sessionization, Hierarchies | [09 · Complex SQL Drills](./01-SQL-Databases/09-Complex-SQL-Interview-Drills.md) |
-| **NoSQL Types** | ⭐⭐⭐⭐ | Document, key-value, column-family, graph | [NoSQL Databases](./02-NoSQL-Databases/) |
-| **Caching Patterns** | ⭐⭐⭐⭐⭐ | Cache-aside, write-through, write-behind, TTL | [Caching Strategies](./04-Caching-Strategies/) |
-| **Redis** | ⭐⭐⭐⭐ | Data structures, persistence, pub/sub, use cases | [Caching Strategies](./04-Caching-Strategies/) |
+| **SQL Fundamentals** | ⭐⭐⭐⭐⭐ | DDL/DQL/DML/DCL/TCL, keys, constraints, FK actions, data types, CRUD, upserts | [01 · SQL Fundamentals](./01-SQL-Databases/01-SQL-Fundamentals-Data-Types-Constraints-and-CRUD.md) |
+| **Joins (ALL Types)** | ⭐⭐⭐⭐⭐ | Inner, Left, Right, Full Outer, Cross, Self, `LATERAL`; semi/anti-joins; `USING` vs `ON` | [02 · Joins & Subqueries](./01-SQL-Databases/02-Joins-Set-Operations-and-Subqueries.md) |
+| **Set Operations** | ⭐⭐⭐⭐ | `UNION` vs `UNION ALL`, `INTERSECT`, `EXCEPT`; precedence & `ORDER BY` rules | [02 · Joins & Subqueries](./01-SQL-Databases/02-Joins-Set-Operations-and-Subqueries.md) |
+| **Subqueries** | ⭐⭐⭐⭐⭐ | Scalar, derived table, correlated; `EXISTS` vs `IN` vs `NOT IN` (NULL trap) | [02 · Joins & Subqueries](./01-SQL-Databases/02-Joins-Set-Operations-and-Subqueries.md) |
+| **NULL Semantics** | ⭐⭐⭐⭐⭐ | Three-valued logic; `COUNT(col)` vs `COUNT(*)`; `NOT IN` disaster | [02 · Joins & Subqueries](./01-SQL-Databases/02-Joins-Set-Operations-and-Subqueries.md) |
+| **Storage & WAL** | ⭐⭐⭐⭐⭐ | Pages, Slot Directory, Clock-Sweep, ARIES Recovery | [03 · Storage Internals](./01-SQL-Databases/03-Relational-Engine-and-Storage-Internals.md) |
+| **B+ Tree Indexing** | ⭐⭐⭐⭐⭐ | Splits, Leftmost Prefix, Covering `INCLUDE`, GIN/BRIN | [04 · Indexing Architecture](./01-SQL-Databases/04-Indexing-Architecture-and-B-Trees.md) |
+| **Advanced SQL** | ⭐⭐⭐⭐⭐ | Window Frames (`ROWS` vs `RANGE`), Recursive CTEs, LATERAL | [05 · Advanced SQL & CTEs](./01-SQL-Databases/05-Advanced-SQL-Window-Functions-and-CTEs.md) |
+| **Query Plans** | ⭐⭐⭐⭐⭐ | CBO models, Hash vs Merge vs Nested Loop, EXPLAIN BUFFERS | [06 · Query Planner & EXPLAIN](./01-SQL-Databases/06-Query-Planner-Optimizer-and-Explain.md) |
+| **Connection Pooling** | ⭐⭐⭐⭐ | HikariCP sizing math, PgBouncer pooling modes | [09 · Replication & Scaling](./01-SQL-Databases/09-Replication-High-Availability-and-Scaling.md) |
+| **ACID & MVCC** | ⭐⭐⭐⭐⭐ | 6 Anomalies, Snapshot Isolation, Gap Locks, Deadlocks | [07 · Transactions & MVCC](./01-SQL-Databases/07-Transactions-ACID-MVCC-and-Locking.md) |
+| **Schema Design** | ⭐⭐⭐⭐ | 1NF-BCNF, UUIDv7 vs BIGINT, Expand-Contract Migrations | [08 · Schema & Migrations](./01-SQL-Databases/08-Schema-Design-Modeling-and-Migrations.md) |
+| **Replication & Scale**| ⭐⭐⭐⭐⭐ | WAL Streaming, HikariCP sizing formula, PgBouncer | [09 · Replication & Scaling](./01-SQL-Databases/09-Replication-High-Availability-and-Scaling.md) |
+| **Senior Q&A** | ⭐⭐⭐⭐⭐ | 40+ Senior/Principal Q&A, Naive → Trap → Masterclass | [10 · Senior Interview Q&A](./01-SQL-Databases/10-Senior-Backend-Interview-QA-and-Scenarios.md) |
+| **Whiteboard Drills**| ⭐⭐⭐⭐⭐ | 10 Hard Drills: Gaps & Islands, Sessionization, Hierarchies | [11 · Complex SQL Drills](./01-SQL-Databases/11-Complex-SQL-Interview-Drills.md) |
+| **NoSQL Foundations** | ⭐⭐⭐⭐ | CAP, PACELC, BASE, consistency ladder, linearizable vs serializable | [01 · NoSQL Foundations](./02-NoSQL-Databases/01-NoSQL-Foundations-Data-Models-CAP-and-Consistency.md) |
+| **MongoDB** | ⭐⭐⭐⭐⭐ | Embed vs reference, ESR indexes, `$lookup`, write concern, shard keys | [02 · MongoDB](./02-NoSQL-Databases/02-MongoDB-Document-Model-Schema-Patterns-and-Indexing.md) |
+| **Cassandra** | ⭐⭐⭐⭐ | Query-first modelling, tokens, LSM, `R+W>RF`, tombstones, LWT | [03 · Cassandra](./02-NoSQL-Databases/03-Cassandra-Column-Family-Partitioning-and-Tunable-Consistency.md) |
+| **DynamoDB** | ⭐⭐⭐⭐ | GSI/LSI, WCU/RCU, partition ceilings, write-sharding, single-table | [04 · DynamoDB](./02-NoSQL-Databases/04-DynamoDB-Key-Value-Design-Partition-Math-and-Single-Table-Modelling.md) |
+| **Redis / Graph / Time-Series** | ⭐⭐⭐⭐ | Data structures, eviction, Cluster, Neo4j, Elasticsearch, TimescaleDB | [05 · Redis & Graph](./02-NoSQL-Databases/05-Redis-Graph-and-TimeSeries-NoSQL-Interview-Deep-Dive.md) |
+| **NoSQL Selection & CQRS** | ⭐⭐⭐⭐ | Selection matrix, polyglot persistence, outbox, Spring configs | [06 · Selection & Spring](./02-NoSQL-Databases/06-NoSQL-Selection-Polyglot-Persistence-and-Spring-Data-Integration.md) |
+| **Caching Patterns** | ⭐⭐⭐⭐⭐ | Cache-aside, write-through, write-behind, TTL | [Spring Boot 10-Caching](../SPRING_BOOT/10-Caching/) |
+| **Redis** | ⭐⭐⭐⭐ | Data structures, persistence, pub/sub, use cases | [Spring Boot 10-Caching 02](../SPRING_BOOT/10-Caching/02-Redis-Data-Structures-and-Spring-Cache.md) |
 
 ---
 

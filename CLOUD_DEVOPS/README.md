@@ -6,14 +6,20 @@ This area covers Cloud infrastructure and DevOps practices for Java backend appl
 
 ## Quick Navigation
 
-| # | Topic | Priority | Status |
-|---|-------|----------|--------|
-| 01 | [AWS Fundamentals](./01-AWS-Fundamentals/) | ⭐⭐⭐⭐⭐ | 🚧 Planned |
-| 02 | [Kubernetes](./02-Kubernetes/) | ⭐⭐⭐⭐⭐ | 🚧 Planned |
-| 03 | [CI/CD Pipelines](./03-CI-CD-Pipelines/) | ⭐⭐⭐⭐ | 🚧 Planned |
-| 04 | [Monitoring & Logging](./04-Monitoring-Logging/) | ⭐⭐⭐⭐ | 🚧 Planned |
-| 05 | [Infrastructure as Code](./05-Infrastructure-as-Code/) | ⭐⭐⭐ | 🚧 Planned |
-| 06 | [Production Engineering](./06-Production-Engineering/) | ⭐⭐⭐⭐ | 🚧 Planned |
+> The material below is written, but it lives in
+> **[SPRING_BOOT/14-Deployment-DevOps](../SPRING_BOOT/14-Deployment-DevOps/)** rather than being
+> duplicated here. This folder keeps the syllabus; the chapters are canonical over there.
+
+| # | Topic | Priority | Where it is written |
+|---|-------|----------|---------------------|
+| 01 | [Cloud Fundamentals](../SPRING_BOOT/14-Deployment-DevOps/05-Cloud-IaC-and-Cost.md#3-compute-storage-network) | ⭐⭐⭐⭐⭐ | Ch. 05 §3 Compute, Storage, Network |
+| 02 | [Kubernetes](../SPRING_BOOT/14-Deployment-DevOps/02-Kubernetes-for-Java-Developers.md) | ⭐⭐⭐⭐⭐ | Ch. 02 Kubernetes for Java Developers |
+| 03 | [CI/CD Pipelines](../SPRING_BOOT/14-Deployment-DevOps/03-CICD-and-Release-Strategies.md) | ⭐⭐⭐⭐ | Ch. 03 CI/CD & Release Strategies |
+| 04 | [Monitoring & Logging](../SPRING_BOOT/14-Deployment-DevOps/04-Observability-SRE-and-Incident-Response.md#1-monitoring-vs-observability) | ⭐⭐⭐⭐ | Ch. 04 §1–§7 Observability, SLIs, logs, traces |
+| 05 | [Infrastructure as Code](../SPRING_BOOT/14-Deployment-DevOps/05-Cloud-IaC-and-Cost.md#4-infrastructure-as-code) | ⭐⭐⭐ | Ch. 05 §4–§5 IaC and Terraform patterns |
+| 06 | [Production Engineering](../SPRING_BOOT/14-Deployment-DevOps/04-Observability-SRE-and-Incident-Response.md#8-incident-response) | ⭐⭐⭐⭐ | Ch. 04 §8–§9 Incident response and postmortems |
+
+**Full track index:** [SPRING_BOOT/14-Deployment-DevOps/README.md](../SPRING_BOOT/14-Deployment-DevOps/README.md)
 
 ## Learning Path
 

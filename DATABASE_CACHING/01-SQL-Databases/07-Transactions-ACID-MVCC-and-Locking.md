@@ -1,4 +1,4 @@
-# 05 · Transactions, ACID, MVCC & Locking
+# 07 · Transactions, ACID, MVCC & Locking
 
 > **Level:** Advanced → Expert  
 > **Interview Frequency:** ★★★★★ (The core battlefield of Senior, Staff, and Principal backend interviews)  
@@ -538,5 +538,5 @@ MySQL InnoDB updates clustered index records in-place and writes previous row st
 ---
 
 ## 13. Follow-up Learning
-- **Next Chapter:** → [06 · Schema Design, Modeling & Zero-Downtime Migrations](./06-Schema-Design-Modeling-and-Migrations.md)
-- **Previous Chapter:** ← [04 · Query Planner, Optimizer & Execution Plans](./04-Query-Planner-Optimizer-and-Explain.md)
+- **Next Chapter:** → [08 · Schema Design, Modeling & Zero-Downtime Migrations](./08-Schema-Design-Modeling-and-Migrations.md)
+- **Previous Chapter:** ← [06 · Query Planner, Optimizer & Execution Plans](./06-Query-Planner-Optimizer-and-Explain.md)

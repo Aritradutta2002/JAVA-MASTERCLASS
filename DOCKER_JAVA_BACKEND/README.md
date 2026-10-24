@@ -6,13 +6,17 @@ This area covers Docker containerization specifically for Java backend applicati
 
 ## Quick Navigation
 
-| # | Topic | Priority | Status |
-|---|-------|----------|--------|
-| 01 | [Docker Basics](./01-Docker-Basics/) | ⭐⭐⭐⭐⭐ | 🚧 Planned |
-| 02 | [Dockerfile for Java](./02-Dockerfile-Java/) | ⭐⭐⭐⭐⭐ | 🚧 Planned |
-| 03 | [Multi-Stage Builds](./03-Multi-Stage-Builds/) | ⭐⭐⭐⭐ | 🚧 Planned |
-| 04 | [Java Container Optimization](./04-Java-Container-Optimization/) | ⭐⭐⭐⭐ | 🚧 Planned |
-| 05 | [Docker Compose](./05-Docker-Compose/) | ⭐⭐⭐ | 🚧 Planned |
+> The material below is written, but it lives in
+> **[SPRING_BOOT/14-Deployment-DevOps](../SPRING_BOOT/14-Deployment-DevOps/)** rather than being
+> duplicated here. This folder keeps the syllabus; the chapters are canonical over there.
+
+| # | Topic | Priority | Where it is written |
+|---|-------|----------|---------------------|
+| 01 | [Docker Basics](../SPRING_BOOT/14-Deployment-DevOps/01-Containerizing-Spring-Boot-with-Docker.md#1-why-containers) | ⭐⭐⭐⭐⭐ | §1 Why Containers · §2 Layers & the Build Cache |
+| 02 | [Dockerfile for Java](../SPRING_BOOT/14-Deployment-DevOps/01-Containerizing-Spring-Boot-with-Docker.md#3-the-dockerfile-line-by-line) | ⭐⭐⭐⭐⭐ | §3 The Dockerfile, Line by Line |
+| 03 | [Multi-Stage Builds](../SPRING_BOOT/14-Deployment-DevOps/01-Containerizing-Spring-Boot-with-Docker.md#31-the-production-multi-stage-dockerfile) | ⭐⭐⭐⭐ | §3.1 The production multi-stage Dockerfile |
+| 04 | [Java Container Optimization](../SPRING_BOOT/14-Deployment-DevOps/01-Containerizing-Spring-Boot-with-Docker.md#5-jvm-in-a-container) | ⭐⭐⭐⭐ | §5 JVM in a Container · §6 Image Size & Security Hardening |
+| 05 | [Docker Compose](../SPRING_BOOT/14-Deployment-DevOps/01-Containerizing-Spring-Boot-with-Docker.md#7-local-development-with-compose) | ⭐⭐⭐ | §7 Local Development with Compose |
 
 ## Learning Path
 

@@ -1,18 +1,24 @@
-# 01 · SQL Databases & Engine Architecture — Interview Ready Kit
+# 01 · SQL Databases & Relational Mastery — Interview Ready Kit
 
-> **Level:** Intermediate → Principal / Staff Backend Engineer (3–10+ Years Experience)  
+> **Level:** Beginner → Principal / Staff Backend Engineer (0–10+ Years Experience)  
 > **Interview Frequency:** ★★★★★ (Mandatory in 100% of Backend, Systems, and Data Engineering loops)  
 > **Focus Engines:** PostgreSQL (Heap Engine) & MySQL 8.0+ (InnoDB)  
-> **Prerequisites:** Basic SQL Syntax & Relational Algebra  
-> **Last Updated:** 2026
+> **Prerequisites:** None — Chapter 01 starts from zero syntax  
+> **Last Updated:** 2026  
+> **Chapters:** 11 + a runnable [`practice-schema.sql`](./practice-schema.sql)
 
 ---
 
 ## 🎯 Executive Overview
 
-This kit is designed specifically for **experienced backend developers** preparing for technical interviews at top-tier tech companies (FAANG, high-growth startups, and fintech enterprises).
+This kit is designed specifically for **backend developers at every level** preparing for technical interviews at top-tier tech companies (FAANG, high-growth startups, and fintech enterprises). It starts at **zero syntax** (Chapter 01) and climbs to engine physics (Chapters 03–09).
 
-In senior loops, interviewers do not ask you to write a simple `INNER JOIN`. They test whether you understand:
+**Where do I start?**
+- 0–2 years → Chapters **01 → 02** (fundamentals + joins), then skim the rest.
+- 2–5 years → Chapters **01 → 02 → 05**, then **04** and **06**.
+- 5–10+ years → Chapters **03 → 06 → 07 → 09**, then **10 → 11** for the live coding drills.
+
+In senior loops, interviewers no longer *ask* you to write a simple `INNER JOIN` — they *watch* whether you write it correctly under pressure (Chapter 02). Once that is settled, they test whether you understand:
 - How bytes are laid out on 8KB/16KB disk pages and buffer pool frames.
 - Why random UUIDv4 primary keys cause catastrophic 50/50 B+ tree page splits.
 - How the Cost-Based Optimizer calculates costs and why it ignores indexes under low selectivity.
@@ -27,15 +33,17 @@ In senior loops, interviewers do not ask you to write a simple `INNER JOIN`. The
 
 | Chapter | Title | Core Focus Areas | Difficulty |
 |:---:|---|---|:---:|
-| **01** | [Relational Engine & Storage Internals](./01-Relational-Engine-and-Storage-Internals.md) | Page layout, Slot directory, Buffer Pool clock-sweep, WAL, ARIES recovery, Doublewrite buffer | ⭐⭐⭐⭐ |
-| **02** | [Indexing Architecture & B+ Tree Physics](./02-Indexing-Architecture-and-B-Trees.md) | B+ Tree branching factor, Page splits, Clustered vs Heap, Leftmost prefix, Covering (`INCLUDE`), GIN/BRIN | ⭐⭐⭐⭐⭐ |
-| **03** | [Advanced SQL, Window Functions & CTEs](./03-Advanced-SQL-Window-Functions-and-CTEs.md) | Execution order, Window frames (`ROWS` vs `RANGE`), Recursive CTEs, `LATERAL` joins, Cube/Rollup | ⭐⭐⭐⭐ |
-| **04** | [Query Planner, Optimizer & Execution Plans](./04-Query-Planner-Optimizer-and-Explain.md) | CBO cost models, Join algorithms (Hash, Merge, Nested Loop), `EXPLAIN (ANALYZE, BUFFERS)`, `work_mem` | ⭐⭐⭐⭐⭐ |
-| **05** | [Transactions, ACID, MVCC & Locking](./05-Transactions-ACID-MVCC-and-Locking.md) | 6 Anomalies, Snapshot Isolation vs SSI, Postgres bloat vs InnoDB Undo logs, Gap Locks, Deadlocks | ⭐⭐⭐⭐⭐ |
-| **06** | [Schema Design, Modeling & Migrations](./06-Schema-Design-Modeling-and-Migrations.md) | 1NF-BCNF, UUIDv7 vs BIGINT, Financial `DECIMAL`, JSONB, Expand-Contract zero-downtime DDL | ⭐⭐⭐⭐ |
-| **07** | [Replication, High Availability & Scaling](./07-Replication-High-Availability-and-Scaling.md) | WAL streaming vs Binlog, Read-after-write consistency, HikariCP sizing math, PgBouncer, Partitioning | ⭐⭐⭐⭐⭐ |
-| **08** | [Senior Interview Q&A & Counter-Questions](./08-Senior-Backend-Interview-QA-and-Scenarios.md) | 40+ Senior/Principal Q&A, Naive answer → Trap → Masterclass answer, Black Friday triage | ⭐⭐⭐⭐⭐ |
-| **09** | [Complex SQL Interview Drills & Solutions](./09-Complex-SQL-Interview-Drills.md) | 10 classic hard whiteboard SQL drills: Gaps & Islands, Sessionization, Hierarchies, Running Totals | ⭐⭐⭐⭐⭐ |
+| **01** | [SQL Fundamentals, Data Types, Constraints & CRUD](./01-SQL-Fundamentals-Data-Types-Constraints-and-CRUD.md) | DDL/DQL/DML/DCL/TCL, keys, type map, FK actions, upserts, three-valued logic, views | ⭐⭐⭐ |
+| **02** | [Joins, Set Operations & Subqueries](./02-Joins-Set-Operations-and-Subqueries.md) | Every join type, Venn-diagram truth, semi/anti-joins, `EXISTS` vs `IN`, `UNION`/`INTERSECT`/`EXCEPT`, correlated subqueries, 25 drills | ⭐⭐⭐⭐⭐ |
+| **03** | [Relational Engine & Storage Internals](./03-Relational-Engine-and-Storage-Internals.md) | Page layout, Slot directory, Buffer Pool clock-sweep, WAL, ARIES recovery, Doublewrite buffer | ⭐⭐⭐⭐ |
+| **04** | [Indexing Architecture & B+ Tree Physics](./04-Indexing-Architecture-and-B-Trees.md) | B+ Tree branching factor, Page splits, Clustered vs Heap, Leftmost prefix, Covering (`INCLUDE`), GIN/BRIN | ⭐⭐⭐⭐⭐ |
+| **05** | [Advanced SQL, Window Functions & CTEs](./05-Advanced-SQL-Window-Functions-and-CTEs.md) | Execution order, Window frames (`ROWS` vs `RANGE`), Recursive CTEs, `LATERAL` joins, Cube/Rollup | ⭐⭐⭐⭐ |
+| **06** | [Query Planner, Optimizer & Execution Plans](./06-Query-Planner-Optimizer-and-Explain.md) | CBO cost models, Join algorithms (Hash, Merge, Nested Loop), `EXPLAIN (ANALYZE, BUFFERS)`, `work_mem` | ⭐⭐⭐⭐⭐ |
+| **07** | [Transactions, ACID, MVCC & Locking](./07-Transactions-ACID-MVCC-and-Locking.md) | 6 Anomalies, Snapshot Isolation vs SSI, Postgres bloat vs InnoDB Undo logs, Gap Locks, Deadlocks | ⭐⭐⭐⭐⭐ |
+| **08** | [Schema Design, Modeling & Migrations](./08-Schema-Design-Modeling-and-Migrations.md) | 1NF-BCNF, UUIDv7 vs BIGINT, Financial `DECIMAL`, JSONB, Expand-Contract zero-downtime DDL | ⭐⭐⭐⭐ |
+| **09** | [Replication, High Availability & Scaling](./09-Replication-High-Availability-and-Scaling.md) | WAL streaming vs Binlog, Read-after-write consistency, HikariCP sizing math, PgBouncer, Partitioning | ⭐⭐⭐⭐⭐ |
+| **10** | [Senior Interview Q&A & Counter-Questions](./10-Senior-Backend-Interview-QA-and-Scenarios.md) | 40+ Senior/Principal Q&A, Naive answer → Trap → Masterclass answer, Black Friday triage | ⭐⭐⭐⭐⭐ |
+| **11** | [Complex SQL Interview Drills & Solutions](./11-Complex-SQL-Interview-Drills.md) | 10 classic hard whiteboard SQL drills: Gaps & Islands, Sessionization, Hierarchies, Running Totals | ⭐⭐⭐⭐⭐ |
 
 ---
 
@@ -65,43 +73,55 @@ In senior loops, interviewers do not ask you to write a simple `INNER JOIN`. The
 
 ---
 
-## 🗓️ The 4-Week Senior Interview Study Plan
+## 🗓️ The 5-Week Interview Study Plan
+
+### Week 0: SQL Fundamentals & Joins (the non-negotiable base)
+- [ ] Read [Chapter 01: SQL Fundamentals, Data Types, Constraints & CRUD](./01-SQL-Fundamentals-Data-Types-Constraints-and-CRUD.md)
+  - Memorise which sublanguages `TRUNCATE`, `MERGE`, `GRANT`, and `SAVEPOINT` belong to.
+  - Know the six constraint families and the four `ON DELETE` actions cold.
+  - Prove to yourself that `NOT IN` with a NULL returns zero rows.
+  - Run every example against [`practice-schema.sql`](./practice-schema.sql).
+- [ ] Read [Chapter 02: Joins, Set Operations & Subqueries](./02-Joins-Set-Operations-and-Subqueries.md)
+  - Write all 25 drills in the Drill Bank without looking at the answers.
+  - Explain why the Venn diagram is right about *which rows* and wrong about *how many*.
+  - Rewrite every `NOT IN` you have ever written as `NOT EXISTS`.
+  - Be able to derive "latest row per group" in three different ways, on a whiteboard.
 
 ### Week 1: Storage Mechanics & Index Physics
-- [ ] Read [Chapter 01: Engine & Storage Internals](./01-Relational-Engine-and-Storage-Internals.md)
+- [ ] Read [Chapter 03: Engine & Storage Internals](./03-Relational-Engine-and-Storage-Internals.md)
   - Memorize the 3 phases of the ARIES recovery algorithm.
   - Understand how the slot directory decouples row movement from secondary index pointers.
-- [ ] Read [Chapter 02: Indexing Architecture & B+ Trees](./02-Indexing-Architecture-and-B-Trees.md)
+- [ ] Read [Chapter 04: Indexing Architecture & B+ Trees](./04-Indexing-Architecture-and-B-Trees.md)
   - Calculate tree height for 100M rows with 8KB pages.
   - Explain why UUIDv4 causes 50/50 page splits and why UUIDv7 eliminates them.
   - Practice identifying leftmost prefix violations.
 
 ### Week 2: Query Mastery & Plan Execution
-- [ ] Read [Chapter 03: Advanced SQL, Window Functions & CTEs](./03-Advanced-SQL-Window-Functions-and-CTEs.md)
+- [ ] Read [Chapter 05: Advanced SQL, Window Functions & CTEs](./05-Advanced-SQL-Window-Functions-and-CTEs.md)
   - Memorize the 12-step logical execution order.
   - Practice Recursive CTEs with cycle detection.
-- [ ] Read [Chapter 04: Query Planner & Execution Plans](./04-Query-Planner-Optimizer-and-Explain.md)
+- [ ] Read [Chapter 06: Query Planner & Execution Plans](./06-Query-Planner-Optimizer-and-Explain.md)
   - Learn to read `EXPLAIN (ANALYZE, BUFFERS)` without looking at guides.
   - Contrast the 3 physical join algorithms: Hash Join vs Sort-Merge vs Nested Loop.
   - Understand why memory spills to disk degrade query latency by 50x.
 
 ### Week 3: Concurrency, MVCC & Schema Migrations
-- [ ] Read [Chapter 05: Transactions, ACID, MVCC & Locking](./05-Transactions-ACID-MVCC-and-Locking.md)
+- [ ] Read [Chapter 07: Transactions, ACID, MVCC & Locking](./07-Transactions-ACID-MVCC-and-Locking.md)
   - Explain Write Skew using the On-Call Doctor example.
   - Contrast PostgreSQL heap bloat with MySQL InnoDB Undo Log chains.
   - Trace how Gap Locks cause deadlocks on concurrent `SELECT ... FOR UPDATE`.
-- [ ] Read [Chapter 06: Schema Design & Zero-Downtime Migrations](./06-Schema-Design-Modeling-and-Migrations.md)
+- [ ] Read [Chapter 08: Schema Design & Zero-Downtime Migrations](./08-Schema-Design-Modeling-and-Migrations.md)
   - Master the 4-phase Expand-Contract migration pattern.
   - Understand CPU struct alignment padding inside table rows.
 
 ### Week 4: Scaling, Interview Traps & Live Coding Drills
-- [ ] Read [Chapter 07: Replication, High Availability & Scaling](./07-Replication-High-Availability-and-Scaling.md)
+- [ ] Read [Chapter 09: Replication, High Availability & Scaling](./09-Replication-High-Availability-and-Scaling.md)
   - Master the HikariCP sizing formula (→(\text{Cores} \times 2) + \text{Spindles}→).
   - Explain the 3 solutions to the Read-Your-Own-Writes anomaly.
   - Contrast Declarative Partitioning with Horizontal Sharding.
-- [ ] Practice [Chapter 08: Senior Q&A & Counter-Questions](./08-Senior-Backend-Interview-QA-and-Scenarios.md)
+- [ ] Practice [Chapter 10: Senior Q&A & Counter-Questions](./10-Senior-Backend-Interview-QA-and-Scenarios.md)
   - Rehearse the *Naive → Trap → Masterclass* answer flow for the top 15 questions.
-- [ ] Code all 10 problems in [Chapter 09: Complex SQL Interview Drills](./09-Complex-SQL-Interview-Drills.md)
+- [ ] Code all 10 problems in [Chapter 11: Complex SQL Interview Drills](./11-Complex-SQL-Interview-Drills.md)
   - Solve Gaps & Islands and Sessionization without looking at the solutions.
 
 ---

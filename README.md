@@ -156,19 +156,22 @@ push-back), production incident walkthroughs and system design solutions.
 
 ## 🗄️ DATABASE_CACHING - SQL & Databases Interview Ready Kit
 
-**The complete Relational Engine & Database Architecture Guide for 3-10+ years backend engineers** — 9 comprehensive chapters covering physical page storage, B+ tree physics, advanced analytical window functions, query optimizer internals, ACID & MVCC deep dives, zero-downtime migrations, and FAANG whiteboard coding drills.
+**The complete Database & Caching Interview Ready Kit for 0-10+ years backend engineers** — 17 comprehensive chapters covering SQL fundamentals, every join type, NoSQL foundations (CAP/PACELC), MongoDB, Cassandra, DynamoDB single-table design, Redis/graph/time-series, physical page storage, B+ tree physics, advanced analytical window functions, query optimizer internals, ACID & MVCC deep dives, zero-downtime migrations, and FAANG whiteboard coding drills.
 
 | # | Chapter | Key Highlights | Link |
 |---|---------|----------------|------|
-| **01** | **Relational Engine & Storage Internals** | Pages, Slot Directory, Clock-sweep, WAL, ARIES Recovery, Doublewrite Buffer | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/01-Relational-Engine-and-Storage-Internals.md) |
-| **02** | **Indexing Architecture & B+ Tree Physics** | Branching factor math, Page splits, Clustered vs Heap, Leftmost prefix, Covering INCLUDE | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/02-Indexing-Architecture-and-B-Trees.md) |
-| **03** | **Advanced SQL, Window Functions & CTEs** | Execution order, Window frames (ROWS vs RANGE), Recursive CTEs, LATERAL joins | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/03-Advanced-SQL-Window-Functions-and-CTEs.md) |
-| **04** | **Query Planner, Optimizer & Execution Plans** | CBO models, Join algorithms (Hash, Merge, Nested Loop), EXPLAIN (ANALYZE, BUFFERS) | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/04-Query-Planner-Optimizer-and-Explain.md) |
-| **05** | **Transactions, ACID, MVCC & Locking** | 6 Anomalies, Snapshot Isolation vs SSI, Postgres bloat vs InnoDB Undo logs, Gap Locks | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/05-Transactions-ACID-MVCC-and-Locking.md) |
-| **06** | **Schema Design, Modeling & Migrations** | 1NF-BCNF, UUIDv7 vs BIGINT, Financial DECIMAL, JSONB, Expand-Contract DDL | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/06-Schema-Design-Modeling-and-Migrations.md) |
-| **07** | **Replication, High Availability & Scaling** | WAL streaming vs Binlog, Read-after-write consistency, HikariCP sizing, PgBouncer | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/07-Replication-High-Availability-and-Scaling.md) |
-| **08** | **Senior Interview Q&A & Counter-Questions** | 40+ Senior/Principal Q&A, Naive answer → Trap → Masterclass answer | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/08-Senior-Backend-Interview-QA-and-Scenarios.md) |
-| **09** | **Complex SQL Interview Drills & Solutions** | 10 classic hard whiteboard SQL drills: Gaps & Islands, Sessionization, Hierarchies | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/09-Complex-SQL-Interview-Drills.md) |
+| **01** | **SQL Fundamentals, Data Types, Constraints & CRUD** | DDL/DQL/DML/DCL/TCL, type map, keys, FK actions, upserts, NULL semantics | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/01-SQL-Fundamentals-Data-Types-Constraints-and-CRUD.md) |
+| **02** | **Joins, Set Operations & Subqueries** | Inner/Left/Right/Full/Cross/Self joins, semi & anti-joins, UNION/INTERSECT/EXCEPT, EXISTS | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/02-Joins-Set-Operations-and-Subqueries.md) |
+| **03** | **Relational Engine & Storage Internals** | Pages, Slot Directory, Clock-sweep, WAL, ARIES Recovery, Doublewrite Buffer | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/03-Relational-Engine-and-Storage-Internals.md) |
+| **04** | **Indexing Architecture & B+ Tree Physics** | Branching factor math, Page splits, Clustered vs Heap, Leftmost prefix, Covering INCLUDE | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/04-Indexing-Architecture-and-B-Trees.md) |
+| **05** | **Advanced SQL, Window Functions & CTEs** | Execution order, Window frames (ROWS vs RANGE), Recursive CTEs, LATERAL joins | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/05-Advanced-SQL-Window-Functions-and-CTEs.md) |
+| **06** | **Query Planner, Optimizer & Execution Plans** | CBO models, Join algorithms (Hash, Merge, Nested Loop), EXPLAIN (ANALYZE, BUFFERS) | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/06-Query-Planner-Optimizer-and-Explain.md) |
+| **07** | **Transactions, ACID, MVCC & Locking** | 6 Anomalies, Snapshot Isolation vs SSI, Postgres bloat vs InnoDB Undo logs, Gap Locks | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/07-Transactions-ACID-MVCC-and-Locking.md) |
+| **08** | **Schema Design, Modeling & Migrations** | 1NF-BCNF, UUIDv7 vs BIGINT, Financial DECIMAL, JSONB, Expand-Contract DDL | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/08-Schema-Design-Modeling-and-Migrations.md) |
+| **09** | **Replication, High Availability & Scaling** | WAL streaming vs Binlog, Read-after-write consistency, HikariCP sizing, PgBouncer | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/09-Replication-High-Availability-and-Scaling.md) |
+| **10** | **Senior Interview Q&A & Counter-Questions** | 40+ Senior/Principal Q&A, Naive answer → Trap → Masterclass answer | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/10-Senior-Backend-Interview-QA-and-Scenarios.md) |
+| **11** | **Complex SQL Interview Drills & Solutions** | 10 classic hard whiteboard SQL drills: Gaps & Islands, Sessionization, Hierarchies | [Open Chapter](DATABASE_CACHING/01-SQL-Databases/11-Complex-SQL-Interview-Drills.md) |
+| 📄 | **Practice Schema** | 6-table runnable PostgreSQL script (`practice-schema.sql`) used by Chapters 01 & 02 | [Open Schema](DATABASE_CACHING/01-SQL-Databases/practice-schema.sql) |
 
 > ☕ Start with the **[SQL Databases Master Index](DATABASE_CACHING/01-SQL-Databases/README.md)** — it includes the **Top-40 question bank**, the 4-week study plan, and the [Database Quick Reference](DATABASE_CACHING/QUICK-REFERENCE.md).
 

@@ -1,4 +1,4 @@
-# 04 · Query Planner, Optimizer & Execution Plans
+# 06 · Query Planner, Optimizer & Execution Plans
 
 > **Level:** Intermediate → Expert  
 > **Interview Frequency:** ★★★★★ (Core differentiator in Senior/Staff performance debugging)  
@@ -499,5 +499,5 @@ The true cost of the node is multiplied by the number of loops.
 ---
 
 ## 13. Follow-up Learning
-- **Next Chapter:** → [05 · Transactions, ACID, MVCC & Locking](./05-Transactions-ACID-MVCC-and-Locking.md)
-- **Previous Chapter:** ← [03 · Advanced SQL, Window Functions & CTEs](./03-Advanced-SQL-Window-Functions-and-CTEs.md)
+- **Next Chapter:** → [07 · Transactions, ACID, MVCC & Locking](./07-Transactions-ACID-MVCC-and-Locking.md)
+- **Previous Chapter:** ← [05 · Advanced SQL, Window Functions & CTEs](./05-Advanced-SQL-Window-Functions-and-CTEs.md)

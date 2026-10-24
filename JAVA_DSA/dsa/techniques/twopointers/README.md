@@ -10,7 +10,7 @@
 ### 2. Problems (`/problems`)
 - Easy / Medium / Hard with clean Java solutions
 
-### 3. Interview Patterns (`/interview_patterns`)
+### 3. Interview Patterns (`/patterns`)
 - Common templates, edge cases, and pitfalls
 
 ## 🎯 Learning Path
@@ -28,7 +28,7 @@
 - [Easy Problems](./problems/easy/)
 - [Medium Problems](./problems/medium/)
 - [Hard Problems](./problems/hard/)
-- [Interview Patterns](./interview_patterns/)
+- [Interview Patterns](./patterns/)
 
 ---
 *Last Updated: October 2025*

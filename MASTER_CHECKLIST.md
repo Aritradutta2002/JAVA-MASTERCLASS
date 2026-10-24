@@ -15,10 +15,10 @@ This master checklist covers all 6 major technical areas for comprehensive Java 
 |------|----------|----------|--------|
 | [Core Java](#1-core-java) | 18 | ⭐⭐⭐⭐⭐ | 🚧 In Progress |
 | [Spring & Spring Boot](#2-spring--spring-boot) | 57 | ⭐⭐⭐⭐⭐ | 🚧 In Progress |
-| [Docker for Java Backend](#3-docker-for-java-backend) | 5 | ⭐⭐⭐⭐ | 🚧 Planned |
-| [Cloud & DevOps](#4-cloud--devops) | 6 | ⭐⭐⭐⭐ | 🚧 Planned |
-| [Database & Caching](#5-database--caching) | 5 | ⭐⭐⭐⭐⭐ | 🚧 Planned |
-| [System Design](#6-system-design) | 6 | ⭐⭐⭐⭐⭐ | 🚧 Planned |
+| [Docker for Java Backend](#3-docker-for-java-backend) | 5 topics | ⭐⭐⭐⭐ | 🟢 Covered in [Spring Boot 14](./SPRING_BOOT/14-Deployment-DevOps/) |
+| [Cloud & DevOps](#4-cloud--devops) | 6 topics | ⭐⭐⭐⭐ | 🟢 Covered in [Spring Boot 14](./SPRING_BOOT/14-Deployment-DevOps/) |
+| [Database & Caching](#5-database--caching) | 17 | ⭐⭐⭐⭐⭐ | 🟢 Complete ([DATABASE_CACHING](./DATABASE_CACHING/)) |
+| [System Design](#6-system-design) | 6 topics | ⭐⭐⭐⭐⭐ | 🟢 Covered in [Spring Boot 12](./SPRING_BOOT/12-System-Design-for-Java-Backend/) |
 
 ---
 
@@ -118,6 +118,7 @@ This master checklist covers all 6 major technical areas for comprehensive Java 
 ## 3. Docker for Java Backend
 
 **Location**: [DOCKER_JAVA_BACKEND/](./DOCKER_JAVA_BACKEND/)  
+**Written in**: [SPRING_BOOT/14-Deployment-DevOps/01-Containerizing-Spring-Boot-with-Docker.md](./SPRING_BOOT/14-Deployment-DevOps/01-Containerizing-Spring-Boot-with-Docker.md)  
 **Estimated Time**: 1-2 weeks  
 **Scenario Count**: 25+
 
@@ -135,6 +136,7 @@ This master checklist covers all 6 major technical areas for comprehensive Java 
 ## 4. Cloud & DevOps
 
 **Location**: [CLOUD_DEVOPS/](./CLOUD_DEVOPS/)  
+**Written in**: [SPRING_BOOT/14-Deployment-DevOps/](./SPRING_BOOT/14-Deployment-DevOps/) (5 chapters)  
 **Estimated Time**: 2-3 weeks  
 **Scenario Count**: 30+
 
@@ -159,26 +161,37 @@ This master checklist covers all 6 major technical areas for comprehensive Java 
 **Scenario Count**: 25+
 
 ### SQL Databases & Engine Architecture (Senior Interview Ready Kit)
-- [ ] 01. [Relational Engine & Storage Internals](./DATABASE_CACHING/01-SQL-Databases/01-Relational-Engine-and-Storage-Internals.md) - Pages, Slot Directory, Clock-Sweep, WAL, ARIES, Doublewrite
-- [ ] 02. [Indexing Architecture & B+ Tree Physics](./DATABASE_CACHING/01-SQL-Databases/02-Indexing-Architecture-and-B-Trees.md) - Branching Factor, 50/50 Splits, Clustered vs Heap, Leftmost Prefix, Covering INCLUDE, GIN/BRIN
-- [ ] 03. [Advanced SQL, Window Functions & CTEs](./DATABASE_CACHING/01-SQL-Databases/03-Advanced-SQL-Window-Functions-and-CTEs.md) - Execution Order, ROWS vs RANGE Frames, Recursive CTEs, LATERAL Joins
-- [ ] 04. [Query Planner, Optimizer & Execution Plans](./DATABASE_CACHING/01-SQL-Databases/04-Query-Planner-Optimizer-and-Explain.md) - CBO Model, Hash vs Merge vs Nested Loop, EXPLAIN BUFFERS, Memory Spills
-- [ ] 05. [Transactions, ACID, MVCC & Locking](./DATABASE_CACHING/01-SQL-Databases/05-Transactions-ACID-MVCC-and-Locking.md) - 6 Anomalies, Snapshot Isolation vs SSI, Postgres Bloat vs InnoDB Undo Logs, Gap Locks
-- [ ] 06. [Schema Design, Modeling & Zero-Downtime Migrations](./DATABASE_CACHING/01-SQL-Databases/06-Schema-Design-Modeling-and-Migrations.md) - 1NF-BCNF, UUIDv7 vs BIGINT, Financial DECIMAL, JSONB, Expand-Contract
-- [ ] 07. [Replication, High Availability & Scaling](./DATABASE_CACHING/01-SQL-Databases/07-Replication-High-Availability-and-Scaling.md) - WAL Streaming vs Binlog, Read-After-Write, HikariCP Sizing Math, PgBouncer, Sharding
-- [ ] 08. [Senior Backend Interview Q&A & Scenarios](./DATABASE_CACHING/01-SQL-Databases/08-Senior-Backend-Interview-QA-and-Scenarios.md) - 40+ Senior/Principal Q&A, Naive -> Trap -> Masterclass Answers
-- [ ] 09. [Complex SQL Interview Drills & Solutions](./DATABASE_CACHING/01-SQL-Databases/09-Complex-SQL-Interview-Drills.md) - 10 Hard Drills: Gaps & Islands, Sessionization, Org Charts, Keyset Paging
+- [ ] 01. [SQL Fundamentals, Data Types, Constraints & CRUD](./DATABASE_CACHING/01-SQL-Databases/01-SQL-Fundamentals-Data-Types-Constraints-and-CRUD.md) - DDL/DQL/DML/DCL/TCL, Keys & Constraints, FK Actions, Type Map, Upserts/RETURNING, Three-Valued Logic, Views & CTAS
+- [ ] 02. [Joins, Set Operations & Subqueries](./DATABASE_CACHING/01-SQL-Databases/02-Joins-Set-Operations-and-Subqueries.md) - Inner/Left/Right/Full/Cross/Self, Semi & Anti Joins, EXISTS vs IN, UNION/INTERSECT/EXCEPT, Correlated Subqueries, 25 Drills
+- [ ] 03. [Relational Engine & Storage Internals](./DATABASE_CACHING/01-SQL-Databases/03-Relational-Engine-and-Storage-Internals.md) - Pages, Slot Directory, Clock-Sweep, WAL, ARIES, Doublewrite
+- [ ] 04. [Indexing Architecture & B+ Tree Physics](./DATABASE_CACHING/01-SQL-Databases/04-Indexing-Architecture-and-B-Trees.md) - Branching Factor, 50/50 Splits, Clustered vs Heap, Leftmost Prefix, Covering INCLUDE, GIN/BRIN
+- [ ] 05. [Advanced SQL, Window Functions & CTEs](./DATABASE_CACHING/01-SQL-Databases/05-Advanced-SQL-Window-Functions-and-CTEs.md) - Execution Order, ROWS vs RANGE Frames, Recursive CTEs, LATERAL Joins
+- [ ] 06. [Query Planner, Optimizer & Execution Plans](./DATABASE_CACHING/01-SQL-Databases/06-Query-Planner-Optimizer-and-Explain.md) - CBO Model, Hash vs Merge vs Nested Loop, EXPLAIN BUFFERS, Memory Spills
+- [ ] 07. [Transactions, ACID, MVCC & Locking](./DATABASE_CACHING/01-SQL-Databases/07-Transactions-ACID-MVCC-and-Locking.md) - 6 Anomalies, Snapshot Isolation vs SSI, Postgres Bloat vs InnoDB Undo Logs, Gap Locks
+- [ ] 08. [Schema Design, Modeling & Zero-Downtime Migrations](./DATABASE_CACHING/01-SQL-Databases/08-Schema-Design-Modeling-and-Migrations.md) - 1NF-BCNF, UUIDv7 vs BIGINT, Financial DECIMAL, JSONB, Expand-Contract
+- [ ] 09. [Replication, High Availability & Scaling](./DATABASE_CACHING/01-SQL-Databases/09-Replication-High-Availability-and-Scaling.md) - WAL Streaming vs Binlog, Read-After-Write, HikariCP Sizing Math, PgBouncer, Sharding
+- [ ] 10. [Senior Backend Interview Q&A & Scenarios](./DATABASE_CACHING/01-SQL-Databases/10-Senior-Backend-Interview-QA-and-Scenarios.md) - 40+ Senior/Principal Q&A, Naive -> Trap -> Masterclass Answers
+- [ ] 11. [Complex SQL Interview Drills & Solutions](./DATABASE_CACHING/01-SQL-Databases/11-Complex-SQL-Interview-Drills.md) - 10 Hard Drills: Gaps & Islands, Sessionization, Org Charts, Keyset Paging
+- [ ] Schema. [Practice Schema (practice-schema.sql)](./DATABASE_CACHING/01-SQL-Databases/practice-schema.sql) - Runnable 6-table PostgreSQL schema + seed data for Chapters 01 & 02
 
-### NoSQL, Caching & Connection Management
-- [ ] 10. NoSQL Databases - MongoDB, Cassandra, DynamoDB, CAP Theorem
-- [ ] 11. Caching Strategies - Redis, Memcached, Cache-Aside, Eviction Policies
-- [ ] 12. Connection Pooling - HikariCP Configuration, Sizing Math, Leaks & Timeouts
+### NoSQL Databases & Consistency Theory — 🟢 DATABASE_CACHING/02-NoSQL-Databases/
+- [ ] 12. [NoSQL Foundations, Data Models & Consistency Theory](./DATABASE_CACHING/02-NoSQL-Databases/01-NoSQL-Foundations-Data-Models-CAP-and-Consistency.md) - Families, BASE, CAP (correct), PACELC, Consistency Ladder, Linearizable vs Serializable
+- [ ] 13. [MongoDB — Document Model, Schema Patterns & Indexing](./DATABASE_CACHING/02-NoSQL-Databases/02-MongoDB-Document-Model-Schema-Patterns-and-Indexing.md) - Embed vs Reference, 12 Patterns, ESR Rule, Multikey Cost, $lookup, Write Concern, Shard Keys, Spring Data
+- [ ] 14. [Cassandra — Column-Family, Partitioning & Tunable Consistency](./DATABASE_CACHING/02-NoSQL-Databases/03-Cassandra-Column-Family-Partitioning-and-Tunable-Consistency.md) - Query-First Modelling, Ring/Tokens, LSM Write Path, R+W>RF, Tombstones, LWT/Paxos, TWCS, Spring Data
+- [ ] 15. [DynamoDB — Key-Value, Partition Math & Single-Table Design](./DATABASE_CACHING/02-NoSQL-Databases/04-DynamoDB-Key-Value-Design-Partition-Math-and-Single-Table-Modelling.md) - GSI vs LSI, WCU/RCU Math, 3000/1000 Partition Ceilings, Write-Sharding, Conditional Writes, SDK v2
+- [ ] 16. [Redis, Graph & Time-Series Stores](./DATABASE_CACHING/02-NoSQL-Databases/05-Redis-Graph-and-TimeSeries-NoSQL-Interview-Deep-Dive.md) - Data Structures, SCAN vs KEYS, RDB/AOF, Cluster, Eviction LRU/LFU, Neo4j, Elasticsearch, TimescaleDB
+- [ ] 17. [NoSQL Selection, Polyglot Persistence & Spring Data](./DATABASE_CACHING/02-NoSQL-Databases/06-NoSQL-Selection-Polyglot-Persistence-and-Spring-Data-Integration.md) - Selection Matrix, CQRS + Outbox, Migration Strategy, Spring Production Configs
+
+### Caching & Connection Management — 🟢 SPRING_BOOT/
+- [ ] 18. Caching Strategies - Redis, Memcached, Cache-Aside, Write-Through, Eviction Policies - [SPRING_BOOT/10-Caching](./SPRING_BOOT/10-Caching/)
+- [ ] 19. Connection Pooling - HikariCP Configuration, Sizing Math, PgBouncer - [DATABASE_CACHING/01-SQL-Databases/09](./DATABASE_CACHING/01-SQL-Databases/09-Replication-High-Availability-and-Scaling.md)
 
 ---
 
 ## 6. System Design
 
 **Location**: [SYSTEM_DESIGN/](./SYSTEM_DESIGN/)  
+**Written in**: [SPRING_BOOT/12-System-Design-for-Java-Backend/](./SPRING_BOOT/12-System-Design-for-Java-Backend/) (+ [08 Microservices](./SPRING_BOOT/08-Microservices-with-Spring-Boot/) and [09 Messaging](./SPRING_BOOT/09-Messaging-Systems/))  
 **Estimated Time**: 2-3 weeks  
 **Scenario Count**: 15+
 

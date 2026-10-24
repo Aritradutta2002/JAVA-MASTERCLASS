@@ -1,4 +1,4 @@
-# 07 · Replication, High Availability & Scaling
+# 09 · Replication, High Availability & Scaling
 
 > **Level:** Advanced → Expert  
 > **Interview Frequency:** ★★★★★ (Critical for Senior / Staff System Design & Distributed Database interviews)  
@@ -472,5 +472,5 @@ This churn degrades CPU L1/L2/L3 cache hit rates, causes memory bus thrashing, a
 ---
 
 ## 13. Follow-up Learning
-- **Next Chapter:** → [08 · Senior Backend Interview Q&A & Scenarios](./08-Senior-Backend-Interview-QA-and-Scenarios.md)
-- **Previous Chapter:** ← [06 · Schema Design, Modeling & Zero-Downtime Migrations](./06-Schema-Design-Modeling-and-Migrations.md)
+- **Next Chapter:** → [10 · Senior Backend Interview Q&A & Scenarios](./10-Senior-Backend-Interview-QA-and-Scenarios.md)
+- **Previous Chapter:** ← [08 · Schema Design, Modeling & Zero-Downtime Migrations](./08-Schema-Design-Modeling-and-Migrations.md)

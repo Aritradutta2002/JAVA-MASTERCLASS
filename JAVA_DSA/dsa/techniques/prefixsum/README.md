@@ -12,7 +12,7 @@
 - **Medium**: Intermediate problems with variations
 - **Hard**: Advanced problems combining multiple concepts
 
-### 3. Interview Patterns (`/interview_patterns`)
+### 3. Interview Patterns (`/patterns`)
 - Common patterns and templates
 - Optimization techniques
 - Edge cases and gotchas
@@ -39,7 +39,7 @@
 - [Easy Problems](./problems/easy/)
 - [Medium Problems](./problems/medium/)
 - [Hard Problems](./problems/hard/)
-- [Interview Patterns](./interview_patterns/)
+- [Interview Patterns](./patterns/)
 
 ---
 *Last Updated: January 2025*

@@ -1,4 +1,4 @@
-# 03 · Advanced SQL, Window Functions & CTEs
+# 05 · Advanced SQL, Window Functions & CTEs
 
 > **Level:** Intermediate → Expert  
 > **Interview Frequency:** ★★★★★ (The standard live coding filter in senior backend loops)  
@@ -485,5 +485,5 @@ In contrast, `CROSS JOIN LATERAL` executes an index seek on the composite index 
 ---
 
 ## 13. Follow-up Learning
-- **Next Chapter:** → [04 · Query Planner, Optimizer & Execution Plans](./04-Query-Planner-Optimizer-and-Explain.md)
-- **Previous Chapter:** ← [02 · Indexing Architecture & B+ Tree Physics](./02-Indexing-Architecture-and-B-Trees.md)
+- **Next Chapter:** → [06 · Query Planner, Optimizer & Execution Plans](./06-Query-Planner-Optimizer-and-Explain.md)
+- **Previous Chapter:** ← [04 · Indexing Architecture & B+ Tree Physics](./04-Indexing-Architecture-and-B-Trees.md)

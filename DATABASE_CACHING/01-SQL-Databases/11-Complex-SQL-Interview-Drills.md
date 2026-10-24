@@ -1,4 +1,4 @@
-# 09 · Complex SQL Interview Drills & Problem Solving
+# 11 · Complex SQL Interview Drills & Problem Solving
 
 > **Level:** Intermediate → Expert  
 > **Interview Frequency:** ★★★★★ (The top live coding challenges in FAANG / Tier-1 technical screens)  
@@ -455,4 +455,4 @@ CREATE TABLE reservations (
 
 ## 11. Follow-up Learning
 - **Next Chapter:** → [Master Kit Index & Study Roadmap](./README.md)
-- **Previous Chapter:** ← [08 · Senior Backend Interview Q&A & Scenarios](./08-Senior-Backend-Interview-QA-and-Scenarios.md)
+- **Previous Chapter:** ← [10 · Senior Backend Interview Q&A & Scenarios](./10-Senior-Backend-Interview-QA-and-Scenarios.md)
