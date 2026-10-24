@@ -6,6 +6,7 @@
 
 | Priority | Chapters | Why It Matters |
 |----------|----------|----------------|
+| ⭐⭐⭐⭐⭐ | [04 · 50 Most Asked Q&A](04-Java-8-50-Most-Asked-Questions.md) | **Start here** — the whole of Java 8 in 50 questions, every snippet compiled and run |
 | ⭐⭐⭐⭐⭐ | [02 · Stream API](02-Stream-API.md) | Coding round favourite; internals = senior question |
 | ⭐⭐⭐⭐⭐ | [01 · Lambda & Functional Interfaces](01-Lambda-Functional-Interfaces.md) | The foundation of everything modern Java |
 | ⭐⭐⭐⭐⭐ | [03 · Optional & CompletableFuture](03-Optional-CompletableFuture.md) | Async programming, the hottest topic |
@@ -16,7 +17,13 @@
 
 ```
 01 Lambdas & Functional Interfaces ──▶ 02 Stream API ──▶ 03 Optional & CompletableFuture
+                                                    │
+                                                    ▼
+                              04 · 50 Most Asked Q&A  (revision + interview drill)
 ```
+
+**Interview tomorrow?** Read [04](04-Java-8-50-Most-Asked-Questions.md) only — the cheat sheet, the
+50-answer index, and the Top 15 Traps are designed to be read in 30 minutes.
 
 ---
 
