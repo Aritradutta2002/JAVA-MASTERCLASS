@@ -183,19 +183,20 @@ int newCapacity = oldCapacity + (oldCapacity >> 1);   // 1.5 × oldCapacity
 
 Observed sequence: `10 → 15 → 22 → 33 → 49 → 73 → 109 …` (each is `old + old/2`).
 
-**Why 1.5× and not 2×? — the fragmentation argument.** With a **2×** factor the new block is always
-strictly larger than the *sum* of all blocks allocated so far, so the allocator can **never** reuse
-a previously-freed block — every past array becomes unreclaimable fragmentation (16+32+64 = 112
-bytes stranded). With **1.5×** the allocator *can* recycle freed chunks. The golden ratio (φ ≈ 1.618)
-is the theoretical optimum for the same reason.
+**Why 1.5× and not 2×?** The JDK implementation uses 1.5× to balance two costs: a larger factor
+copies fewer times, while a smaller factor wastes less capacity after growth and gives the
+allocator more opportunities to reuse freed regions. A 2× factor does **not** guarantee that all
+old arrays are permanently stranded, so the stronger textbook “guaranteed fragmentation” claim is
+too absolute. Geometric growth is the important property: it makes the total copying work O(n).
 
-**The amortised proof.** Adding $n$ elements costs
+**The amortised proof.** With geometric growth, the copy sizes also form a geometric series. For
+any growth factor $g > 1$, the total is bounded by a constant multiple of $n$:
 
-$$T(n) = 1 + 2 + 4 + 8 + \dots + n = 2n - 1 = O(n)$$
+$$T(n) = c + cg + cg^2 + \dots = O(n)$$
 
-so the **total** cost of $n$ adds is $O(n)$ and the **amortised** cost per add is $O(1)$ — even
-though *individual* adds trigger an $O(n)$ copy. Over 23 adds the total copy work is ~70
-element-moves — about **3 per add**.
+so the **total** cost of $n$ adds is O(n) and the **amortised** cost per add is O(1) — even though
+*individual* adds trigger an O(n) copy. Starting from capacity 10, the first 23 additions copy
+10 + 15 + 22 = 47 slots in total, about **2 element-moves per add on average**.
 
 **What to look at:** the *spikes* are rare and geometrically spaced. Amortised $O(1)$ does **not**
 mean "every operation is $O(1)$" — it means the average over any prefix of operations is $O(1)$. A
@@ -836,10 +837,10 @@ rejects `null` and cannot be changed at all.
 ### 🟡 Intermediate
 
 **Q: Why does `ArrayList` grow by 1.5× rather than 2×?**
-**A:** Memory fragmentation. With a 2× factor, each new allocation is larger than the *sum* of all
-previous ones, so the allocator can never reuse any freed block — every past array becomes permanent
-garbage. With 1.5×, freed chunks can be recycled. It also makes the amortised cost of $n$ adds
-$O(n)$ (a geometric series) and keeps peak wasted memory a smaller fraction of the live set.
+**A:** The JDK balances copying against retained capacity. A 1.5× factor copies less often than a
+2× factor, while usually wasting a smaller fraction of capacity than a much larger factor. The
+essential complexity result is geometric growth: the total copying cost of $n$ appends is O(n), so
+each append is amortised O(1).
 
 **Q: What is the amortised cost of `add` at the end of an `ArrayList`, and why?**
 **A:** Amortised $O(1)$. Individual adds are $O(1)$ except when a resize happens, which is $O(n)$.
@@ -1106,7 +1107,7 @@ data via the original reference.
 1. `ArrayList` by default; `ArrayDeque` for stack/queue; `LinkedList` almost never.
 2. Pre-size with `new ArrayList<>(n)` when you know the count.
 3. `add` at the tail is **amortised** $O(1)$ — the individual resize is $O(n)$.
-4. Growth is **1.5×** (10 → 15 → 22 → 33) to limit fragmentation.
+4. Growth is **1.5×** (10 → 15 → 22 → 33), balancing copy frequency and retained capacity.
 5. `remove(int)` is an index; `remove(Object)` is a value. Box it explicitly.
 6. Never mutate a collection while iterating it — use `removeIf` or `Iterator.remove`.
 7. Fail-fast is best-effort; it is not a concurrency guarantee.
@@ -1167,6 +1168,7 @@ data via the original reference.
 
 - [02 · Map Implementations](./02-Map-Implementations.md) — `HashMap` buckets, treeification, `LinkedHashMap` LRU, `TreeMap`
 - [03 · Sets, Queues & Utilities](./03-Set-Queue-Utilities.md) — `HashSet`, `EnumSet`, `PriorityQueue`, `ArrayDeque`, `Collections`
+- [04 · Interview Playbook](./04-Interview-Playbook.md) — cross-implementation decisions, contracts, drills, and model answers
 
 ### Related topics elsewhere
 
@@ -1186,6 +1188,8 @@ data via the original reference.
 ---
 
 **Next Chapter:** → [02 · Map Implementations — HashMap, LinkedHashMap, TreeMap](./02-Map-Implementations.md)
+
+**Chapter Playbook:** → [04 · Interview Playbook & Cross-Implementation Guide](./04-Interview-Playbook.md)
 **Previous Chapter:** ← [03 · Exception Handling](../03-Exception-Handling/01-Exception-Handling.md)
 
 *Last Updated: 2026 · Java 17+ (verified on JDK 25) · All outputs in this chapter were produced by running the code*

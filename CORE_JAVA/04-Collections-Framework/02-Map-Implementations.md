@@ -25,9 +25,9 @@
 - **`Map` is NOT a `Collection`.** It is a separate top-level interface. `Map` has `put()`, not `add()`; `map.values()` gives you a `Collection`, but `map` itself is not one.
 - **`HashMap` is backed by an array of buckets.** `put()` computes `hash = key.hashCode() ^ (key.hashCode() >>> 16)`, derives `index = (n-1) & hash`, and walks the bucket's linked list.
 - **The `>>> 16` spread exists because only the *low* bits select the bucket.** Without it, a key whose `hashCode` differs only in the high bits would collide every time. The XOR copies the high bits down into the low half.
-- **`n` must be a power of two** for `(n-1) & hash` to work — it turns a modulo into a bitwise AND, and guarantees *uniform* bucket selection instead of clustering.
+- **`n` must be a power of two** for `(n-1) & hash` to work — it turns a modulo into a bitwise AND. Power-of-two sizing enables the mask; a well-distributed hash provides the uniform bucket selection.
 - **A bucket becomes a red-black tree at 8 entries** (`TREEIFY_THRESHOLD`), and is *untreeified* back to a list at 6 (`UNTREEIFY_THRESHOLD`). The tree is only built if the table is at least 64 long (`MIN_TREEIFY_CAPACITY`), otherwise it is resized instead.
-- **Default capacity 16, load factor 0.75** → the map resizes when `size > 12`. Resize **doubles** the capacity and **preserves relative order** by splitting each bucket into a "lo" and a "hi" list.
+- **Default capacity 16, load factor 0.75** → the threshold is 12, so the **13th insertion** triggers a resize to capacity 32. Resize **doubles** the capacity and **preserves relative order within each split chain** by separating each bucket into a "lo" and a "hi" list.
 - **`HashMap` allows one `null` key and `null` values.** `ConcurrentHashMap` allows **neither** — because `get(k) == null` would be ambiguous between "absent" and "present with null value".
 - **`ConcurrentHashMap` (Java 8+) uses CAS for empty bins and `synchronized` on the *bin head* for occupied bins.** Reads are lock-free. It is **not** a single global lock.
 - **`LinkedHashMap`** adds insertion/access ordering via a doubly-linked list → the basis of a simple LRU cache via `removeEldestEntry`.
@@ -314,7 +314,7 @@ public V get(Object key) {
 }
 ```
 
-`get()` performs **no locking and no writes** — it only reads the `table` reference, the `Node.hash`/`Node.key`/`Node.value` fields and the `next` pointers. Every one of those is either `final` or safely published. This is exactly why `ConcurrentHashMap` can serve reads lock-free.
+`get()` performs **no locking and no writes** — it only reads the `table` reference, the `Node.hash`/`Node.key`/`Node.value` fields and the `next` pointers. `HashMap` provides no concurrent-publication guarantee for its mutable value field, so a plain `HashMap` is still not safe for concurrent use. `ConcurrentHashMap` provides the stronger guarantee by making its value field `volatile`, which is why its reads can be non-blocking and safely observe updates.
 
 > ⚠️ **Subtlety.** `Node.value` is *not* final — it must be mutable so `put()` can overwrite a value. `ConcurrentHashMap` solves this by making `value` `volatile`, so an overwrite is immediately visible to readers.
 
@@ -391,7 +391,7 @@ And *which* one it is, is decided by a **single bit**: `hash & oldCap` — the b
 
 **What to look at:** the *relative order within each list* is preserved (the `loTail`/`hiTail` chain-building appends to the end). That is why `LinkedHashMap` does **not** have to rebuild its linked list on resize — a detail most people miss.
 
-> 💡 **The alternative (and why it isn't used).** The "textbook" approach re-hashes every key: `newIndex = hash % newCapacity`. That is simpler to explain but O(n) *and* it would destroy `LinkedHashMap`'s order. The bit-split is both faster and order-preserving.
+> 💡 **What changed from Java 7?** Java 7 re-hashed each key when the table doubled. Java 8+ reuses the cached spread hash and splits each chain by one newly used bit, avoiding repeated `hashCode()` calls. `LinkedHashMap`'s insertion/access order is maintained by its separate doubly-linked list, not by hash-chain order.
 
 ### 3.8 Treeification — why a bucket becomes a tree
 
@@ -1538,11 +1538,14 @@ chm.put("k", null);     // ❌ NullPointerException
 ### ❌ Pitfall 7 — Sizing the map wrong
 
 ```java
-// ❌ SUBTLY WRONG — you want capacity for N entries, but HashMap resizes at 0.75*N
-Map<String, Long> m = new HashMap<>(1000);   // resizes at 750 entries, then again at 1500
+// ❌ SUBTLY WRONG — capacity 1000 is rounded to a 1024-slot table,
+// whose threshold is 768, so the map still grows.
+Map<String, Long> m = new HashMap<>(1000);
 
-// ✅ CORRECT — size for the entries you will actually hold
-Map<String, Long> m = new HashMap<>(1000 / 0.75f + 1);   // ≈ 1334 → no resize
+// ✅ CORRECT — request enough table capacity for 1000 entries.
+// ceil(1000 / 0.75) = 1334; tableSizeFor rounds this to 2048 slots,
+// whose threshold is 1536, so no resize is needed.
+Map<String, Long> m = new HashMap<>((int) Math.ceil(1000 / 0.75f));
 ```
 
 ---
@@ -1588,7 +1591,7 @@ Map.of("a", 1, "a", 2);               // ❌ IllegalArgumentException (duplicate
 treeMap.put(null, "v");     // ❌ NullPointerException
 ```
 
-**✅ FIX** — use a `Comparator` that handles `null` explicitly if you truly need it, or use `HashMap` + `Collections.navigableMap` alternatives.
+**✅ FIX** — use a `Comparator` that handles `null` explicitly if you truly need it, such as `Comparator.nullsFirst(Comparator.naturalOrder())`, or use a `HashMap` and sort the keys separately when only output ordering is required.
 
 ---
 
@@ -1707,11 +1710,11 @@ Map<Key, List<Key>> map = new WeakHashMap<>();
 - **The trap:** `TreeMap` is not competing on speed; it is competing on **capability**. A `TreeMap` gives you (a) *sorted iteration*, (b) *range queries* (`headMap`, `tailMap`, `subMap`, `floorKey`, `ceilingKey`, `higherKey`, `lowerKey`), (c) a **worst-case O(log n)** guarantee instead of an average, and (d) `Comparator`-based ordering that has nothing to do with `hashCode`. None of that is available from a `HashMap`, no matter how fast it is.
 - **Expert answer:** Choosing a collection is choosing the *operations you need*. If you need "find the 5 keys closest to X" or "iterate in sorted order", `TreeMap` is the only option — a `HashMap` cannot do it at all, not even slowly. The right comparison is: `HashMap` for *point lookups by key*; `TreeMap` for *ordered access and ranges*; `LinkedHashMap` for *ordered iteration with O(1) lookup* (usually the best of both worlds when you only need insertion order). And note the elegant middle ground: `Collections.unmodifiableNavigableMap` and `ConcurrentSkipListMap` exist because the JDK wanted "sorted + concurrent" without the `TreeMap` lock.
 
-### CQ3. "You said `HashMap` resizes at 12 entries by default — so is `new HashMap<>()` a performance trap?"
+### CQ3. "You said `HashMap` has a threshold of 12 by default — so is `new HashMap<>()` a performance trap?"
 
 - **Naive:** "Yes, I should always pre-size my maps."  ← *over-corrected*
-- **The trap:** Resizing is **amortised O(1)**, not O(n) per insert. Over the life of a map holding N entries, the total cost of all resizes is O(N) (each resize rehashes all elements, and the sizes double: N/2 + N/4 + … = N). So a default-sized `HashMap` is *not* slow — it just does a few extra copies. Blindly pre-sizing every map to a huge capacity is its own mistake: a 1 M-slot array allocated for 10 entries wastes 4 MB and destroys cache locality.
-- **Expert answer:** Pre-size when you **know** the final size and it is stable — a fixed-size lookup table, a batch import of known cardinality, a cache with a known bound. Use `new HashMap<>((int)(expected / 0.75f) + 1)`. Do **not** pre-size when the size is unknown or unbounded — you would allocate for the worst case and pay the memory. The `+1` matters: `tableSizeFor(0)` returns 1, and `(int)(0/0.75f)+1 = 1` is a valid capacity, whereas `tableSizeFor(0)` alone would be 0 and would break the allocation.
+- **The trap:** Resizing is **amortised O(1)**, not O(n) per insert. Over the life of a map holding N entries, the total resizing work is O(N): table sizes double, so the geometric series is N/2 + N/4 + … = O(N). Java 8+ does not call `hashCode()` again; it splits each chain using the cached spread hash and one additional bit. So a default-sized `HashMap` is not slow — it just performs a few extra chain splits and retains the old table briefly during growth. Blindly pre-sizing every map to a huge capacity is its own mistake: a 1 M-slot array allocated for 10 entries wastes about 4 MB with compressed references and destroys cache locality.
+- **Expert answer:** Pre-size when you **know** the final size and it is stable — a fixed-size lookup table, a batch import of known cardinality, or a cache with a known bound. For `expected` entries, use `new HashMap<>((int) Math.ceil(expected / 0.75f))`; the constructor rounds that capacity up to a power of two. Do **not** pre-size when the size is unknown or unbounded. Also note that the capacity argument is not the same as the threshold: `new HashMap<>(1000)` rounds the table to 1024 and gives a threshold of 768, so it resizes when size exceeds 768.
 
 ### CQ4. "If `hashCode` collides, doesn't `equals` slow the map down? Should I avoid collisions?"
 
@@ -1988,6 +1991,7 @@ LOG.info("baseCount={} counterCells={}", chm.baseCount(), chm.counterCells().len
 | Topic | Where to go next |
 |---|---|
 | List/Set/Queue implementations | [01 · List Implementations](01-List-Implementations.md) · [03 · Set, Queue & Utilities](03-Set-Queue-Utilities.md) |
+| Cross-implementation interview guide | [04 · Interview Playbook](04-Interview-Playbook.md) — decisions, contracts, diagrams, drills, and model answers |
 | Why `hashCode`/`equals` must agree | [08 · equals, hashCode & toString](../01-Core-Java-OOP/08-OOP-equals-hashCode-toString.md) |
 | Wildcards, PECS, type erasure | [05 · Generics](../05-Generics/01-Generics.md) |
 | Concurrent maps, atomic ops, JMM | [08 · Locks & Atomic Classes](../08-Multithreading-Concurrency/03-Locks-Atomic.md) |
@@ -1998,5 +2002,7 @@ LOG.info("baseCount={} counterCells={}", chm.baseCount(), chm.counterCells().len
 ---
 
 **Next Chapter:** → [03 · Set, Queue & Utilities](03-Set-Queue-Utilities.md)
+
+**Chapter Playbook:** → [04 · Interview Playbook & Cross-Implementation Guide](04-Interview-Playbook.md)
 **Previous Chapter:** ← [01 · List Implementations](01-List-Implementations.md)
 **Standard followed:** [../STANDARD.md](../STANDARD.md) · **Updated:** 2026

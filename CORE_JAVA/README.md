@@ -30,7 +30,7 @@
 | 01 | **Core Java & OOP** | 13 | 🟢→🔴 | ⭐⭐⭐⭐⭐ | [Open](./01-Core-Java-OOP/README.md) |
 | 02 | **Java Memory Model & JVM** | 3 | 🟡→⚫ | ⭐⭐⭐⭐⭐ | [Open](./02-Java-Memory-Model/README.md) |
 | 03 | **Exception Handling** | 1 | 🟢→🔴 | ⭐⭐⭐⭐ | [Open](./03-Exception-Handling/README.md) |
-| 04 | **Collections Framework** | 3 | 🟢→🔴 | ⭐⭐⭐⭐⭐ | [Open](./04-Collections-Framework/README.md) |
+| 04 | **Collections Framework** | 4 | 🟢→🔴 | ⭐⭐⭐⭐⭐ | [Open](./04-Collections-Framework/README.md) |
 | 05 | **Generics** | 1 | 🟡→🔴 | ⭐⭐⭐⭐ | [Open](./05-Generics/README.md) |
 | 06 | **Java 8 Features** | 3 | 🟡→🔴 | ⭐⭐⭐⭐⭐ | [Open](./06-Java-8-Features/README.md) |
 | 07 | **Java 11 / 17 / 21** | 1 | 🟡→⚫ | ⭐⭐⭐⭐⭐ | [Open](./07-Java-11-17-21-Features/README.md) |

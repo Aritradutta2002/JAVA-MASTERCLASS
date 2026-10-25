@@ -26,7 +26,7 @@
 
 - **`HashSet` is not a separate implementation** — it is a thin wrapper around a `HashMap` that uses the element as the *key* and a dummy `PRESENT` marker as the *value*. That is why `HashSet` allows exactly one `null`.
 - **`HashSet` iteration order is the `HashMap`'s bucket order** — it is neither insertion order nor sorted. Use `LinkedHashSet` for insertion order, `TreeSet` for sorted order.
-- **`TreeSet` is backed by a `TreeMap`** — a red-black tree. O(log n) for everything, sorted iteration, and it **rejects `null`** (a `null` cannot be compared).
+- **`TreeSet` is backed by a `TreeMap`** — a red-black tree. Membership and updates are O(log n), iteration is O(n), and natural ordering rejects `null`; a custom comparator can explicitly support null ordering.
 - **`EnumSet` is a bit-vector.** For an enum with ≤ 64 constants it is a single `long`. `contains` is a bit test. It is the fastest `Set` the JDK offers, and it is **not** a `HashSet` at all.
 - **`PriorityQueue` is a binary heap, not a sorted structure.** `peek()` is O(1), `poll()` is O(log n), but *iteration* is in **heap order, not sorted order**. It is also **not stable** — two elements with equal priority may come out in either order.
 - **`ArrayDeque` should replace `Stack` and `LinkedList` as a queue/stack.** It is a resizable circular array — O(1) at both ends, no per-node allocation, and it **rejects nulls**.
@@ -250,7 +250,7 @@ public class TreeSet<E> extends AbstractSet<E> implements NavigableSet<E> {
 | Navigation | `first()`, `last()`, `floor()`, `ceiling()`, `higher()`, `lower()`, `subSet()`, `headSet()`, `tailSet()`, `descendingSet()` |
 | Duplicate handling | `add` returns `false` for an existing element |
 
-> ⚠️ **The `null` restriction is a genuine behavioural difference from `HashSet`.** `HashSet` accepts `null`; `TreeSet` throws. If you are switching from a `HashSet` to a `TreeSet` and your data can contain `null`, you get a runtime `NullPointerException` at the point of insertion.
+> ⚠️ **The `null` restriction depends on the comparator.** `HashSet` accepts one `null` element. A `TreeSet` with natural ordering throws `NullPointerException` because it cannot compare `null`, but a custom comparator such as `Comparator.nullsFirst(Comparator.naturalOrder())` can support it. State the ordering policy rather than saying “`TreeSet` rejects null” unconditionally.
 
 **Custom ordering:**
 
@@ -1412,7 +1412,7 @@ Collections.shuffle(list);   // ❌ different order on every run → flaky tests
 **A:** `new HashSet<>(list)` deduplicates (iteration order becomes hash order). `new ArrayList<>(set)` converts back. To *preserve* order, use `new LinkedHashSet<>(list)` then `new ArrayList<>(...)`. Or, in Java 16+, `list.stream().distinct().toList()` — but note `Stream.distinct()` relies on `equals`/`hashCode` and **preserves encounter order**.
 
 **Q: What is the difference between `HashSet` and `TreeSet`?**
-**A:** `HashSet` is hash-based: O(1) average `contains`/`add`, no ordering, allows a `null` element. `TreeSet` is a red-black tree: O(log n) guaranteed, iterates in sorted order, supports range/navigation methods (`first`, `last`, `floor`, `ceiling`, `subSet`), and **rejects `null`**.
+**A:** `HashSet` is hash-based: O(1) average `contains`/`add`, no ordering, and allows one `null` element. `TreeSet` is a red-black tree: O(log n) guaranteed lookup, sorted iteration, and range/navigation methods (`first`, `last`, `floor`, `ceiling`, `subSet`). Natural ordering rejects `null`; a custom comparator can define null ordering explicitly.
 
 **Q: Why use `ArrayDeque` instead of `Stack` or `LinkedList`?**
 **A:** `ArrayDeque` is a resizable circular array: O(1) at both ends, ~4–8 bytes per element (no per-node object), and no `synchronized` overhead. `Stack` extends `Vector`, so every operation is synchronized. `LinkedList` allocates a node object per element (~40 bytes) and has poor cache locality. The one trade-off: `ArrayDeque` does not support random access and rejects `null`.
@@ -1425,8 +1425,8 @@ Collections.shuffle(list);   // ❌ different order on every run → flaky tests
 **Q: How is `HashSet` implemented internally?**
 **A:** It wraps a `HashMap`: the element is the map's *key* and the value is a single shared `PRESENT` sentinel object. `add(e)` is `map.put(e, PRESENT) == null`; `contains(o)` is `map.containsKey(o)`; `iterator()` is `map.keySet().iterator()`. Because the value is a non-null sentinel, `put`'s return value unambiguously tells you whether the element was new. The sentinel is `static final`, so there is exactly one instance in the JVM.
 
-**Q: Why does `HashSet` allow `null` but `TreeSet` does not?**
-**A:** `HashSet` delegates to `HashMap`, which explicitly maps a `null` key to hash `0` and handles the null comparison in `put`/`get`. `TreeSet` delegates to `TreeMap`, whose red-black tree must *compare* keys — `null.compareTo(x)` throws `NullPointerException`. If you need nulls in a sorted set, supply a `Comparator` that handles them explicitly, e.g. `Comparator.nullsFirst(Comparator.naturalOrder())`.
+**Q: Why does `HashSet` allow `null`, and when does `TreeSet` allow it?**
+**A:** `HashSet` delegates to `HashMap`, which explicitly maps a `null` key to hash `0` and handles the null comparison in `put`/`get`. `TreeSet` delegates to `TreeMap`, whose red-black tree must *compare* keys. Natural ordering cannot compare `null`, so it throws `NullPointerException`; a custom comparator can define null ordering explicitly, e.g. `Comparator.nullsFirst(Comparator.naturalOrder())`.
 
 **Q: Is `PriorityQueue` thread-safe?**
 **A:** No — it is not synchronized at all. For a concurrent priority queue use `PriorityBlockingQueue` (which is also **unbounded** — it has no capacity limit, a common surprise). If you need bounded *and* prioritised, use a `DelayQueue` or a `LinkedBlockingQueue` with your own comparator applied downstream.
@@ -1632,7 +1632,7 @@ Collections.shuffle(list);   // ❌ different order on every run → flaky tests
 | 1 | **B** | `HashSet` wraps a `HashMap`; the element is the key, the value is the `PRESENT` sentinel. |
 | 2 | **C** | One shared `static final Object PRESENT` — never `null`, so `put`'s return value is unambiguous. |
 | 3 | **B** | `HashMap` allows exactly one `null` key, so `HashSet` allows one `null` element. |
-| 4 | **B** | A `TreeSet` must *compare* elements, and `null` cannot be compared → `NullPointerException`. |
+| 4 | **C** | Natural ordering cannot compare `null`, but a custom comparator can explicitly support it. |
 | 5 | **C** | The iterator is `map.keySet().iterator()` — so it is the `HashMap`'s bucket order. |
 | 6 | **B** | `LinkedHashSet` swaps the backing map for a `LinkedHashMap`, giving insertion order. |
 | 7 | **B** | A bit-vector: one `long` for ≤ 64 constants, a `long[]` ("jumbo") beyond that. |
@@ -1667,7 +1667,7 @@ Collections.shuffle(list);   // ❌ different order on every run → flaky tests
 ├────────────────────┼──────────┼───────────────┼───────────┼───────────────┤
 │ HashSet            │ O(1) avg │ none          │ ✔ (one)   │ HashMap       │
 │ LinkedHashSet      │ O(1) avg │ insertion     │ ✔ (one)   │ LinkedHashMap │
-│ TreeSet            │ O(log n) │ sorted        │ ✗         │ TreeMap       │
+│ TreeSet            │ O(log n) │ sorted        │ natural: ✗; custom: policy │ TreeMap │
 │ EnumSet            │ O(1)     │ enum decl.    │ ✗         │ long bitmask  │
 │ CopyOnWriteSet     │ O(1)     │ insertion     │ ✔         │ COW list      │
 └────────────────────┴──────────┴───────────────┴───────────┴───────────────┘
@@ -1682,9 +1682,9 @@ Collections.shuffle(list);   // ❌ different order on every run → flaky tests
 │ ArrayDeque         │ O(1)     │ O(1)      │ O(n)     │ ✗                │
 │ LinkedList         │ O(1)     │ O(1)      │ O(n)     │ ✔                │
 │ Stack (legacy)     │ O(1)     │ O(1)      │ O(n)     │ ✔  (synchronized)│
-│ PriorityQueue      │ O(log n) │ O(log n)  │ O(n)     │ ✗  (heap order!)  │
+│ PriorityQueue      │ O(log n) │ O(log n) poll / O(n) value │ O(n) │ ✗ (heap order!) │
 │ ArrayBlockingQueue │ O(1)     │ O(1)      │ O(n)     │ ✗  (bounded)     │
-│ LinkedBlockingQueue │ O(1)     │ O(1)      │ O(n)     │ ✗  (bounded)     │
+│ LinkedBlockingQueue │ O(1)     │ O(1)      │ O(n)     │ ✗ (optional bound)│
 │ ConcurrentLinkedQ  │ O(1)     │ O(1)      │ O(n)     │ ✗  (unbounded)   │
 │ CopyOnWriteList    │ O(1)     │ O(n) COPY │ O(1)     │ ✔  (read-heavy!) │
 └────────────────────┴──────────┴──────────┴──────────┴───────────────────┘
@@ -1794,6 +1794,7 @@ LOG.info("listener count = {}", listeners.size());
 |---|---|
 | Map internals (the sibling chapter) | [02 · Map Implementations](02-Map-Implementations.md) |
 | List implementations and growth | [01 · List Implementations](01-List-Implementations.md) |
+| Cross-implementation interview guide | [04 · Interview Playbook](04-Interview-Playbook.md) — decisions, contracts, diagrams, drills, and model answers |
 | Concurrent collections in depth | [08 · Locks & Atomic](../08-Multithreading-Concurrency/03-Locks-Atomic.md) |
 | Thread pools and work queues | [08 · Executor Framework](../08-Multithreading-Concurrency/02-Executor-Framework.md) |
 | `equals`/`hashCode` (the set's foundation) | [08 · equals, hashCode & toString](../01-Core-Java-OOP/08-OOP-equals-hashCode-toString.md) |
@@ -1802,6 +1803,8 @@ LOG.info("listener count = {}", listeners.size());
 
 ---
 
-**Next Chapter:** → [05 · Generics](../05-Generics/01-Generics.md)
+**Next Chapter:** → [04 · Interview Playbook](./04-Interview-Playbook.md)
+
+**After the Playbook:** → [05 · Generics](../05-Generics/01-Generics.md)
 **Previous Chapter:** ← [02 · Map Implementations](02-Map-Implementations.md)
 **Standard followed:** [../STANDARD.md](../STANDARD.md) · **Updated:** 2026
