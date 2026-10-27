@@ -1,100 +1,100 @@
-# System Design
+# System Design Interview Preparation Hub
 
-## Overview
+> A production-grade curriculum for **Java backend, software, senior, and staff-level interviews**—from first principles to multi-region architecture, failure analysis, and leadership trade-offs.
 
-This area covers system design concepts and patterns for backend engineers. Topics include design fundamentals (CAP theorem, scalability, reliability), scalability patterns, microservices architecture, event-driven architecture, common system design scenarios, and real-world case studies.
+This is the canonical System Design hub in this repository. It teaches the reasoning behind a design: how to gather requirements, estimate scale, select data, control failure, verify behavior, and defend trade-offs. Product and framework notes are links, not substitutes for architectural understanding.
 
-## Quick Navigation
+## Start Here
 
-> The material below is written, but it lives across
-> **[SPRING_BOOT/12-System-Design-for-Java-Backend](../SPRING_BOOT/12-System-Design-for-Java-Backend/)**
-> and the microservices / messaging tracks rather than being duplicated here. This folder keeps the
-> syllabus; the chapters are canonical over there.
+| Your goal | Start with | Outcome |
+|---|---|---|
+| First system-design interview | [Curriculum](CURRICULUM.md) → [Learning Paths](LEARNING-PATHS.md) | A repeatable 45-minute method |
+| Java backend in 8–12 weeks | [Java Backend Path](LEARNING-PATHS.md#path-b--java-backend-engineer-812-weeks) | Architecture plus Spring production mapping |
+| Senior / staff interview | [Senior Path](LEARNING-PATHS.md#path-c--senior-staff-and-architecture-1014-weeks) | Multi-region, failure, and org trade-offs |
+| FAANG / product company | [HLD Case Studies](11-HLD-Case-Studies/README.md) | 20 complete design discussions |
+| LLD interview | [LLD Preparation](12-LLD-Preparation/README.md) | 8 modeled systems with Java 17 code |
+| Last-minute review | [Quick Reference](QUICK-REFERENCE.md) | High-density formulas, tables, and traps |
+| Know where you are weak | [Interview Checklist](INTERVIEW-CHECKLIST.md) | Leveled self-assessment |
 
-| # | Topic | Priority | Where it is written |
-|---|-------|----------|---------------------|
-| 01 | [Design Fundamentals](../SPRING_BOOT/12-System-Design-for-Java-Backend/01-System-Design-Framework.md) | ⭐⭐⭐⭐⭐ | Ch. 01 The System Design Framework |
-| 02 | [Scalability Patterns](../SPRING_BOOT/12-System-Design-for-Java-Backend/02-Scalability-Availability-and-Reliability.md) | ⭐⭐⭐⭐⭐ | Ch. 02 Scalability, Availability & Reliability |
-| 03 | [Microservices](../SPRING_BOOT/08-Microservices-with-Spring-Boot/01-Monolith-vs-Microservices-and-Service-Discovery.md) | ⭐⭐⭐⭐ | [SPRING_BOOT/08 — 6 chapters](../SPRING_BOOT/08-Microservices-with-Spring-Boot/README.md) |
-| 04 | [Event-Driven Architecture](../SPRING_BOOT/09-Messaging-Systems/04-Reliable-Messaging-and-Event-Driven-Architecture.md) | ⭐⭐⭐⭐ | [SPRING_BOOT/09 — 4 chapters](../SPRING_BOOT/09-Messaging-Systems/README.md) |
-| 05 | [Common System Designs](../SPRING_BOOT/12-System-Design-for-Java-Backend/03-Classic-Design-Problems.md) | ⭐⭐⭐⭐⭐ | Ch. 03 Classic Design Problems · Ch. 04 Data-Intensive Designs |
-| 06 | [Case Studies](../SPRING_BOOT/12-System-Design-for-Java-Backend/06-End-to-End-Case-Studies.md) | ⭐⭐⭐ | Ch. 06 End-to-End Case Studies |
+## The Thirteen Curriculum Areas
 
-## Learning Path
+| # | Area | What You Learn | Files |
+|---|---|---|---|
+| 01 | [System Design Fundamentals](01-System-Design-Fundamentals/README.md) | Scalability, availability, reliability, performance, capacity, consistency, partitioning, trade-offs | 6 chapters |
+| 02 | [Distributed Systems](02-Distributed-Systems/README.md) | CAP/PACELC, transactions, consensus, quorum, partitions, clocks, locks | 7 chapters |
+| 03 | [Database Design](03-Database-Design/README.md) | SQL/NoSQL, schemas, indexes, replication, sharding, transactions, comparisons | 13 chapters |
+| 04 | [Caching](04-Caching/README.md) | Redis, patterns, eviction, invalidation, stampedes, hot keys, warming | 5 chapters |
+| 05 | [Messaging & Event-Driven Systems](05-Messaging-and-Event-Driven-Systems/README.md) | Kafka, RabbitMQ, ActiveMQ, SQS, pub/sub, event sourcing, CQRS | 6 chapters |
+| 06 | [API & Communication Design](06-API-and-Communication-Design/README.md) | REST, GraphQL, gRPC, WebSockets, SSE, gateway, balancing, discovery | 7 chapters |
+| 07 | [Security Design](07-Security-Design/README.md) | AuthN/AuthZ, JWT, OAuth2, OIDC, SSO, API/DDoS security, secrets, encryption | 5 chapters |
+| 08 | [Microservices Architecture](08-Microservices-Architecture/README.md) | Boundaries, discovery, config, tracing, mesh, saga, outbox, resilience | 6 chapters |
+| 09 | [Cloud & Infrastructure Design](09-Cloud-and-Infrastructure-Design/README.md) | AWS, Azure, GCP, Docker, Kubernetes, CI/CD, releases, autoscaling | 6 chapters |
+| 10 | [Observability & Reliability Engineering](10-Observability-and-Reliability-Engineering/README.md) | Monitoring, logs, metrics, traces, SLOs, SRE, incidents, DR | 5 chapters |
+| 11 | [Complete HLD Case Studies](11-HLD-Case-Studies/README.md) | 20 end-to-end designs from URL shortener to banking | 20 cases |
+| 12 | [Complete LLD Preparation](12-LLD-Preparation/README.md) | SOLID, patterns, UML, and 8 complete Java systems | 10 chapters + code |
 
-### Week 1: Fundamentals
-- [ ] CAP theorem and trade-offs
-- [ ] Scalability concepts
-- [ ] Reliability and availability
-- [ ] Performance optimization
-- [ ] Security considerations
+## The 45-Minute Interview Loop
 
-### Week 2: Scalability Patterns
-- [ ] Load balancing strategies
-- [ ] Caching layers
-- [ ] Database sharding
-- [ ] CDN usage
-- [ ] Horizontal vs vertical scaling
+```text
+Requirements (5m) → Estimate (3m) → API (4m) → Data (5m)
+→ Architecture (10m) → Deep Dive (12m) → Failures (4m) → Trade-offs (2m)
+```
 
-### Week 3: Architecture Patterns
-- [ ] Microservices architecture
-- [ ] Service communication patterns
-- [ ] API Gateway pattern
-- [ ] Service mesh
-- [ ] Circuit breaker pattern
+**The invariant:** name the resource that saturates first, then explain how the design relieves it.
 
-### Week 4: Event-Driven & Async
-- [ ] Message queues (RabbitMQ, Kafka)
-- [ ] Event sourcing
-- [ ] CQRS pattern
-- [ ] Saga pattern
-- [ ] Pub/Sub systems
+```mermaid
+flowchart LR
+    C[Client] --> E[CDN / Edge]
+    E --> G[Gateway]
+    G --> S[Stateless Services]
+    S --> C1[(Cache)]
+    S --> D[(Source of Truth)]
+    S --> Q[Queue / Event Log]
+    Q --> W[Async Workers]
+    W --> X[(Derived Stores)]
+```
 
-### Week 5-6: Practice Designs
-- [ ] URL Shortener
-- [ ] Rate Limiter
-- [ ] Distributed Cache
-- [ ] Notification System
-- [ ] Chat Application
+**Caption:** synchronous reads/writes use the source of truth; asynchronous work updates rebuildable derived stores.
 
-## Interview Tips by Experience Level
+## How to Study
 
-### Junior (0-2 years)
-- Focus: Basic concepts, simple system designs
-- Depth: Understand components and their interactions
-- Key Topics: Load balancers, databases, caching, basic APIs
+1. Read the relevant theory chapter before looking at a case study.
+2. Reproduce the estimate on paper—units and assumptions matter more than exact answers.
+3. Draw the request path and ask what happens when every dependency fails.
+4. Answer the interview questions aloud in 60–120 seconds.
+5. Complete exercises, then revisit the same design at the next seniority level.
+6. Use the [checklist](INTERVIEW-CHECKLIST.md) to record evidence, not merely “read.”
 
-### Mid-Level (2-5 years)
-- Focus: Scalability patterns, microservices basics
-- Depth: Design medium-complexity systems, justify choices
-- Key Topics: Sharding, replication, message queues, API design
+## Production-Grading Principles
 
-### Senior (5+ years)
-- Focus: Complex distributed systems, trade-off analysis
-- Depth: Handle scale, reliability, consistency challenges
-- Key Topics: CAP theorem, distributed transactions, multi-region, disaster recovery
+- A design is incomplete without a **failure model**.
+- A number without a unit or assumption is decoration.
+- “Eventually consistent” is not an answer until staleness bounds and read-your-writes behavior are defined.
+- “Exactly once” is not an answer until its boundary is stated.
+- “Use Kafka/RabbitMQ/Redis/Kubernetes” is not an answer until the required guarantee is named.
+- A scale-up without a partition or routing strategy is not a scale design.
+- Every cache needs a source-of-truth, invalidation path, stampede policy, and failure behavior.
+- Every asynchronous path needs idempotency, retry policy, ordering scope, and dead-letter handling.
 
-## Most Asked Topics
+## Related Repository Tracks
 
-1. **CAP Theorem** - Consistency, Availability, Partition tolerance trade-offs
-2. **Load Balancing** - Algorithms, health checks, session persistence
-3. **Caching** - Multi-level caching, cache invalidation, CDN
-4. **Database Scaling** - Replication, sharding, read replicas
-5. **Microservices** - Service boundaries, communication, data management
-6. **Message Queues** - Kafka, RabbitMQ, at-least-once vs exactly-once
-7. **API Design** - REST, GraphQL, versioning, rate limiting
+- [Spring Boot System Design](../SPRING_BOOT/12-System-Design-for-Java-Backend/README.md) — Spring-specific design-pattern implementation.
+- [Database & Caching](../DATABASE_CACHING/README.md) — SQL/NoSQL engine and query internals.
+- [Spring Security](../SPRING_BOOT/05-Spring-Security/README.md) and [OAuth2/OIDC](../SPRING_BOOT/07-OAuth2-OpenID-Connect/README.md) — Java security implementation.
+- [Cloud & DevOps](../CLOUD_DEVOPS/README.md) — concise infrastructure track.
+- [Design Patterns](../CORE_JAVA/09-Design-Patterns/README.md) and [SOLID](../CORE_JAVA/10-SOLID-Principles/README.md) — LLD foundations.
+- [Java DSA System Design](../JAVA_DSA/dsa/systemdesign/README.md) — LRU/LFU, rate-limiter, and data-structure drills.
 
-## Study Strategy
+## Quality and Validation
 
-1. Master fundamental concepts (CAP, scalability, reliability)
-2. Learn common scalability patterns
-3. Study microservices architecture
-4. Understand event-driven patterns
-5. Practice designing common systems (URL shortener, rate limiter)
-6. Analyze real-world system architectures
-7. Practice explaining trade-offs and design decisions
+The curriculum contract is in [STANDARD.md](STANDARD.md). Run:
+
+```bash
+python3 SYSTEM_DESIGN/scripts/validate_system_design.py
+```
+
+The validator checks structure, links, anchors, fences, required content markers, and Java source presence. Manual review remains necessary for factual correctness and design quality.
 
 ---
 
-*Last Updated: 2024*
-*Focus: Backend Systems | Distributed Systems | Scalability*
+*Canonical hub for System Design interview preparation · Updated: 2026*
