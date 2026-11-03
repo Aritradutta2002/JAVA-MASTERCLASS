@@ -1,0 +1,56 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import { Code2, ChevronDown, Copy, Check } from 'lucide-react';
+
+interface Props {
+  filePaths: string[];
+}
+
+const { filePaths = [] } = Astro.props;
+
+const filesData = filePaths.map((relPath) => {
+  const fullPath = path.join(process.cwd(), relPath);
+  let code = '';
+  if (fs.existsSync(fullPath)) {
+    code = fs.readFileSync(fullPath, 'utf-8');
+  }
+  return {
+    name: path.basename(relPath),
+    relPath,
+    code,
+  };
+}).filter((f) => f.code.length > 0);
+---
+
+{filesData.length > 0 && (
+  <div class="my-8 rounded-xl border border-obs-border bg-obs-sidebar overflow-hidden shadow-sm">
+    <div class="p-4 border-b border-obs-border flex items-center justify-between bg-obs-surface/60">
+      <div class="flex items-center gap-2">
+        <div class="flex h-6 w-6 items-center justify-center rounded bg-amber-500/20 text-amber-400">
+          <Code2 className="h-3.5 w-3.5" />
+        </div>
+        <span class="text-xs font-bold uppercase tracking-wider text-obs-text-primary">
+          Runnable Java Implementation ({filesData.length} File{filesData.length > 1 ? 's' : ''})
+        </span>
+      </div>
+    </div>
+
+    <div class="divide-y divide-obs-border">
+      {filesData.map((file, idx) => (
+        <details class="group" open={idx === 0}>
+          <summary class="flex cursor-pointer items-center justify-between p-3.5 text-xs font-medium text-obs-text-secondary hover:bg-obs-hover hover:text-obs-text-primary transition-colors select-none">
+            <span class="font-mono text-obs-accent font-semibold">{file.name}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] text-obs-text-muted font-mono">{file.relPath}</span>
+              <ChevronDown className="h-3.5 w-3.5 text-obs-text-muted group-open:rotate-180 transition-transform" />
+            </div>
+          </summary>
+          <div class="p-3 bg-obs-code">
+            <pre class="overflow-x-auto text-xs font-mono text-obs-text-secondary leading-relaxed p-3 bg-obs-canvas/60 rounded-lg border border-obs-border/50"><code>{file.code}</code></pre>
+          </div>
+        </details>
+      ))}
+    </div>
+  </div>
+)}

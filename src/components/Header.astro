@@ -1,0 +1,179 @@
+---
+import { Search, Compass, Eye, Moon, Sun, Menu, BookOpen, CheckSquare } from 'lucide-react';
+
+interface Props {
+  breadcrumbs?: { title: string; slug: string }[];
+}
+
+const { breadcrumbs = [] } = Astro.props;
+---
+
+<header class="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-obs-border bg-obs-sidebar/90 px-4 backdrop-blur-md transition-colors">
+  <!-- Left: Mobile Toggle & Breadcrumbs -->
+  <div class="flex items-center gap-3 overflow-hidden">
+    <button
+      id="mobile-menu-btn"
+      class="flex h-8 w-8 items-center justify-center rounded-md border border-obs-border bg-obs-surface text-obs-text-secondary hover:bg-obs-hover md:hidden"
+      aria-label="Toggle navigation menu"
+    >
+      <Menu className="h-4 w-4" />
+    </button>
+
+    <a href="/" class="flex items-center gap-2 font-semibold text-obs-text-primary hover:text-obs-accent transition-colors">
+      <div class="flex h-7 w-7 items-center justify-center rounded-md bg-obs-accent/20 border border-obs-accent/40 text-obs-accent">
+        <BookOpen className="h-4 w-4" />
+      </div>
+      <span class="hidden sm:inline-block tracking-tight text-sm font-bold">Java Masterclass</span>
+    </a>
+
+    {breadcrumbs.length > 0 && (
+      <nav class="hidden md:flex items-center gap-1.5 text-xs text-obs-text-muted overflow-hidden whitespace-nowrap" aria-label="Breadcrumb">
+        <span class="text-obs-border">/</span>
+        {breadcrumbs.map((crumb, idx) => (
+          <span class="flex items-center gap-1.5 overflow-hidden">
+            {idx > 0 && <span class="text-obs-border">/</span>}
+            <a
+              href={crumb.slug}
+              class="hover:text-obs-accent truncate max-w-[140px] transition-colors"
+            >
+              {crumb.title}
+            </a>
+          </span>
+        ))}
+      </nav>
+    )}
+  </div>
+
+  <!-- Right: Search trigger, Graph, Zen, Checklist, Theme -->
+  <div class="flex items-center gap-2">
+    <!-- Global Search Button -->
+    <button
+      id="open-command-palette-btn"
+      class="flex h-8 items-center gap-2 rounded-md border border-obs-border bg-obs-surface px-2.5 text-xs text-obs-text-muted hover:border-obs-accent/50 hover:text-obs-text-primary transition-all shadow-sm"
+      aria-label="Search or run command"
+    >
+      <Search className="h-3.5 w-3.5 text-obs-accent" />
+      <span class="hidden sm:inline">Search docs...</span>
+      <kbd class="hidden md:inline-flex rounded border border-obs-border bg-obs-canvas px-1.5 py-0.5 text-[10px] font-mono text-obs-text-muted">
+        ⌘K
+      </kbd>
+    </button>
+
+    <!-- Study Checklist -->
+    <a
+      href="/checklist"
+      class="hidden sm:flex h-8 items-center gap-1.5 rounded-md border border-obs-border bg-obs-surface px-2.5 text-xs text-obs-text-secondary hover:bg-obs-hover hover:text-obs-accent transition-colors"
+      title="Master Study Checklist"
+    >
+      <CheckSquare className="h-3.5 w-3.5 text-emerald-400" />
+      <span class="hidden lg:inline">Checklist</span>
+    </a>
+
+    <!-- Knowledge Graph Button -->
+    <a
+      href="/graph"
+      class="flex h-8 w-8 sm:w-auto sm:px-2.5 items-center justify-center gap-1.5 rounded-md border border-obs-border bg-obs-surface text-xs text-obs-text-secondary hover:bg-obs-hover hover:text-obs-accent transition-colors"
+      title="Interactive Knowledge Graph (Press G)"
+    >
+      <Compass className="h-3.5 w-3.5 text-obs-accent" />
+      <span class="hidden lg:inline">Graph</span>
+    </a>
+
+    <!-- Zen Mode Toggle -->
+    <button
+      id="zen-mode-btn"
+      class="flex h-8 w-8 items-center justify-center rounded-md border border-obs-border bg-obs-surface text-obs-text-secondary hover:bg-obs-hover hover:text-obs-accent transition-colors"
+      title="Toggle Zen / Focus Reading Mode (Press Z)"
+      aria-label="Toggle Zen mode"
+    >
+      <Eye className="h-3.5 w-3.5" />
+    </button>
+
+    <!-- Theme Switcher -->
+    <button
+      id="theme-toggle-btn"
+      class="flex h-8 w-8 items-center justify-center rounded-md border border-obs-border bg-obs-surface text-obs-text-secondary hover:bg-obs-hover hover:text-obs-accent transition-colors"
+      title="Toggle Dark / Light Theme"
+      aria-label="Toggle color theme"
+    >
+      <Sun className="h-3.5 w-3.5 hidden dark-icon" />
+      <Moon className="h-3.5 w-3.5 light-icon" />
+    </button>
+  </div>
+</header>
+
+<script>
+  // Theme toggle script
+  function setupThemeToggle() {
+    const btn = document.getElementById('theme-toggle-btn');
+    if (!btn) return;
+
+    function updateIcons() {
+      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      document.querySelectorAll('.dark-icon').forEach(el => el.classList.toggle('hidden', !isDark));
+      document.querySelectorAll('.light-icon').forEach(el => el.classList.toggle('hidden', isDark));
+    }
+
+    btn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateIcons();
+    });
+
+    updateIcons();
+  }
+
+  // Zen mode script
+  function setupZenMode() {
+    const btn = document.getElementById('zen-mode-btn');
+    if (!btn) return;
+
+    function toggleZen() {
+      const isZen = document.body.classList.toggle('zen-mode');
+      localStorage.setItem('zen-mode', isZen ? 'true' : 'false');
+    }
+
+    btn.addEventListener('click', toggleZen);
+
+    // Keyboard shortcut 'z' outside inputs
+    window.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'z' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName) && !e.ctrlKey && !e.metaKey) {
+        toggleZen();
+      }
+      if (e.key.toLowerCase() === 'g' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName) && !e.ctrlKey && !e.metaKey) {
+        window.location.href = '/graph';
+      }
+    });
+
+    if (localStorage.getItem('zen-mode') === 'true') {
+      document.body.classList.add('zen-mode');
+    }
+  }
+
+  // Mobile menu drawer
+  function setupMobileMenu() {
+    const btn = document.getElementById('mobile-menu-btn');
+    const sidebar = document.getElementById('left-sidebar');
+    if (!btn || !sidebar) return;
+
+    btn.addEventListener('click', () => {
+      sidebar.classList.toggle('hidden');
+      sidebar.classList.toggle('fixed');
+      sidebar.classList.toggle('inset-0');
+      sidebar.classList.toggle('z-50');
+      sidebar.classList.toggle('bg-obs-canvas/95');
+      sidebar.classList.toggle('p-4');
+    });
+  }
+
+  setupThemeToggle();
+  setupZenMode();
+  setupMobileMenu();
+  document.addEventListener('astro:after-swap', () => {
+    setupThemeToggle();
+    setupZenMode();
+    setupMobileMenu();
+  });
+</script>

@@ -1,0 +1,90 @@
+---
+import ObsidianLayout from '../../layouts/ObsidianLayout.astro';
+import { getAllDocs, buildNavigationTree } from '../../lib/content';
+import { Tag, ArrowUpRight, ArrowLeft } from 'lucide-react';
+import type { DocMetadata } from '../../lib/types';
+
+export async function getStaticPaths() {
+  const allDocs = getAllDocs();
+  const navigation = buildNavigationTree(allDocs);
+
+  const tagMap = new Map<string, DocMetadata[]>();
+  allDocs.forEach((doc) => {
+    doc.tags.forEach((tag) => {
+      if (!tagMap.has(tag)) tagMap.set(tag, []);
+      tagMap.get(tag)!.push(doc);
+    });
+  });
+
+  return Array.from(tagMap.entries()).map(([tag, docs]) => ({
+    params: { tag },
+    props: { tag, docs, navigation },
+  }));
+}
+
+interface Props {
+  tag: string;
+  docs: DocMetadata[];
+  navigation: ReturnType<typeof buildNavigationTree>;
+}
+
+const { tag, docs, navigation } = Astro.props;
+---
+
+<ObsidianLayout
+  title={`Tag: #${tag}`}
+  description={`Topics and chapters tagged with #${tag} in the Java Masterclass.`}
+  navigation={navigation}
+>
+  <div class="space-y-8 max-w-4xl mx-auto py-4">
+    <div class="border-b border-obs-border pb-6 space-y-3">
+      <a href="/tags" class="inline-flex items-center gap-1.5 text-xs text-obs-accent hover:underline font-medium">
+        <ArrowLeft className="h-3 w-3" /> All Tags
+      </a>
+      <div class="flex items-center gap-3">
+        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-obs-accent/20 border border-obs-accent/40 text-obs-accent">
+          <Tag className="h-4 w-4" />
+        </span>
+        <div>
+          <h1 class="text-2xl font-bold text-obs-text-primary !border-none !p-0">
+            #{tag}
+          </h1>
+          <p class="text-xs text-obs-text-muted mt-0.5">
+            {docs.length} Chapter{docs.length > 1 ? 's' : ''} categorized under this topic
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {docs.map((doc) => (
+        <a
+          href={doc.slug}
+          class="flex flex-col justify-between p-4 rounded-xl border border-obs-border bg-obs-sidebar hover:border-obs-accent/50 hover:bg-obs-hover transition-colors group shadow-sm"
+        >
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-[11px] text-obs-text-muted">
+              <span>{doc.domainTitle}</span>
+              {doc.level && (
+                <span class="rounded bg-obs-surface px-1.5 py-0.2 border border-obs-border">
+                  {doc.level}
+                </span>
+              )}
+            </div>
+            <h2 class="text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent transition-colors line-clamp-2 !m-0">
+              {doc.title}
+            </h2>
+            <p class="text-xs text-obs-text-muted">
+              {doc.categoryTitle} · {doc.readingTimeMinutes} min read
+            </p>
+          </div>
+
+          <div class="mt-3 flex items-center justify-end text-xs text-obs-accent font-medium pt-2 border-t border-obs-border/40">
+            <span>Read Topic</span>
+            <ArrowUpRight className="h-3 w-3 ml-1 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</ObsidianLayout>

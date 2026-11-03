@@ -1,0 +1,16 @@
+---
+import ObsidianLayout from '../layouts/ObsidianLayout.astro';
+import ChecklistTracker from '../components/ChecklistTracker';
+import { getAllDocs, buildNavigationTree } from '../lib/content';
+
+const allDocs = getAllDocs();
+const navigation = buildNavigationTree(allDocs);
+---
+
+<ObsidianLayout
+  title="Master Study Checklist"
+  description="Comprehensive self-assessment and progress tracking across all 6 core technical domains for Java technical interviews."
+  navigation={navigation}
+>
+  <ChecklistTracker client:load />
+</ObsidianLayout>

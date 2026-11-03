@@ -1,0 +1,50 @@
+---
+import ObsidianLayout from '../layouts/ObsidianLayout.astro';
+import { getAllDocs, buildNavigationTree } from '../lib/content';
+import { Compass, BookOpen, Home, Search } from 'lucide-react';
+
+const allDocs = getAllDocs();
+const navigation = buildNavigationTree(allDocs);
+---
+
+<ObsidianLayout
+  title="404 — Topic Not Found"
+  description="The requested documentation note or path could not be found."
+  navigation={navigation}
+>
+  <div class="my-16 text-center space-y-6 max-w-lg mx-auto p-8 rounded-2xl border border-obs-border bg-obs-sidebar shadow-xl">
+    <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-obs-accent/20 border border-obs-accent/40 font-mono font-bold text-obs-accent text-2xl">
+      404
+    </div>
+
+    <div class="space-y-2">
+      <h1 class="text-2xl font-bold text-obs-text-primary !border-none !p-0">
+        Topic Note Not Found
+      </h1>
+      <p class="text-sm text-obs-text-secondary leading-relaxed">
+        The requested chapter path does not exist or may have been reorganized. Use the global search or jump back to one of the flagship domains below.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+      <a
+        href="/"
+        class="flex items-center gap-2 rounded-lg bg-obs-accent px-4 py-2 text-xs font-semibold text-white hover:bg-obs-accent-hover transition-colors"
+      >
+        <Home className="h-4 w-4" />
+        <span>Return Home</span>
+      </a>
+      <a
+        href="/graph"
+        class="flex items-center gap-2 rounded-lg border border-obs-border bg-obs-surface px-4 py-2 text-xs font-medium text-obs-text-primary hover:bg-obs-hover transition-colors"
+      >
+        <Compass className="h-4 w-4 text-obs-accent" />
+        <span>Explore Graph</span>
+      </a>
+    </div>
+
+    <div class="pt-6 border-t border-obs-border/60 text-xs text-obs-text-muted">
+      Press <kbd class="rounded border border-obs-border bg-obs-canvas px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd> anywhere to search all 433 topics.
+    </div>
+  </div>
+</ObsidianLayout>

@@ -1,0 +1,292 @@
+---
+import ObsidianLayout from '../layouts/ObsidianLayout.astro';
+import { getAllDocs, buildNavigationTree, DOMAIN_TITLES, DOMAIN_COLORS } from '../lib/content';
+import { buildKnowledgeGraph } from '../lib/graphBuilder';
+import {
+  Compass,
+  Search,
+  BookOpen,
+  CheckSquare,
+  Cpu,
+  Layers,
+  Database,
+  Code2,
+  Cloud,
+  Container,
+  ArrowRight,
+  Sparkles,
+  GitFork,
+  FileCode,
+  Flame,
+} from 'lucide-react';
+
+const allDocs = getAllDocs();
+const navigation = buildNavigationTree(allDocs);
+const graph = buildKnowledgeGraph(allDocs);
+
+// Domain Cards configuration
+const DOMAIN_CARDS = [
+  {
+    id: 'core-java',
+    title: 'Core Java',
+    count: '18 Modules · 66 Docs',
+    desc: 'OOP Foundations, JMM & JVM internals, Concurrency, Virtual Threads, Collections, and GoF Design Patterns.',
+    icon: Cpu,
+    slug: '/core-java',
+    colorKey: 'core-java',
+    highlights: ['4 Pillars & Variance', 'G1 / ZGC Garbage Collection', 'JMM & Locks', 'All 23 GoF Patterns'],
+  },
+  {
+    id: 'spring-boot',
+    title: 'Spring Boot Ecosystem',
+    count: '14 Modules · 85 Docs',
+    desc: 'Auto-configuration, Spring Core & AOP, Spring MVC, Spring Data JPA, Spring Security, JWT, OAuth2, and Microservices.',
+    icon: Layers,
+    slug: '/spring-boot',
+    colorKey: 'spring-boot',
+    highlights: ['Bean Lifecycle & Proxies', 'Security Filter Chains', 'N+1 & Transaction Propagation', 'Resilience4j & Kafka'],
+  },
+  {
+    id: 'system-design',
+    title: 'System Design & Architecture',
+    count: '13 Modules · 123 Docs',
+    desc: 'Distributed systems theory, CAP, storage engines, 20 high-level case studies, and 8 low-level Java implementations.',
+    icon: Compass,
+    slug: '/system-design',
+    colorKey: 'system-design',
+    highlights: ['20 HLD Case Studies', '8 LLD Java Solutions', 'CAP & Consensus', '45-Min Framework'],
+  },
+  {
+    id: 'database-caching',
+    title: 'Database & Caching',
+    count: '2 Modules · 21 Docs',
+    desc: 'Relational storage engines, B+ Tree physics, CTEs, ACID & MVCC, replication, Redis, and NoSQL data modeling.',
+    icon: Database,
+    slug: '/database-caching',
+    colorKey: 'database-caching',
+    highlights: ['B+ Tree Math & Splits', 'WAL & MVCC Internals', 'Cassandra & DynamoDB', 'Query Plan & EXPLAIN'],
+  },
+  {
+    id: 'java-dsa',
+    title: 'Data Structures & Algorithms',
+    count: '70 Guides · 621 Java Files',
+    desc: '18-chapter Graph Masterclass, DP patterns, arrays, sliding window, backtracking, and runnable Java problem solutions.',
+    icon: Code2,
+    slug: '/java-dsa',
+    colorKey: 'java-dsa',
+    highlights: ['18 Graph Chapters', 'Dynamic Programming', 'Sliding Window Patterns', '621 LeetCode Solutions'],
+  },
+  {
+    id: 'cloud-devops',
+    title: 'Cloud & DevOps / Docker',
+    count: '4 Modules · Hub',
+    desc: 'AWS infrastructure, Kubernetes orchestration, CI/CD pipelines, containerizing Spring Boot apps, and JVM container tuning.',
+    icon: Cloud,
+    slug: '/cloud-devops',
+    colorKey: 'cloud-devops',
+    highlights: ['Multi-Stage Dockerfiles', 'Kubernetes Pods & Services', 'IaC with Terraform', 'Observability & SRE'],
+  },
+];
+---
+
+<ObsidianLayout
+  title="Home"
+  description="Obsidian-inspired documentation and knowledge-base platform for Java technical interviews and software engineering mastery."
+  navigation={navigation}
+>
+  <div class="space-y-12 py-4">
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden rounded-2xl border border-obs-border bg-gradient-to-b from-obs-sidebar via-obs-surface to-obs-canvas p-8 md:p-12 shadow-xl">
+      <!-- Glow effect -->
+      <div class="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-obs-accent/15 blur-3xl pointer-events-none"></div>
+
+      <div class="relative z-10 max-w-3xl space-y-4">
+        <div class="inline-flex items-center gap-2 rounded-full border border-obs-accent/30 bg-obs-accent/10 px-3 py-1 text-xs font-semibold text-obs-accent">
+          <Sparkles className="h-3.5 w-3.5" />
+          <span>Obsidian Knowledge Platform · Java Masterclass</span>
+        </div>
+
+        <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-obs-text-primary !border-none !p-0">
+          Interview Ready with Java
+        </h1>
+
+        <p class="text-base md:text-lg text-obs-text-secondary leading-relaxed">
+          The definitive, staff-engineer authored knowledge base covering <strong class="text-obs-text-primary">Core Java internals</strong>,
+          <strong class="text-obs-text-primary"> Spring Boot ecosystem</strong>, <strong class="text-obs-text-primary">Distributed System Design</strong>,
+          and <strong class="text-obs-text-primary">Data Structures & Algorithms</strong>.
+        </p>
+
+        <!-- Metrics Row -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-obs-border/60">
+          <div>
+            <div class="text-2xl font-bold text-obs-text-primary font-mono">433</div>
+            <div class="text-xs text-obs-text-muted">Master Chapters</div>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-obs-text-primary font-mono">276K+</div>
+            <div class="text-xs text-obs-text-muted">Lines of Theory</div>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-obs-text-primary font-mono">14,300+</div>
+            <div class="text-xs text-obs-text-muted">Code Blocks</div>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-obs-accent font-mono">1,620+</div>
+            <div class="text-xs text-obs-text-muted">Connected Links</div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap items-center gap-3 pt-4">
+          <a
+            href="/core-java"
+            class="flex items-center gap-2 rounded-lg bg-obs-accent px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-obs-accent-hover transition-all"
+          >
+            <BookOpen className="h-4 w-4" />
+            <span>Start Reading</span>
+          </a>
+          <a
+            href="/graph"
+            class="flex items-center gap-2 rounded-lg border border-obs-border bg-obs-surface px-4 py-2.5 text-sm font-medium text-obs-text-primary hover:bg-obs-hover hover:border-obs-accent/50 transition-all"
+          >
+            <Compass className="h-4 w-4 text-obs-accent" />
+            <span>Explore Knowledge Graph</span>
+          </a>
+          <a
+            href="/checklist"
+            class="flex items-center gap-2 rounded-lg border border-obs-border bg-obs-surface px-4 py-2.5 text-sm font-medium text-obs-text-primary hover:bg-obs-hover hover:border-obs-accent/50 transition-all"
+          >
+            <CheckSquare className="h-4 w-4 text-emerald-400" />
+            <span>Study Checklist</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Knowledge Domains Grid -->
+    <div class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-bold text-obs-text-primary !border-none !m-0">
+          Core Knowledge Domains
+        </h2>
+        <a href="/index-all" class="text-xs text-obs-accent hover:underline flex items-center gap-1 font-medium">
+          View all 433 topics A–Z <ArrowRight className="h-3 w-3" />
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {DOMAIN_CARDS.map((card) => {
+          const color = DOMAIN_COLORS[card.colorKey];
+          return (
+            <a
+              href={card.slug}
+              class="group flex flex-col justify-between rounded-xl border border-obs-border bg-obs-sidebar p-5 hover:border-obs-accent/50 hover:bg-obs-hover transition-all shadow-sm"
+            >
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <div
+                    class="flex h-10 w-10 items-center justify-center rounded-lg border"
+                    style={{ backgroundColor: color?.bg, color: color?.text, borderColor: color?.border }}
+                  >
+                    <card.icon className="h-5 w-5" />
+                  </div>
+                  <span class="rounded-full bg-obs-surface px-2.5 py-0.5 text-[11px] font-mono text-obs-text-muted border border-obs-border">
+                    {card.count}
+                  </span>
+                </div>
+
+                <h3 class="text-base font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors !m-0">
+                  {card.title}
+                </h3>
+
+                <p class="text-xs text-obs-text-secondary leading-relaxed line-clamp-3">
+                  {card.desc}
+                </p>
+
+                <!-- Highlights -->
+                <div class="flex flex-wrap gap-1.5 pt-2">
+                  {card.highlights.map((h) => (
+                    <span class="rounded bg-obs-canvas/80 px-2 py-0.5 text-[10px] text-obs-text-muted font-medium border border-obs-border/50">
+                      {h}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div class="mt-4 flex items-center gap-1 text-xs font-semibold text-obs-accent pt-2 border-t border-obs-border/40">
+                <span>Explore Domain</span>
+                <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+
+    <!-- Interactive Knowledge Graph Banner -->
+    <div class="rounded-xl border border-obs-border bg-obs-sidebar p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="space-y-2 max-w-xl">
+        <div class="flex items-center gap-2 text-obs-accent font-semibold text-xs uppercase tracking-wider">
+          <Compass className="h-4 w-4" />
+          <span>Obsidian-Style Relationship Engine</span>
+        </div>
+        <h2 class="text-2xl font-bold text-obs-text-primary !border-none !m-0">
+          Connected Concept Graph (416 Nodes · 1,620 Edges)
+        </h2>
+        <p class="text-xs text-obs-text-secondary leading-relaxed">
+          See how JVM Memory Model directly connects to Concurrency and False Sharing, or how Spring Security Filter Chains relate to Distributed JWT and OAuth2 PKCE flows. Explore interactive 2D physics and linked mentions.
+        </p>
+      </div>
+
+      <a
+        href="/graph"
+        class="shrink-0 flex items-center gap-2 rounded-lg bg-obs-accent px-5 py-3 text-sm font-semibold text-white shadow-lg hover:bg-obs-accent-hover transition-all"
+      >
+        <Compass className="h-4 w-4" />
+        <span>Launch Fullscreen Graph</span>
+      </a>
+    </div>
+
+    <!-- Curated Learning Tracks -->
+    <div class="space-y-4">
+      <h2 class="text-xl font-bold text-obs-text-primary !border-none !m-0">
+        Recommended Learning Paths
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="rounded-xl border border-obs-border bg-obs-surface p-5 space-y-3">
+          <div class="text-xs font-bold text-amber-400 uppercase tracking-wider">Track 1 · 4 Weeks</div>
+          <h3 class="text-base font-bold text-obs-text-primary !m-0">Core Java Staff-Level Depth</h3>
+          <p class="text-xs text-obs-text-secondary leading-relaxed">
+            From OOP foundations and diamond inheritance up to G1/ZGC garbage collector internals, JMM happens-before guarantees, and all 23 GoF design patterns.
+          </p>
+          <a href="/core-java" class="inline-block text-xs text-obs-accent font-medium hover:underline">
+            View 4-Week Plan →
+          </a>
+        </div>
+
+        <div class="rounded-xl border border-obs-border bg-obs-surface p-5 space-y-3">
+          <div class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Track 2 · 6 Weeks</div>
+          <h3 class="text-base font-bold text-obs-text-primary !m-0">Spring Boot & Microservices</h3>
+          <p class="text-xs text-obs-text-secondary leading-relaxed">
+            Auto-configuration condition trees, DispatcherServlet lifecycle, JPA persistence context, Hibernate N+1 resolution, Spring Security filter chains, and Kafka DLQ.
+          </p>
+          <a href="/spring-boot" class="inline-block text-xs text-obs-accent font-medium hover:underline">
+            View 6-Week Plan →
+          </a>
+        </div>
+
+        <div class="rounded-xl border border-obs-border bg-obs-surface p-5 space-y-3">
+          <div class="text-xs font-bold text-cyan-400 uppercase tracking-wider">Track 3 · 4 Weeks</div>
+          <h3 class="text-base font-bold text-obs-text-primary !m-0">Distributed Systems & HLD</h3>
+          <p class="text-xs text-obs-text-secondary leading-relaxed">
+            Master the 45-minute system design framework, CAP theorem, storage engines, sharding, and 20 production case studies (Netflix, Uber, WhatsApp, YouTube).
+          </p>
+          <a href="/system-design" class="inline-block text-xs text-obs-accent font-medium hover:underline">
+            View System Design Path →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</ObsidianLayout>

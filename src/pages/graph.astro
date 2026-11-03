@@ -1,0 +1,18 @@
+---
+import ObsidianLayout from '../layouts/ObsidianLayout.astro';
+import ObsidianGraph from '../components/ObsidianGraph';
+import { getAllDocs, buildNavigationTree } from '../lib/content';
+
+const allDocs = getAllDocs();
+const navigation = buildNavigationTree(allDocs);
+---
+
+<ObsidianLayout
+  title="Interactive Knowledge Graph"
+  description="Explore the interconnected conceptual graph of 416 topics and 1,620 relationships across Core Java, Spring Boot, System Design, and Algorithms."
+  navigation={navigation}
+>
+  <div class="h-[80vh] w-full py-2">
+    <ObsidianGraph client:load />
+  </div>
+</ObsidianLayout>

@@ -1,0 +1,90 @@
+---
+import ObsidianLayout from '../layouts/ObsidianLayout.astro';
+import { getAllDocs, buildNavigationTree } from '../lib/content';
+import { BookOpen, ArrowUpRight } from 'lucide-react';
+
+const allDocs = getAllDocs();
+const navigation = buildNavigationTree(allDocs);
+
+// Group docs alphabetically by first letter of title
+const alphaMap = new Map<string, typeof allDocs>();
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+alphabet.forEach((letter) => alphaMap.set(letter, []));
+
+allDocs.forEach((doc) => {
+  const firstLetter = doc.title.charAt(0).toUpperCase();
+  const letter = /[A-Z]/.test(firstLetter) ? firstLetter : '#';
+  if (!alphaMap.has(letter)) {
+    alphaMap.set(letter, []);
+  }
+  alphaMap.get(letter)!.push(doc);
+});
+---
+
+<ObsidianLayout
+  title="Complete Topic Index A–Z"
+  description="Alphabetical index of all 433 chapters, case studies, and reference notes across the Java Masterclass."
+  navigation={navigation}
+>
+  <div class="space-y-8 max-w-4xl mx-auto py-4">
+    <div class="border-b border-obs-border pb-6">
+      <h1 class="text-3xl font-extrabold text-obs-text-primary !border-none !p-0">
+        Complete Topic Index (A–Z)
+      </h1>
+      <p class="text-sm text-obs-text-muted mt-2">
+        Full inventory of all {allDocs.length} chapters, algorithms, HLD case studies, and interview topics.
+      </p>
+
+      <!-- Alphabet jump links -->
+      <div class="flex flex-wrap gap-1.5 mt-4">
+        {Array.from(alphaMap.entries()).map(([letter, list]) => {
+          if (list.length === 0) return null;
+          return (
+            <a
+              href={`#section-${letter}`}
+              class="flex h-7 w-7 items-center justify-center rounded border border-obs-border bg-obs-sidebar text-xs font-mono font-semibold text-obs-text-primary hover:bg-obs-accent hover:text-white transition-colors"
+            >
+              {letter}
+            </a>
+          );
+        })}
+      </div>
+    </div>
+
+    <!-- Letter sections -->
+    <div class="space-y-8">
+      {Array.from(alphaMap.entries()).map(([letter, list]) => {
+        if (list.length === 0) return null;
+        return (
+          <div id={`section-${letter}`} class="space-y-3 scroll-mt-20">
+            <div class="flex items-center gap-3">
+              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-obs-accent/20 border border-obs-accent/40 font-mono font-bold text-obs-accent text-sm">
+                {letter}
+              </span>
+              <span class="text-xs text-obs-text-muted font-mono">{list.length} Topics</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {list.map((doc) => (
+                <a
+                  href={doc.slug}
+                  class="flex items-center justify-between p-2.5 rounded-lg border border-obs-border bg-obs-surface hover:border-obs-accent/50 hover:bg-obs-hover transition-colors group"
+                >
+                  <div class="truncate pr-2">
+                    <div class="text-xs font-medium text-obs-text-primary group-hover:text-obs-accent truncate">
+                      {doc.title}
+                    </div>
+                    <div class="text-[10px] text-obs-text-muted truncate">
+                      {doc.domainTitle} · {doc.categoryTitle}
+                    </div>
+                  </div>
+                  <ArrowUpRight className="h-3 w-3 text-obs-text-muted group-hover:text-obs-accent shrink-0" />
+                </a>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</ObsidianLayout>

@@ -25,6 +25,8 @@
 bin/
 build/
 dist/
+node_modules/
+.astro/
 out/
 target/
 

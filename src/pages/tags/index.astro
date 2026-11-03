@@ -1,0 +1,53 @@
+---
+import ObsidianLayout from '../../layouts/ObsidianLayout.astro';
+import { getAllDocs, buildNavigationTree } from '../../lib/content';
+import { Tag, ArrowRight } from 'lucide-react';
+
+const allDocs = getAllDocs();
+const navigation = buildNavigationTree(allDocs);
+
+// Collect all tags with counts
+const tagCounts = new Map<string, number>();
+allDocs.forEach((doc) => {
+  doc.tags.forEach((tag) => {
+    tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+  });
+});
+
+const sortedTags = Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1]);
+---
+
+<ObsidianLayout
+  title="Tags & Concepts Index"
+  description="Explore the Java Masterclass by conceptual tags, categories, and technical topics."
+  navigation={navigation}
+>
+  <div class="space-y-8 max-w-4xl mx-auto py-4">
+    <div class="border-b border-obs-border pb-6 space-y-2">
+      <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-obs-accent uppercase tracking-wider">
+        <Tag className="h-3.5 w-3.5" />
+        <span>Taxonomy & Conceptual Index</span>
+      </div>
+      <h1 class="text-3xl font-extrabold text-obs-text-primary !border-none !p-0">
+        All Tags ({sortedTags.length})
+      </h1>
+      <p class="text-sm text-obs-text-muted">
+        Browse topics categorized by technical domain, architectural concern, and difficulty level.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-2.5">
+      {sortedTags.map(([tag, count]) => (
+        <a
+          href={`/tags/${encodeURIComponent(tag)}`}
+          class="flex items-center gap-2 rounded-lg border border-obs-border bg-obs-sidebar px-3.5 py-2 text-xs text-obs-text-secondary hover:border-obs-accent/50 hover:bg-obs-hover hover:text-obs-text-primary transition-colors group shadow-sm"
+        >
+          <span class="font-medium group-hover:text-obs-accent">#{tag}</span>
+          <span class="rounded-full bg-obs-surface px-2 py-0.5 text-[10px] text-obs-text-muted font-mono border border-obs-border">
+            {count}
+          </span>
+        </a>
+      ))}
+    </div>
+  </div>
+</ObsidianLayout>
