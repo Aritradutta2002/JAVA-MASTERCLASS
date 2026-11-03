@@ -14,7 +14,6 @@
     "@tailwindcss/typography": "^0.5.16",
     "astro": "^5.4.2",
     "clsx": "^2.1.1",
-    "github-slugger": "^2.0.0",
     "katex": "^0.16.21",
     "lucide-react": "^0.475.0",
     "minisearch": "^7.1.1",

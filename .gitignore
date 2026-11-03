@@ -42,7 +42,8 @@ gradlew.bat
 .maven/
 
 # Ant
-lib/
+/lib/
+!src/lib/
 
 # OS specific
 .DS_Store

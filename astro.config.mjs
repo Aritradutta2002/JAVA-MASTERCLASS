@@ -25,4 +25,9 @@ export default defineConfig({
       wrap: true,
     },
   },
+  vite: {
+    ssr: {
+      noExternal: ['lucide-react'],
+    },
+  },
 });
