@@ -4,26 +4,46 @@ export interface HeadingItem {
   slug: string;
 }
 
+export type DocKind =
+  | 'article'
+  | 'module'
+  | 'domain'
+  | 'reference'
+  | 'standard'
+  | 'checklist'
+  | 'syllabus';
+
 export interface DocMetadata {
-  id: string;                    // unique canonical ID, e.g. "core-java/01-core-java-oop/01-oop-foundations-and-4-pillars"
-  title: string;                 // e.g. "OOP Foundations and the 4 Pillars"
-  slug: string;                  // e.g. "/core-java/01-core-java-oop/01-oop-foundations-and-4-pillars"
-  filePath: string;              // relative to repo root, e.g. "CORE_JAVA/01-Core-Java-OOP/01-OOP-Foundations-and-4-Pillars.md"
-  domain: string;                // e.g. "core-java", "spring-boot", "system-design", etc.
-  domainTitle: string;           // e.g. "Core Java", "Spring Boot", "System Design"
-  category: string;              // e.g. "01-Core-Java-OOP"
-  categoryTitle: string;         // e.g. "01 · Core Java OOP"
-  order: number;                 // ordering within category
-  level?: string;                // "Beginner", "Intermediate", "Advanced", "Expert"
-  interviewFrequency?: string;   // "★★★★★"
-  prerequisites?: string;        // prerequisites text or links
-  lastUpdated?: string;          // e.g. "2026"
+  id: string;
+  title: string;
+  slug: string;
+  filePath: string;
+  domain: string;
+  domainTitle: string;
+  category: string;
+  categoryTitle: string;
+  module: string;
+  moduleTitle: string;
+  group?: string;
+  groupTitle?: string;
+  kind: DocKind;
+  order: number;
+  level?: string;
+  interviewFrequency?: string;
+  prerequisites?: string;
+  lastUpdated?: string;
   wordCount: number;
   readingTimeMinutes: number;
   headings: HeadingItem[];
   tags: string[];
+  summary: string;
   isEmpty: boolean;
-  relatedJavaFiles?: string[];   // e.g. implementations in LLD or DSA
+  isGenerated?: boolean;
+  hasMath: boolean;
+  hasMermaid: boolean;
+  hasCode: boolean;
+  children?: DocMetadata[];
+  relatedJavaFiles?: string[];
 }
 
 export interface GraphNode {
@@ -49,6 +69,7 @@ export interface BacklinkItem {
   domain: string;
   domainTitle: string;
   contextSnippet: string;
+  anchor?: string;
 }
 
 export interface OutgoingLinkItem {
@@ -56,6 +77,8 @@ export interface OutgoingLinkItem {
   targetTitle: string;
   targetSlug: string;
   domain: string;
+  domainTitle: string;
+  anchor?: string;
 }
 
 export interface NavigationNode {
@@ -63,9 +86,11 @@ export interface NavigationNode {
   title: string;
   slug?: string;
   domain?: string;
-  type: 'domain' | 'category' | 'doc';
+  type: 'domain' | 'group' | 'category' | 'doc' | 'link';
   children?: NavigationNode[];
   badge?: string;
+  depth?: number;
+  count?: number;
 }
 
 export interface SearchRecord {
@@ -78,4 +103,24 @@ export interface SearchRecord {
   headings: string[];
   content: string;
   tags: string[];
+}
+
+export interface SiteStats {
+  documents: number;
+  words: number;
+  readingMinutes: number;
+  codeBlocks: number;
+  mermaidDiagrams: number;
+  domains: number;
+  javaFiles: number;
+}
+
+export interface LandingPage {
+  slug: string;
+  title: string;
+  domain: string;
+  domainTitle: string;
+  moduleTitle: string;
+  summary: string;
+  docs: DocMetadata[];
 }

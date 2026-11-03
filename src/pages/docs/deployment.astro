@@ -1,0 +1,90 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import ObsidianLayout from '../../layouts/ObsidianLayout.astro';
+import { buildNavigationTree, getAllDocs } from '../../lib/content';
+import { renderMarkdown } from '../../lib/markdownRenderer';
+import { ArrowRight, BookOpen, Cloud, Server, Terminal } from 'lucide-react';
+
+const GUIDE_PATH = 'docs/DEPLOYMENT.md';
+
+const allDocs = getAllDocs();
+const navigation = buildNavigationTree(allDocs);
+
+const fullPath = path.join(process.cwd(), GUIDE_PATH);
+const source = fs.existsSync(fullPath)
+  ? fs.readFileSync(fullPath, 'utf-8')
+  : '# Deployment guide\n\nThe deployment guide is missing.';
+const html = await renderMarkdown(source, GUIDE_PATH, { stripTitle: false });
+
+const cards = [
+  {
+    title: 'Build & verify',
+    description: 'Install, type-check, build, and validate every route before shipping.',
+    icon: Terminal,
+  },
+  {
+    title: 'Static hosting',
+    description: 'Vercel, Netlify, Cloudflare Pages, GitHub Pages, or any file server.',
+    icon: Cloud,
+  },
+  {
+    title: 'Search & caching',
+    description: 'Pagefind index output, cache headers, and the post-deploy checklist.',
+    icon: Server,
+  },
+];
+---
+
+<ObsidianLayout
+  title="Deployment guide"
+  description="How to build, verify, and deploy the Java Masterclass static site, including Pagefind search and hosting configuration."
+  navigation={navigation}
+  eyebrow="Operate"
+  wide
+>
+  <div class="not-prose mb-8 grid gap-3 sm:grid-cols-3">
+    {cards.map((card) => (
+      <div class="surface-card flex items-start gap-3 p-4">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obs-accent/30 bg-obs-accent/10 text-obs-accent">
+          <card.icon className="h-4 w-4" />
+        </span>
+        <div>
+          <p class="text-[0.8rem] font-semibold text-obs-text-primary">{card.title}</p>
+          <p class="mt-0.5 text-[0.66rem] leading-relaxed text-obs-text-muted">{card.description}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <article class="obsidian-prose">
+    <Fragment set:html={html} />
+  </article>
+
+  <div class="not-prose mt-10 grid gap-3 border-t border-obs-border pt-6 sm:grid-cols-2">
+    <a href="/docs/authoring" class="surface-card surface-card-hover group flex items-center gap-3 p-4">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obs-emerald/30 bg-obs-emerald/10 text-obs-emerald">
+        <BookOpen className="h-4 w-4" />
+      </span>
+      <span class="min-w-0">
+        <span class="block text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent">
+          Authoring guide
+        </span>
+        <span class="block text-[0.66rem] text-obs-text-muted">Add chapters and maintain the content.</span>
+      </span>
+      <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-obs-text-muted" />
+    </a>
+    <a href="/reference/quick-references" class="surface-card surface-card-hover group flex items-center gap-3 p-4">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obs-gold/30 bg-obs-gold/10 text-obs-gold">
+        <BookOpen className="h-4 w-4" />
+      </span>
+      <span class="min-w-0">
+        <span class="block text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent">
+          Quick references
+        </span>
+        <span class="block text-[0.66rem] text-obs-text-muted">Cheat sheets and standards.</span>
+      </span>
+      <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-obs-text-muted" />
+    </a>
+  </div>
+</ObsidianLayout>

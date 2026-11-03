@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { DocMetadata, GraphNode, GraphEdge, BacklinkItem, OutgoingLinkItem } from './types';
 import { getAllDocs } from './content';
-import { DOMAIN_TITLES } from './constants';
 import { resolveInternalLink, initializeLinkMaps } from './linkResolver';
 
 export interface KnowledgeGraphData {
@@ -54,7 +53,7 @@ export function buildKnowledgeGraph(docs?: DocMetadata[], repoRoot: string = pro
       const line = lines[lineIndex];
       let match;
       while ((match = linkRegex.exec(line)) !== null) {
-        const [_, linkText, rawUrl] = match;
+        const [, , rawUrl] = match;
         const resolved = resolveInternalLink(doc.filePath, rawUrl);
         if (resolved.isExternal) continue;
 
@@ -82,6 +81,7 @@ export function buildKnowledgeGraph(docs?: DocMetadata[], repoRoot: string = pro
             targetTitle: targetDoc.title,
             targetSlug: targetDoc.slug,
             domain: targetDoc.domain,
+            domainTitle: targetDoc.domainTitle,
           });
 
           // Record Backlink with surrounding context snippet

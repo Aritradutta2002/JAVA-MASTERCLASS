@@ -1,0 +1,182 @@
+---
+import ObsidianLayout from '../layouts/ObsidianLayout.astro';
+import { buildNavigationTree, getAllDocs } from '../lib/content';
+import { BookMarked, Search } from 'lucide-react';
+
+const allDocs = getAllDocs();
+const navigation = buildNavigationTree(allDocs);
+
+const SKIP = new Set([
+  'summary',
+  'introduction',
+  'overview',
+  'conclusion',
+  'key takeaways',
+  'interview questions',
+  'interview questions and answers',
+  'further reading',
+  'references',
+  'table of contents',
+  'what you will learn',
+  'learning objectives',
+  'practice problems',
+  'exercises',
+  'best practices',
+  'common mistakes',
+  'real-world example',
+  'real world example',
+  'code example',
+  'example',
+  'questions',
+  'answers',
+  'next steps',
+  'recap',
+  'resources',
+  'appendix',
+  'glossary',
+  'cheat sheet',
+]);
+
+const NOISE = /\b(week|day|q&a|mcq|cheat sheet|notes|scenario|exercise|problem|question|answer|summary|recap|checklist|roadmap|schedule|timeline|table of contents|implementation|visualization|production issue|production note|design question|code walkthrough|dry run|output|solution approach|why it works|when to use|how it works|advanced|beginner|intermediate|expert|basic)\b/i;
+
+const INCLUDED_KINDS = new Set(['article', 'module']);
+
+const terms = new Map<string, { label: string; href: string; doc: string; domain: string; count: number }>();
+
+for (const doc of allDocs) {
+  if (!INCLUDED_KINDS.has(doc.kind)) continue;
+  for (const heading of doc.headings) {
+    if (heading.depth < 2 || heading.depth > 3) continue;
+    const label = heading.text.replace(/[*_`]/g, '').trim();
+    if (label.length < 4 || label.length > 64) continue;
+    if (!/[a-zA-Z]/.test(label)) continue;
+    if (/^[$#>\-.]/.test(label)) continue;
+    if (/\.(java|md|sql|json|xml|ya?ml|js|ts|html|css)\b/i.test(label)) continue;
+    if (SKIP.has(label.toLowerCase())) continue;
+    if (NOISE.test(label)) continue;
+    if (/^(chapter|part|module|section)\s+\d+/i.test(label)) continue;
+    if (label.endsWith('?')) continue;
+    if (label.split(/\s+/).length > 8) continue;
+    const key = label.toLowerCase();
+    const existing = terms.get(key);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      terms.set(key, {
+        label,
+        href: `${doc.slug}#${heading.slug}`,
+        doc: doc.title,
+        domain: doc.domainTitle,
+        count: 1,
+      });
+    }
+  }
+}
+
+const sorted = [...terms.values()].sort((a, b) => a.label.localeCompare(b.label, 'en', { sensitivity: 'base' }));
+const byLetter = new Map<string, typeof sorted>();
+for (const term of sorted) {
+  const letter = term.label.charAt(0).toUpperCase();
+  const key = /[A-Z]/.test(letter) ? letter : '#';
+  if (!byLetter.has(key)) byLetter.set(key, []);
+  byLetter.get(key)!.push(term);
+}
+---
+
+<ObsidianLayout
+  title="Glossary"
+  description="A linked index of technical terms, concepts, and section-level topics across the Java Masterclass."
+  navigation={navigation}
+  wide
+>
+  <div class="not-prose space-y-8">
+    <header class="space-y-3 border-b border-obs-border pb-6">
+      <p class="eyebrow"><BookMarked className="h-3.5 w-3.5" /> Concept index</p>
+      <h1 class="font-serif text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
+        Glossary of terms
+      </h1>
+      <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
+        Every entry is a section heading in the knowledge base, linked directly to the paragraph that
+        explains it. This index is generated from the documents themselves — no invented definitions.
+      </p>
+
+      <div class="relative mt-2 flex max-w-xl items-center">
+        <Search className="pointer-events-none absolute left-2.5 h-4 w-4 text-obs-accent" />
+        <label for="glossary-filter" class="sr-only">Filter glossary terms</label>
+        <input
+          id="glossary-filter"
+          type="search"
+          placeholder="Filter terms…"
+          class="w-full rounded-lg border border-obs-border bg-obs-surface py-2 pl-9 pr-3 text-sm text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:outline-none"
+        />
+      </div>
+      <p class="text-[0.66rem] text-obs-text-muted" id="glossary-count" aria-live="polite">
+        {sorted.length.toLocaleString('en-US')} linked terms.
+      </p>
+    </header>
+
+    <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+      {[...byLetter.entries()].map(([letter, list]) => (
+        <section class="glossary-letter" data-letter={letter} aria-labelledby={`letter-${letter}`}>
+          <div class="mb-2 flex items-center gap-2 border-b border-obs-border pb-1">
+            <span class="flex h-6 w-6 items-center justify-center rounded-md border border-obs-accent/30 bg-obs-accent/10 font-mono text-[0.7rem] font-bold text-obs-accent">
+              {letter}
+            </span>
+            <h2 id={`letter-${letter}`} class="font-serif text-base font-bold text-obs-text-primary">
+              {letter}
+            </h2>
+            <span class="ml-auto font-mono text-[0.6rem] text-obs-text-muted">{list.length}</span>
+          </div>
+          <ul class="space-y-0.5">
+            {list.map((term) => (
+              <li
+                class="glossary-item"
+                data-term={`${term.label} ${term.doc} ${term.domain}`.toLowerCase()}
+              >
+                <a
+                  href={term.href}
+                  class="group flex items-baseline justify-between gap-2 rounded px-1.5 py-1 hover:bg-obs-hover"
+                >
+                  <span class="min-w-0 truncate text-[0.76rem] font-medium text-obs-text-secondary group-hover:text-obs-accent">
+                    {term.label}
+                  </span>
+                  <span class="shrink-0 text-[0.56rem] text-obs-text-muted">{term.domain}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+
+    <div id="glossary-empty" class="hidden rounded-xl border border-obs-border bg-obs-surface p-10 text-center">
+      <p class="text-sm font-semibold text-obs-text-primary">No terms match that filter</p>
+      <p class="mt-1 text-xs text-obs-text-muted">Try a shorter term or clear the input.</p>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById('glossary-filter') as HTMLInputElement | null;
+    const count = document.getElementById('glossary-count');
+    const empty = document.getElementById('glossary-empty');
+
+    function apply() {
+      const query = (input?.value || '').trim().toLowerCase();
+      let visible = 0;
+      document.querySelectorAll<HTMLElement>('.glossary-letter').forEach((section) => {
+        let letterVisible = 0;
+        section.querySelectorAll<HTMLElement>('.glossary-item').forEach((item) => {
+          const show = !query || (item.dataset.term || '').includes(query);
+          item.classList.toggle('hidden', !show);
+          if (show) letterVisible += 1;
+        });
+        section.classList.toggle('hidden', letterVisible === 0);
+        visible += letterVisible;
+      });
+      if (count) count.textContent = `${visible.toLocaleString('en-US')} linked term${visible === 1 ? '' : 's'}.`;
+      empty?.classList.toggle('hidden', visible !== 0);
+    }
+
+    input?.addEventListener('input', apply);
+  </script>
+</ObsidianLayout>

@@ -1,6 +1,28 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { NavigationNode } from '../lib/types';
-import { ChevronRight, ChevronDown, Folder, FileText, Search, X, Star, Clock, Trash2 } from 'lucide-react';
+import {
+  BookMarked,
+  BookOpen,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Code2,
+  Compass,
+  Container,
+  Cpu,
+  Database,
+  FileText,
+  Folder,
+  Layers,
+  Library,
+  Pin,
+  Search,
+  Star,
+  Tag,
+  Trash2,
+  Waypoints,
+  X,
+} from 'lucide-react';
 
 interface Props {
   navigation: NavigationNode[];
@@ -18,348 +40,460 @@ interface RecentPage {
   slug: string;
 }
 
+const DOMAIN_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  'core-java': Cpu,
+  'spring-boot': Layers,
+  'system-design': Compass,
+  'database-caching': Database,
+  'java-dsa': Code2,
+  'cloud-devops': CloudIcon,
+  'docker-java-backend': Container,
+  root: BookOpen,
+};
+
+function CloudIcon({ className }: { className?: string }) {
+  return <Compass className={className} />;
+}
+
+const QUICK_LINKS = [
+  { label: 'Library', href: '/library', icon: Library },
+  { label: 'Paths', href: '/paths', icon: Waypoints },
+  { label: 'Reference', href: '/reference/quick-references', icon: BookMarked },
+  { label: 'Tags', href: '/tags', icon: Tag },
+];
+
+function normalizeSlug(value: string) {
+  return value.replace(/\/+$/, '') || '/';
+}
+
+function findAncestors(nodes: NavigationNode[], target: string, trail: string[] = []): string[] | null {
+  for (const node of nodes) {
+    const nextTrail = [...trail, node.id];
+    if (node.slug && normalizeSlug(node.slug) === target) return nextTrail;
+    if (node.children) {
+      const found = findAncestors(node.children, target, nextTrail);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function filterNodes(nodes: NavigationNode[], query: string): NavigationNode[] {
+  const q = query.toLowerCase();
+  const visit = (node: NavigationNode): NavigationNode | null => {
+    const children = node.children
+      ?.map(visit)
+      .filter((child): child is NavigationNode => child !== null);
+    const matches = node.title.toLowerCase().includes(q);
+    if (matches || (children && children.length > 0)) {
+      return { ...node, children };
+    }
+    return null;
+  };
+  return nodes.map(visit).filter((node): node is NavigationNode => node !== null);
+}
+
 export default function SidebarTree({ navigation, currentSlug }: Props) {
   const [filter, setFilter] = useState('');
-  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
-  const [pinnedPages, setPinnedPages] = useState<PinnedPage[]>([]);
-  const [recentPages, setRecentPages] = useState<RecentPage[]>([]);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [pinned, setPinned] = useState<PinnedPage[]>([]);
+  const [recents, setRecents] = useState<RecentPage[]>([]);
   const [showPinned, setShowPinned] = useState(true);
   const [showRecent, setShowRecent] = useState(true);
-  const activeLinkRef = useRef<HTMLAnchorElement>(null);
+  const activeRef = useRef<HTMLAnchorElement>(null);
+  const filterId = useId();
+  const target = normalizeSlug(currentSlug);
 
-  // Load pinned and recent notes from localStorage
-  const loadPinsAndRecents = () => {
+  const loadStored = () => {
     try {
-      const pins = JSON.parse(localStorage.getItem('obsidian-pinned-pages') || '[]');
-      setPinnedPages(pins);
-    } catch {}
+      setPinned(JSON.parse(localStorage.getItem('obsidian-pinned-pages') || '[]'));
+    } catch {
+      setPinned([]);
+    }
     try {
-      const recents = JSON.parse(localStorage.getItem('obsidian-recent-pages') || '[]');
-      setRecentPages(recents);
-    } catch {}
+      setRecents(JSON.parse(localStorage.getItem('obsidian-recent-pages') || '[]'));
+    } catch {
+      setRecents([]);
+    }
   };
 
   useEffect(() => {
-    loadPinsAndRecents();
-    window.addEventListener('obsidian:pins-updated', loadPinsAndRecents);
-    window.addEventListener('obsidian:recents-updated', loadPinsAndRecents);
+    loadStored();
+    window.addEventListener('obsidian:pins-updated', loadStored);
+    window.addEventListener('obsidian:recents-updated', loadStored);
     return () => {
-      window.removeEventListener('obsidian:pins-updated', loadPinsAndRecents);
-      window.removeEventListener('obsidian:recents-updated', loadPinsAndRecents);
+      window.removeEventListener('obsidian:pins-updated', loadStored);
+      window.removeEventListener('obsidian:recents-updated', loadStored);
     };
   }, []);
 
-  // Initialize expanded nodes from localStorage or auto-expand the active path
   useEffect(() => {
+    let saved: Record<string, boolean> = {};
     try {
-      const saved = localStorage.getItem('obsidian-sidebar-expanded');
-      const initial = saved ? JSON.parse(saved) : {};
-
-      // Auto-expand any category containing the current page
-      navigation.forEach((domainNode) => {
-        domainNode.children?.forEach((catNode) => {
-          const hasActiveChild = catNode.children?.some((docNode) => docNode.slug === currentSlug);
-          if (hasActiveChild || catNode.slug === currentSlug) {
-            initial[catNode.id] = true;
-            initial[domainNode.id] = true;
-          }
-        });
-      });
-
-      setExpandedNodes(initial);
+      saved = JSON.parse(localStorage.getItem('obsidian-sidebar-expanded') || '{}');
     } catch {
-      // fallback
+      saved = {};
     }
-  }, [currentSlug, navigation]);
+    const ancestors = findAncestors(navigation, target) || [];
+    const seed: Record<string, boolean> = { ...saved };
+    for (const id of ancestors) seed[id] = true;
+    // Open the domain level by default for first-time visitors.
+    for (const node of navigation) {
+      if (node.type === 'domain' && seed[node.id] === undefined) {
+        seed[node.id] = node.domain === 'core-java' || node.domain === 'root';
+      }
+    }
+    setExpanded(seed);
+  }, [navigation, target]);
 
-  // Scroll active item into view smoothly
   useEffect(() => {
-    if (activeLinkRef.current) {
-      activeLinkRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }
-  }, [currentSlug, expandedNodes]);
+    const timer = window.setTimeout(() => {
+      activeRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [target, expanded]);
 
-  const toggleExpand = (id: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setExpandedNodes((prev) => {
+  const toggle = (id: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setExpanded((prev) => {
       const next = { ...prev, [id]: !prev[id] };
       try {
         localStorage.setItem('obsidian-sidebar-expanded', JSON.stringify(next));
-      } catch {}
+      } catch {
+        /* ignore quota errors */
+      }
       return next;
     });
   };
 
-  const unpinPage = (slug: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const unpin = (slug: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const updated = pinned.filter((item) => item.slug !== slug);
+    setPinned(updated);
     try {
-      const updated = pinnedPages.filter((p) => p.slug !== slug);
       localStorage.setItem('obsidian-pinned-pages', JSON.stringify(updated));
-      setPinnedPages(updated);
-      window.dispatchEvent(new CustomEvent('obsidian:pins-updated'));
-    } catch {}
+    } catch {
+      /* ignore */
+    }
+    window.dispatchEvent(new CustomEvent('obsidian:pins-updated'));
   };
 
-  const clearRecents = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const clearRecents = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setRecents([]);
     try {
       localStorage.removeItem('obsidian-recent-pages');
-      setRecentPages([]);
-      window.dispatchEvent(new CustomEvent('obsidian:recents-updated'));
-    } catch {}
+    } catch {
+      /* ignore */
+    }
+    window.dispatchEvent(new CustomEvent('obsidian:recents-updated'));
   };
 
-  // Filter tree when searching
-  const filteredNav = useMemo(() => {
-    if (!filter.trim()) return navigation;
-    const query = filter.toLowerCase();
+  const visibleNavigation = useMemo(
+    () => (filter.trim() ? filterNodes(navigation, filter.trim()) : navigation),
+    [navigation, filter]
+  );
 
-    function filterNode(node: NavigationNode): NavigationNode | null {
-      const matchesTitle = node.title.toLowerCase().includes(query);
-      if (node.type === 'doc') {
-        return matchesTitle ? node : null;
-      }
+  const renderNode = (node: NavigationNode, depth: number): React.ReactNode => {
+    const isOpen = filter.trim() ? true : expanded[node.id] === true;
+    const hasChildren = Boolean(node.children && node.children.length > 0);
+    const isActive = node.slug ? normalizeSlug(node.slug) === target : false;
+    const isContainsActive = (() => {
+      if (isActive) return true;
+      let found = false;
+      const walk = (child: NavigationNode) => {
+        if (found) return;
+        if (child.slug && normalizeSlug(child.slug) === target) {
+          found = true;
+          return;
+        }
+        child.children?.forEach(walk);
+      };
+      node.children?.forEach(walk);
+      return found;
+    })();
 
-      const matchingChildren = (node.children || [])
-        .map(filterNode)
-        .filter((n): n is NavigationNode => n !== null);
-
-      if (matchingChildren.length > 0 || matchesTitle) {
-        return {
-          ...node,
-          children: matchingChildren,
-        };
-      }
-      return null;
+    if (depth === 0) {
+      const DomainIcon = DOMAIN_ICONS[node.domain || 'root'] || BookOpen;
+      return (
+        <div key={node.id} className="mt-3 first:mt-0">
+          <div className="group flex items-center gap-1 rounded-md px-1 py-1 hover:bg-obs-hover/60">
+            <button
+              type="button"
+              onClick={(event) => toggle(node.id, event)}
+              aria-expanded={isOpen}
+              aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${node.title}`}
+              className="flex h-6 w-5 shrink-0 items-center justify-center rounded text-obs-text-muted hover:text-obs-text-primary"
+            >
+              {hasChildren ? (
+                isOpen ? (
+                  <ChevronDown className="h-3 w-3" />
+                ) : (
+                  <ChevronRight className="h-3 w-3" />
+                )
+              ) : (
+                <span className="h-1 w-1 rounded-full bg-obs-border" />
+              )}
+            </button>
+            <DomainIcon className="h-3.5 w-3.5 shrink-0 text-obs-accent/80" />
+            {node.slug ? (
+              <a
+                href={node.slug}
+                className={`min-w-0 flex-1 truncate text-[0.7rem] font-bold uppercase tracking-[0.12em] transition-colors ${
+                  isContainsActive ? 'text-obs-accent' : 'text-obs-text-muted hover:text-obs-text-primary'
+                }`}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                {node.title}
+              </a>
+            ) : (
+              <span className="min-w-0 flex-1 truncate text-[0.7rem] font-bold uppercase tracking-[0.12em] text-obs-text-muted">
+                {node.title}
+              </span>
+            )}
+            {node.count !== undefined && (
+              <span className="shrink-0 rounded-full border border-obs-border bg-obs-canvas px-1.5 py-px font-mono text-[0.6rem] text-obs-text-muted">
+                {node.count}
+              </span>
+            )}
+          </div>
+          {isOpen && hasChildren && (
+            <div className="ml-[0.72rem] mt-0.5 space-y-0.5 border-l border-obs-border-subtle pl-2">
+              {node.children!.map((child) => renderNode(child, depth + 1))}
+            </div>
+          )}
+        </div>
+      );
     }
 
-    return navigation
-      .map(filterNode)
-      .filter((n): n is NavigationNode => n !== null);
-  }, [navigation, filter]);
+    const row = (
+      <div
+        className={`group flex items-center gap-1 rounded-md pr-1 transition-colors ${
+          isActive
+            ? 'bg-obs-accent text-[#0b0714] shadow-sm'
+            : 'text-obs-text-secondary hover:bg-obs-hover hover:text-obs-text-primary'
+        }`}
+        style={{ paddingLeft: `${Math.min(depth - 1, 5) * 0.35}rem` }}
+      >
+        {hasChildren ? (
+          <button
+            type="button"
+            onClick={(event) => toggle(node.id, event)}
+            aria-expanded={isOpen}
+            aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${node.title}`}
+            className={`flex h-6 w-4 shrink-0 items-center justify-center ${
+              isActive ? 'text-[#0b0714]/70' : 'text-obs-text-muted'
+            }`}
+          >
+            {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+          </button>
+        ) : (
+          <span className="flex h-6 w-4 shrink-0 items-center justify-center">
+            <span
+              className={`h-1 w-1 rounded-full ${
+                isActive ? 'bg-[#0b0714]/50' : 'bg-obs-border'
+              }`}
+            />
+          </span>
+        )}
+
+        {node.slug ? (
+          <a
+            ref={isActive ? activeRef : undefined}
+            href={node.slug}
+            aria-current={isActive ? 'page' : undefined}
+            className={`flex min-w-0 flex-1 items-center gap-1.5 py-[0.32rem] text-[0.79rem] leading-snug ${
+              node.type === 'group' || node.type === 'category' ? 'font-semibold' : 'font-normal'
+            }`}
+            title={node.title}
+          >
+            {hasChildren ? (
+              <Folder className={`h-3 w-3 shrink-0 ${isActive ? 'text-[#0b0714]/70' : 'text-obs-text-muted'}`} />
+            ) : (
+              <FileText className={`h-3 w-3 shrink-0 ${isActive ? 'text-[#0b0714]/70' : 'text-obs-text-muted'}`} />
+            )}
+            <span className="truncate">{node.title}</span>
+          </a>
+        ) : (
+          <span className="flex min-w-0 flex-1 items-center gap-1.5 py-[0.32rem] text-[0.79rem] font-semibold">
+            <Folder className="h-3 w-3 shrink-0 text-obs-text-muted" />
+            <span className="truncate">{node.title}</span>
+          </span>
+        )}
+
+        {node.count !== undefined && node.count > 0 && depth === 1 && (
+          <span
+            className={`shrink-0 font-mono text-[0.6rem] ${
+              isActive ? 'text-[#0b0714]/60' : 'text-obs-text-muted'
+            }`}
+          >
+            {node.count}
+          </span>
+        )}
+      </div>
+    );
+
+    return (
+      <div key={node.id}>
+        {row}
+        {isOpen && hasChildren && (
+          <div className="ml-3 space-y-0.5 border-l border-obs-border-subtle pl-1.5">
+            {node.children!.map((child) => renderNode(child, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
-    <div className="flex h-full flex-col text-sm text-obs-text-secondary select-none">
-      {/* Search Filter Header */}
-      <div className="p-3 border-b border-obs-border">
+    <div className="flex h-full flex-col text-sm">
+      <div className="border-b border-obs-border px-3 py-3">
+        <label htmlFor={filterId} className="sr-only">
+          Filter navigation
+        </label>
         <div className="relative flex items-center">
-          <Search className="absolute left-2.5 h-3.5 w-3.5 text-obs-text-muted pointer-events-none" />
+          <Search className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-obs-text-muted" />
           <input
-            type="text"
+            id={filterId}
+            type="search"
             value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            placeholder="Filter files & topics..."
-            className="w-full rounded-md border border-obs-border bg-obs-canvas py-1.5 pl-8 pr-7 text-xs text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:outline-none transition-colors"
+            onChange={(event) => setFilter(event.target.value)}
+            placeholder="Filter the knowledge base…"
+            className="w-full rounded-lg border border-obs-border bg-obs-canvas py-1.5 pl-8 pr-7 text-xs text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:outline-none"
           />
           {filter && (
             <button
+              type="button"
               onClick={() => setFilter('')}
-              className="absolute right-2 text-obs-text-muted hover:text-obs-text-primary"
+              aria-label="Clear filter"
+              className="absolute right-1.5 rounded p-1 text-obs-text-muted hover:text-obs-text-primary"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
+
+        {!filter && (
+          <nav aria-label="Knowledge base shortcuts" className="mt-2 flex flex-wrap gap-1">
+            {QUICK_LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="inline-flex items-center gap-1 rounded-md border border-obs-border bg-obs-surface px-2 py-1 text-[0.65rem] font-semibold text-obs-text-muted transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
+              >
+                <link.icon className="h-3 w-3" />
+                {link.label}
+              </a>
+            ))}
+          </nav>
+        )}
       </div>
 
-      {/* Navigation Scroll Area */}
-      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
-        {/* Pinned Notes Section */}
-        {pinnedPages.length > 0 && !filter && (
-          <div className="space-y-1 pb-2 border-b border-obs-border/40">
+      <nav aria-label="Documentation" className="flex-1 overflow-y-auto overscroll-contain px-2 py-3">
+        {pinned.length > 0 && !filter && (
+          <section className="mb-3 border-b border-obs-border-subtle pb-3" aria-label="Pinned pages">
             <button
-              onClick={() => setShowPinned(!showPinned)}
-              className="flex w-full items-center justify-between px-2 py-1 text-xs font-bold uppercase tracking-wider text-amber-400 hover:text-amber-300 rounded hover:bg-obs-hover transition-colors"
+              type="button"
+              onClick={() => setShowPinned((value) => !value)}
+              aria-expanded={showPinned}
+              className="flex w-full items-center justify-between rounded px-1.5 py-1 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-obs-gold hover:bg-obs-hover"
             >
-              <div className="flex items-center gap-1.5 truncate">
-                {showPinned ? <ChevronDown className="h-3 w-3 shrink-0" /> : <ChevronRight className="h-3 w-3 shrink-0" />}
-                <Star className="h-3 w-3 fill-amber-400 text-amber-400 shrink-0" />
-                <span className="truncate">Pinned Notes</span>
-              </div>
-              <span className="rounded-full bg-amber-400/10 px-1.5 py-0.2 text-[10px] text-amber-400 border border-amber-400/30">
-                {pinnedPages.length}
+              <span className="flex items-center gap-1.5">
+                {showPinned ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                <Star className="h-3 w-3 fill-current" />
+                Pinned
               </span>
+              <span className="font-mono text-obs-text-muted">{pinned.length}</span>
             </button>
             {showPinned && (
-              <div className="pl-2 space-y-0.5 border-l border-amber-400/30 ml-2">
-                {pinnedPages.map((pin) => {
-                  const isActive = pin.slug === currentSlug;
-                  return (
-                    <div key={pin.slug} className="group flex items-center justify-between rounded px-2 py-1 text-xs hover:bg-obs-hover transition-colors">
-                      <a
-                        href={pin.slug}
-                        className={`flex items-center gap-1.5 truncate flex-1 ${isActive ? 'text-obs-accent font-medium' : 'text-obs-text-secondary hover:text-obs-text-primary'}`}
-                      >
-                        <FileText className="h-3 w-3 shrink-0 text-amber-400/70" />
-                        <span className="truncate">{pin.title}</span>
-                      </a>
-                      <button
-                        onClick={(e) => unpinPage(pin.slug, e)}
-                        title="Unpin"
-                        className="opacity-0 group-hover:opacity-100 text-obs-text-muted hover:text-obs-text-primary p-0.5 transition-opacity"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  );
-                })}
+              <div className="mt-1 space-y-0.5">
+                {pinned.map((item) => (
+                  <div key={item.slug} className="group flex items-center gap-1">
+                    <a
+                      href={item.slug}
+                      className={`flex min-w-0 flex-1 items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors ${
+                        normalizeSlug(item.slug) === target
+                          ? 'bg-obs-accent/15 text-obs-accent'
+                          : 'text-obs-text-secondary hover:bg-obs-hover hover:text-obs-text-primary'
+                      }`}
+                    >
+                      <Pin className="h-3 w-3 shrink-0 text-obs-gold" />
+                      <span className="truncate">{item.title}</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={(event) => unpin(item.slug, event)}
+                      aria-label={`Unpin ${item.title}`}
+                      className="rounded p-1 text-obs-text-muted opacity-0 transition-opacity hover:text-obs-rose group-hover:opacity-100 focus-visible:opacity-100"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
-          </div>
+          </section>
         )}
 
-        {/* Recently Viewed Section */}
-        {recentPages.length > 0 && !filter && (
-          <div className="space-y-1 pb-2 border-b border-obs-border/40">
-            <div className="flex w-full items-center justify-between px-2 py-1 text-xs font-bold uppercase tracking-wider text-obs-text-muted">
+        {recents.length > 0 && !filter && (
+          <section className="mb-3 border-b border-obs-border-subtle pb-3" aria-label="Recently viewed pages">
+            <div className="flex w-full items-center justify-between rounded px-1.5 py-1">
               <button
-                onClick={() => setShowRecent(!showRecent)}
-                className="flex items-center gap-1.5 truncate hover:text-obs-text-primary flex-1 text-left"
+                type="button"
+                onClick={() => setShowRecent((value) => !value)}
+                aria-expanded={showRecent}
+                className="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-obs-text-muted hover:text-obs-text-primary"
               >
-                {showRecent ? <ChevronDown className="h-3 w-3 shrink-0" /> : <ChevronRight className="h-3 w-3 shrink-0" />}
-                <Clock className="h-3 w-3 text-obs-accent shrink-0" />
-                <span className="truncate">Recent Notes</span>
+                {showRecent ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                <Clock className="h-3 w-3 text-obs-accent" />
+                Recent
               </button>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={clearRecents}
-                  title="Clear recent history"
-                  className="hover:text-rose-400 text-obs-text-muted p-0.5 transition-colors"
-                >
-                  <Trash2 className="h-2.5 w-2.5" />
-                </button>
-                <span className="rounded-full bg-obs-surface px-1.5 py-0.2 text-[10px] text-obs-text-muted border border-obs-border">
-                  {recentPages.length}
-                </span>
-              </div>
+              <button
+                type="button"
+                onClick={clearRecents}
+                aria-label="Clear recent pages"
+                className="rounded p-1 text-obs-text-muted hover:text-obs-rose"
+              >
+                <Trash2 className="h-2.5 w-2.5" />
+              </button>
             </div>
             {showRecent && (
-              <div className="pl-2 space-y-0.5 border-l border-obs-border/40 ml-2">
-                {recentPages.slice(0, 5).map((rec) => {
-                  const isActive = rec.slug === currentSlug;
-                  return (
-                    <a
-                      key={rec.slug}
-                      href={rec.slug}
-                      className={`flex items-center gap-1.5 rounded px-2 py-1 text-xs truncate transition-colors ${isActive ? 'bg-obs-accent/15 text-obs-accent font-medium' : 'text-obs-text-secondary hover:bg-obs-hover hover:text-obs-text-primary'}`}
-                    >
-                      <Clock className="h-2.5 w-2.5 shrink-0 text-obs-text-muted" />
-                      <span className="truncate">{rec.title}</span>
-                    </a>
-                  );
-                })}
+              <div className="mt-1 space-y-0.5">
+                {recents.slice(0, 5).map((item) => (
+                  <a
+                    key={item.slug}
+                    href={item.slug}
+                    className={`flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors ${
+                      normalizeSlug(item.slug) === target
+                        ? 'bg-obs-accent/15 text-obs-accent'
+                        : 'text-obs-text-secondary hover:bg-obs-hover hover:text-obs-text-primary'
+                    }`}
+                  >
+                    <Clock className="h-2.5 w-2.5 shrink-0 text-obs-text-muted" />
+                    <span className="truncate">{item.title}</span>
+                  </a>
+                ))}
               </div>
             )}
-          </div>
+          </section>
         )}
 
-        {/* Main Navigation Tree */}
-        {filteredNav.map((domainNode) => {
-          const isDomainExpanded = expandedNodes[domainNode.id] !== false; // default open
+        {filter && visibleNavigation.length === 0 && (
+          <p className="px-2 py-6 text-center text-xs text-obs-text-muted">
+            No topics match “{filter}”.
+          </p>
+        )}
 
-          return (
-            <div key={domainNode.id} className="space-y-1">
-              {/* Domain Header */}
-              <button
-                onClick={(e) => toggleExpand(domainNode.id, e)}
-                className="flex w-full items-center justify-between px-2 py-1 text-xs font-bold uppercase tracking-wider text-obs-text-muted hover:text-obs-text-primary rounded hover:bg-obs-hover transition-colors"
-              >
-                <div className="flex items-center gap-1.5 truncate">
-                  {isDomainExpanded ? (
-                    <ChevronDown className="h-3 w-3 shrink-0" />
-                  ) : (
-                    <ChevronRight className="h-3 w-3 shrink-0" />
-                  )}
-                  <span className="truncate">{domainNode.title}</span>
-                </div>
-                {domainNode.badge && (
-                  <span className="rounded-full bg-obs-surface px-1.5 py-0.2 text-[10px] font-normal text-obs-text-muted border border-obs-border">
-                    {domainNode.badge}
-                  </span>
-                )}
-              </button>
+        {visibleNavigation.map((node) => renderNode(node, 0))}
+      </nav>
 
-              {/* Categories */}
-              {isDomainExpanded && (
-                <div className="pl-1 space-y-0.5 border-l border-obs-border/50 ml-2">
-                  {domainNode.children?.map((catNode) => {
-                    const isCatExpanded = !!expandedNodes[catNode.id] || !!filter;
-                    const isCatActive = catNode.slug === currentSlug;
-
-                    return (
-                      <div key={catNode.id} className="space-y-0.5">
-                        {/* Category item */}
-                        <div
-                          className={`group flex items-center justify-between rounded px-2 py-1 text-xs transition-colors ${
-                            isCatActive
-                              ? 'bg-obs-accent/15 text-obs-accent font-medium'
-                              : 'text-obs-text-secondary hover:bg-obs-hover hover:text-obs-text-primary'
-                          }`}
-                        >
-                          <div
-                            onClick={(e) => toggleExpand(catNode.id, e)}
-                            className="flex flex-1 items-center gap-1.5 cursor-pointer truncate"
-                          >
-                            {isCatExpanded ? (
-                              <ChevronDown className="h-3 w-3 shrink-0 text-obs-text-muted group-hover:text-obs-text-primary" />
-                            ) : (
-                              <ChevronRight className="h-3 w-3 shrink-0 text-obs-text-muted group-hover:text-obs-text-primary" />
-                            )}
-                            <Folder className="h-3.5 w-3.5 shrink-0 text-obs-text-muted" />
-                            {catNode.slug ? (
-                              <a
-                                href={catNode.slug}
-                                onClick={(e) => e.stopPropagation()}
-                                className="truncate hover:underline"
-                              >
-                                {catNode.title}
-                              </a>
-                            ) : (
-                              <span className="truncate">{catNode.title}</span>
-                            )}
-                          </div>
-                          {catNode.badge && (
-                            <span className="text-[10px] text-obs-text-muted pl-1">
-                              {catNode.badge}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Chapter Documents */}
-                        {isCatExpanded && catNode.children && (
-                          <div className="pl-4 space-y-0.5 border-l border-obs-border/30 ml-2">
-                            {catNode.children.map((docNode) => {
-                              const isActive = docNode.slug === currentSlug;
-
-                              return (
-                                <a
-                                  key={docNode.id}
-                                  ref={isActive ? activeLinkRef : null}
-                                  href={docNode.slug}
-                                  className={`flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-all ${
-                                    isActive
-                                      ? 'bg-obs-accent text-white font-medium shadow-sm'
-                                      : 'text-obs-text-secondary hover:bg-obs-hover hover:text-obs-text-primary'
-                                  }`}
-                                >
-                                  <FileText className={`h-3 w-3 shrink-0 ${isActive ? 'text-white' : 'text-obs-text-muted'}`} />
-                                  <span className="truncate">{docNode.title}</span>
-                                </a>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+      <div className="border-t border-obs-border px-3 py-2 text-[0.65rem] text-obs-text-muted">
+        <a href="/search" className="inline-flex items-center gap-1 hover:text-obs-accent">
+          <Search className="h-3 w-3" /> Full-text search
+        </a>
       </div>
     </div>
   );

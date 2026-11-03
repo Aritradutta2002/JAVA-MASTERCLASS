@@ -1,13 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Circle, RotateCcw, Download, Sparkles, BookOpen } from 'lucide-react';
-
-interface ChecklistItem {
-  id: string;
-  domain: string;
-  title: string;
-  slug: string;
-  group: string;
-}
+import { useState, useEffect } from 'react';
+import { RotateCcw, Sparkles, BookOpen } from 'lucide-react';
 
 const CHECKLIST_DATA: { domain: string; title: string; groups: { name: string; items: { id: string; title: string; slug: string }[] }[] }[] = [
   {
@@ -51,7 +43,7 @@ const CHECKLIST_DATA: { domain: string; title: string; groups: { name: string; i
   },
   {
     domain: 'spring-boot',
-    title: 'Spring & Spring Boot (14 Modules · 57 Chapters)',
+    title: 'Spring & Spring Boot (14 Modules)',
     groups: [
       {
         name: 'Fundamentals & Web (Weeks 1-3)',
@@ -123,15 +115,17 @@ const CHECKLIST_DATA: { domain: string; title: string; groups: { name: string; i
   },
   {
     domain: 'java-dsa',
-    title: 'Data Structures & Algorithms (70 Guides + 621 Java Implementations)',
+    title: 'Data Structures & Algorithms',
     groups: [
       {
         name: 'DSA Foundations & In-Depth Resources',
         items: [
-          { id: 'dsa-01', title: 'Graph Theory Masterclass (18 in-depth chapters: BFS, DFS, Dijkstra, MST, etc.)', slug: '/java-dsa/resources/graph/01-theory' },
-          { id: 'dsa-02', title: 'Dynamic Programming (Memoization, Tabulation, Knapsack, LCS, LIS)', slug: '/java-dsa/resources/dynamic-programming/01-theory' },
-          { id: 'dsa-03', title: 'Array Patterns & Sliding Window (Prefix sum, two pointers, window)', slug: '/java-dsa/resources/array' },
-          { id: 'dsa-04', title: 'Complexity Foundations & Big-O Cheatsheets', slug: '/java-dsa/resources/foundations' },
+          { id: 'dsa-01', title: 'Graphs, Traversal & DSU (BFS, DFS, Dijkstra, MST, union-find)', slug: '/java-dsa/dsa/datastructures/graphs' },
+          { id: 'dsa-02', title: 'Dynamic Programming (Memoization, Tabulation, Knapsack, LCS, LIS)', slug: '/java-dsa/dsa/dynamicprogramming' },
+          { id: 'dsa-03', title: 'Sliding Window & Two Pointers (Fixed and dynamic windows)', slug: '/java-dsa/dsa/techniques/slidingwindow' },
+          { id: 'dsa-04', title: 'Backtracking (Permutations, combinations, constraint search)', slug: '/java-dsa/dsa/algorithms/backtracking' },
+          { id: 'dsa-05', title: 'Bit Manipulation (Masks, subsets, XOR tricks)', slug: '/java-dsa/dsa/techniques/bitmanipulation' },
+          { id: 'dsa-06', title: 'Prefix Sums & Hashing Patterns', slug: '/java-dsa/dsa/techniques/prefixsum' },
         ],
       },
     ],
@@ -194,7 +188,7 @@ export default function ChecklistTracker() {
               Java Backend Interview Master Checklist
             </h1>
             <p className="text-sm text-obs-text-muted mt-1 max-w-2xl">
-              Track your mastery across all 6 core technical domains. Check off topics as you revise,
+              Track your mastery across the core technical domains. Check off topics as you revise,
               and watch your readiness meter advance towards 100%.
             </p>
           </div>

@@ -1,90 +1,130 @@
 ---
 import ObsidianLayout from '../layouts/ObsidianLayout.astro';
-import { getAllDocs, buildNavigationTree } from '../lib/content';
-import { BookOpen, ArrowUpRight } from 'lucide-react';
+import { buildNavigationTree, getAllDocs, getStats } from '../lib/content';
+import { ArrowUpRight, FileText, Search } from 'lucide-react';
 
 const allDocs = getAllDocs();
 const navigation = buildNavigationTree(allDocs);
+const stats = getStats(allDocs);
 
-// Group docs alphabetically by first letter of title
-const alphaMap = new Map<string, typeof allDocs>();
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const alphaMap = new Map<string, typeof allDocs>();
 alphabet.forEach((letter) => alphaMap.set(letter, []));
+alphaMap.set('#', []);
 
-allDocs.forEach((doc) => {
-  const firstLetter = doc.title.charAt(0).toUpperCase();
+for (const doc of [...allDocs].sort((a, b) => a.title.localeCompare(b.title, 'en', { sensitivity: 'base' }))) {
+  const firstLetter = doc.title.trim().charAt(0).toUpperCase();
   const letter = /[A-Z]/.test(firstLetter) ? firstLetter : '#';
-  if (!alphaMap.has(letter)) {
-    alphaMap.set(letter, []);
-  }
   alphaMap.get(letter)!.push(doc);
-});
+}
+
+const letters = Array.from(alphaMap.entries()).filter(([, list]) => list.length > 0);
+const fmt = new Intl.NumberFormat('en-US');
 ---
 
 <ObsidianLayout
-  title="Complete Topic Index A–Z"
-  description="Alphabetical index of all 433 chapters, case studies, and reference notes across the Java Masterclass."
+  title="Complete A–Z index"
+  description={`Alphabetical index of all ${allDocs.length} chapters, case studies, and reference notes across the Java Masterclass.`}
   navigation={navigation}
+  wide
 >
-  <div class="space-y-8 max-w-4xl mx-auto py-4">
-    <div class="border-b border-obs-border pb-6">
-      <h1 class="text-3xl font-extrabold text-obs-text-primary !border-none !p-0">
-        Complete Topic Index (A–Z)
+  <div class="not-prose space-y-8">
+    <header class="space-y-3 border-b border-obs-border pb-6">
+      <p class="eyebrow"><FileText className="h-3.5 w-3.5" /> Complete index</p>
+      <h1 class="font-serif text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
+        Complete topic index (A–Z)
       </h1>
-      <p class="text-sm text-obs-text-muted mt-2">
-        Full inventory of all {allDocs.length} chapters, algorithms, HLD case studies, and interview topics.
+      <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
+        Full inventory of {fmt.format(stats.documents)} chapters, algorithms, HLD case studies, and
+        interview topics. Jump by letter, or use search for a specific phrase.
       </p>
 
-      <!-- Alphabet jump links -->
-      <div class="flex flex-wrap gap-1.5 mt-4">
-        {Array.from(alphaMap.entries()).map(([letter, list]) => {
-          if (list.length === 0) return null;
-          return (
-            <a
-              href={`#section-${letter}`}
-              class="flex h-7 w-7 items-center justify-center rounded border border-obs-border bg-obs-sidebar text-xs font-mono font-semibold text-obs-text-primary hover:bg-obs-accent hover:text-white transition-colors"
-            >
-              {letter}
-            </a>
-          );
-        })}
+      <div class="relative mt-2 flex max-w-xl items-center">
+        <Search className="pointer-events-none absolute left-2.5 h-4 w-4 text-obs-accent" />
+        <label for="index-filter" class="sr-only">Filter the index</label>
+        <input
+          id="index-filter"
+          type="search"
+          placeholder="Filter by title, domain, or module…"
+          class="w-full rounded-lg border border-obs-border bg-obs-surface py-2 pl-9 pr-3 text-sm text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:outline-none"
+        />
       </div>
+
+      <nav aria-label="Jump to letter" class="flex flex-wrap gap-1 pt-2">
+        {letters.map(([letter, list]) => (
+          <a
+            href={`#section-${letter}`}
+            class="flex h-7 min-w-7 items-center justify-center rounded border border-obs-border bg-obs-surface px-1.5 font-mono text-[0.68rem] font-semibold text-obs-text-secondary transition-colors hover:border-obs-accent/50 hover:text-obs-accent"
+          >
+            {letter}
+            <span class="ml-1 text-[0.56rem] text-obs-text-muted">{list.length}</span>
+          </a>
+        ))}
+      </nav>
+    </header>
+
+    <div id="index-empty" class="hidden rounded-xl border border-obs-border bg-obs-surface p-10 text-center">
+      <p class="text-sm font-semibold text-obs-text-primary">No topics match that filter</p>
+      <p class="mt-1 text-xs text-obs-text-muted">Try a shorter term or clear the input.</p>
     </div>
 
-    <!-- Letter sections -->
     <div class="space-y-8">
-      {Array.from(alphaMap.entries()).map(([letter, list]) => {
-        if (list.length === 0) return null;
-        return (
-          <div id={`section-${letter}`} class="space-y-3 scroll-mt-20">
-            <div class="flex items-center gap-3">
-              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-obs-accent/20 border border-obs-accent/40 font-mono font-bold text-obs-accent text-sm">
-                {letter}
-              </span>
-              <span class="text-xs text-obs-text-muted font-mono">{list.length} Topics</span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {list.map((doc) => (
-                <a
-                  href={doc.slug}
-                  class="flex items-center justify-between p-2.5 rounded-lg border border-obs-border bg-obs-surface hover:border-obs-accent/50 hover:bg-obs-hover transition-colors group"
-                >
-                  <div class="truncate pr-2">
-                    <div class="text-xs font-medium text-obs-text-primary group-hover:text-obs-accent truncate">
-                      {doc.title}
-                    </div>
-                    <div class="text-[10px] text-obs-text-muted truncate">
-                      {doc.domainTitle} · {doc.categoryTitle}
-                    </div>
-                  </div>
-                  <ArrowUpRight className="h-3 w-3 text-obs-text-muted group-hover:text-obs-accent shrink-0" />
-                </a>
-              ))}
-            </div>
+      {letters.map(([letter, list]) => (
+        <section id={`section-${letter}`} class="index-section scroll-mt-24 space-y-3" aria-labelledby={`letter-${letter}`}>
+          <div class="flex items-center gap-3 border-b border-obs-border-subtle pb-1.5">
+            <span class="flex h-7 w-7 items-center justify-center rounded-md border border-obs-accent/30 bg-obs-accent/10 font-mono text-xs font-bold text-obs-accent">
+              {letter}
+            </span>
+            <h2 id={`letter-${letter}`} class="font-serif text-lg font-bold text-obs-text-primary">
+              {letter}
+            </h2>
+            <span class="ml-auto font-mono text-[0.62rem] text-obs-text-muted">{list.length}</span>
           </div>
-        );
-      })}
+
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {list.map((doc) => (
+              <a
+                href={doc.slug}
+                data-title={`${doc.title} ${doc.domainTitle} ${doc.categoryTitle} ${doc.moduleTitle}`.toLowerCase()}
+                class="index-item group flex items-center justify-between gap-2 rounded-lg border border-obs-border bg-obs-surface/70 px-2.5 py-2 transition-colors hover:border-obs-accent/45 hover:bg-obs-hover"
+              >
+                <span class="min-w-0">
+                  <span class="block truncate text-[0.78rem] font-medium text-obs-text-primary group-hover:text-obs-accent">
+                    {doc.title}
+                  </span>
+                  <span class="block truncate text-[0.6rem] text-obs-text-muted">
+                    {doc.domainTitle} · {doc.categoryTitle}
+                  </span>
+                </span>
+                <ArrowUpRight className="h-3 w-3 shrink-0 text-obs-text-muted opacity-40 group-hover:text-obs-accent group-hover:opacity-100" />
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   </div>
+
+  <script>
+    const input = document.getElementById('index-filter') as HTMLInputElement | null;
+    const empty = document.getElementById('index-empty');
+
+    function apply() {
+      const query = (input?.value || '').trim().toLowerCase();
+      let visible = 0;
+      document.querySelectorAll<HTMLElement>('.index-section').forEach((section) => {
+        let sectionVisible = 0;
+        section.querySelectorAll<HTMLElement>('.index-item').forEach((item) => {
+          const show = !query || (item.dataset.title || '').includes(query);
+          item.classList.toggle('hidden', !show);
+          if (show) sectionVisible += 1;
+        });
+        section.classList.toggle('hidden', sectionVisible === 0);
+        visible += sectionVisible;
+      });
+      empty?.classList.toggle('hidden', visible !== 0);
+    }
+
+    input?.addEventListener('input', apply);
+  </script>
 </ObsidianLayout>

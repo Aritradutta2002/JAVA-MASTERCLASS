@@ -3,108 +3,218 @@ import fs from 'node:fs';
 import path from 'node:path';
 import ObsidianLayout from '../layouts/ObsidianLayout.astro';
 import JavaCodeViewer from '../components/JavaCodeViewer.astro';
-import { getAllDocs, buildNavigationTree } from '../lib/content';
+import {
+  buildNavigationTree,
+  getAllDocs,
+  getLandingPages,
+  getRelatedDocs,
+} from '../lib/content';
 import { buildKnowledgeGraph } from '../lib/graphBuilder';
 import { renderMarkdown } from '../lib/markdownRenderer';
-import type { DocMetadata, BacklinkItem, OutgoingLinkItem, NavigationNode } from '../lib/types';
+import type {
+  BacklinkItem,
+  DocMetadata,
+  LandingPage,
+  NavigationNode,
+  OutgoingLinkItem,
+} from '../lib/types';
+import { DOMAIN_COLORS } from '../lib/constants';
+import { ArrowRight, BookOpen, FileText, Layers } from 'lucide-react';
 
-export async function getStaticPaths() {
-  const allDocs = getAllDocs();
-  const navigation = buildNavigationTree(allDocs);
-  const graph = buildKnowledgeGraph(allDocs);
-
-  return allDocs.map((doc, idx) => {
-    // Strip leading slash for Astro dynamic slug param
-    const cleanSlug = doc.slug.replace(/^\//, '');
-    const prevDoc = idx > 0 ? { title: allDocs[idx - 1].title, slug: allDocs[idx - 1].slug } : null;
-    const nextDoc = idx < allDocs.length - 1 ? { title: allDocs[idx + 1].title, slug: allDocs[idx + 1].slug } : null;
-
-    return {
-      params: { slug: cleanSlug },
-      props: {
-        doc,
-        navigation,
-        backlinks: graph.backlinks[doc.slug] || [],
-        outgoing: graph.outgoing[doc.slug] || [],
-        prevDoc,
-        nextDoc,
-      },
-    };
-  });
+interface LandingProps {
+  kind: 'landing';
+  landing: LandingPage;
+  navigation: NavigationNode[];
 }
 
-interface Props {
+interface DocProps {
+  kind: 'doc';
   doc: DocMetadata;
   navigation: NavigationNode[];
   backlinks: BacklinkItem[];
   outgoing: OutgoingLinkItem[];
   prevDoc: { title: string; slug: string } | null;
   nextDoc: { title: string; slug: string } | null;
+  related: { title: string; slug: string; domainTitle: string; summary: string }[];
+  html: string;
 }
 
-const { doc, navigation, backlinks, outgoing, prevDoc, nextDoc } = Astro.props;
+type Props = LandingProps | DocProps;
 
-// Read content from repository source file
-const fullPath = path.join(process.cwd(), doc.filePath);
-let content = '';
-if (fs.existsSync(fullPath)) {
-  content = fs.readFileSync(fullPath, 'utf-8');
+export async function getStaticPaths() {
+  const allDocs = getAllDocs();
+  const navigation = buildNavigationTree(allDocs);
+  const graph = buildKnowledgeGraph(allDocs);
+
+  const bySlug = new Map(allDocs.map((doc) => [doc.slug, doc]));
+  const ordered: DocMetadata[] = [];
+  const seen = new Set<string>();
+  const walk = (nodes: NavigationNode[]) => {
+    for (const node of nodes) {
+      if (node.slug && bySlug.has(node.slug) && !seen.has(node.slug)) {
+        seen.add(node.slug);
+        ordered.push(bySlug.get(node.slug)!);
+      }
+      if (node.children) walk(node.children);
+    }
+  };
+  walk(navigation);
+  const orderedIndex = new Map(ordered.map((doc, index) => [doc.slug, index]));
+
+  const docPaths = await Promise.all(
+    allDocs.map(async (doc) => {
+      const fullPath = path.join(process.cwd(), doc.filePath);
+      const content = fs.existsSync(fullPath) ? fs.readFileSync(fullPath, 'utf-8') : '';
+      const html = await renderMarkdown(content, doc.filePath);
+      const index = orderedIndex.get(doc.slug);
+      const prevDoc =
+        index !== undefined && index > 0
+          ? { title: ordered[index - 1].title, slug: ordered[index - 1].slug }
+          : null;
+      const nextDoc =
+        index !== undefined && index < ordered.length - 1
+          ? { title: ordered[index + 1].title, slug: ordered[index + 1].slug }
+          : null;
+      const related = getRelatedDocs(doc, allDocs, 4).map((item) => ({
+        title: item.title,
+        slug: item.slug,
+        domainTitle: item.domainTitle,
+        summary: item.summary,
+      }));
+
+      return {
+        params: { slug: doc.slug.replace(/^\//, '') },
+        props: {
+          kind: 'doc' as const,
+          doc,
+          navigation,
+          backlinks: graph.backlinks[doc.slug] || [],
+          outgoing: graph.outgoing[doc.slug] || [],
+          prevDoc,
+          nextDoc,
+          related,
+          html,
+        },
+      };
+    })
+  );
+
+  const existing = new Set(allDocs.map((doc) => doc.slug));
+  const landingPaths = getLandingPages(allDocs)
+    .filter((landing) => !existing.has(landing.slug))
+    .map((landing) => ({
+      params: { slug: landing.slug.replace(/^\//, '') },
+      props: {
+        kind: 'landing' as const,
+        landing,
+        navigation,
+      },
+    }));
+
+  return [...docPaths, ...landingPaths];
 }
 
-// Render markdown to HTML
-const html = await renderMarkdown(content, doc.filePath);
+const props = Astro.props as Props;
+const navigation = props.navigation;
 ---
 
-<ObsidianLayout
-  title={doc.title}
-  doc={doc}
-  headings={doc.headings}
-  backlinks={backlinks}
-  outgoing={outgoing}
-  navigation={navigation}
-  prevDoc={prevDoc}
-  nextDoc={nextDoc}
->
-  {doc.isEmpty ? (
-    <div class="my-10 p-6 rounded-xl border border-obs-border bg-obs-sidebar text-center space-y-3">
-      <div class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-obs-accent/20 text-obs-accent font-bold">
-        ℹ
+{props.kind === 'doc' ? (
+  <ObsidianLayout
+    title={props.doc.title}
+    description={props.doc.summary || `Read ${props.doc.title} in the Java Masterclass knowledge base.`}
+    doc={props.doc}
+    headings={props.doc.headings}
+    backlinks={props.backlinks}
+    outgoing={props.outgoing}
+    navigation={navigation}
+    prevDoc={props.prevDoc}
+    nextDoc={props.nextDoc}
+    related={props.related}
+  >
+    {props.doc.isEmpty ? (
+      <div class="not-prose my-10 rounded-2xl border border-obs-border bg-obs-surface p-8 text-center">
+        <span class="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-obs-accent/30 bg-obs-accent/10 text-obs-accent">
+          <BookOpen className="h-5 w-5" />
+        </span>
+        <h2 class="mt-3 font-serif text-xl font-bold text-obs-text-primary">Scaffold note</h2>
+        <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-obs-text-muted">
+          This topic is scaffolded in the curriculum. The detailed problem patterns and runnable
+          implementations live in the DSA track.
+        </p>
+        <a href="/java-dsa" class="btn btn-primary mt-4">
+          Browse the DSA directory <ArrowRight className="h-3.5 w-3.5" />
+        </a>
       </div>
-      <h2 class="text-lg font-bold text-obs-text-primary">Reference Scaffold Note</h2>
-      <p class="text-sm text-obs-text-muted max-w-lg mx-auto">
-        This topic note is scaffolded in the curriculum. Detailed problem patterns and implementations for this topic are available in the DSA Algorithms track.
-      </p>
-      <a href="/java-dsa" class="inline-block mt-2 rounded-md bg-obs-accent px-4 py-2 text-xs font-semibold text-white hover:bg-obs-accent-hover transition-colors">
-        Browse DSA Problem Directory →
-      </a>
+    ) : (
+      <Fragment set:html={props.html} />
+    )}
+
+    {props.doc.relatedJavaFiles && props.doc.relatedJavaFiles.length > 0 && (
+      <JavaCodeViewer filePaths={props.doc.relatedJavaFiles} />
+    )}
+  </ObsidianLayout>
+) : (
+  <ObsidianLayout
+    title={props.landing.title}
+    description={props.landing.summary}
+    navigation={navigation}
+    eyebrow={`${props.landing.domainTitle} · ${props.landing.docs.length} topics`}
+    wide
+  >
+    <div class="not-prose space-y-8">
+      <header class="space-y-3 border-b border-obs-border pb-6">
+        <div class="flex items-center gap-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-obs-accent">
+          <Layers className="h-3.5 w-3.5" />
+          {props.landing.domainTitle}
+        </div>
+        <h1 class="font-serif text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
+          {props.landing.title}
+        </h1>
+        <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
+          This module groups {props.landing.docs.length} chapters. Open any topic below to read the
+          full text, examples, and interview notes.
+        </p>
+      </header>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {props.landing.docs.map((doc) => {
+          const color = DOMAIN_COLORS[doc.domain];
+          return (
+            <a
+              href={doc.slug}
+              class="group flex flex-col rounded-xl border border-obs-border bg-obs-surface/70 p-4 transition-colors hover:border-obs-accent/40 hover:bg-obs-hover"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <span
+                  class="rounded-full border px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wider"
+                  style={{
+                    backgroundColor: color?.bg,
+                    color: color?.text,
+                    borderColor: color?.border,
+                  }}
+                >
+                  {doc.categoryTitle}
+                </span>
+                {doc.level && <span class="badge">{doc.level}</span>}
+              </div>
+              <h2 class="mt-2 font-serif text-base font-semibold leading-snug text-obs-text-primary group-hover:text-obs-accent">
+                {doc.title}
+              </h2>
+              {doc.summary && (
+                <p class="mt-1.5 line-clamp-3 text-xs leading-relaxed text-obs-text-muted">
+                  {doc.summary}
+                </p>
+              )}
+              <div class="mt-3 flex items-center gap-3 border-t border-obs-border-subtle pt-2 text-[0.62rem] text-obs-text-muted">
+                <span class="inline-flex items-center gap-1">
+                  <FileText className="h-3 w-3" /> {doc.wordCount.toLocaleString('en-US')} words
+                </span>
+                <span>{doc.readingTimeMinutes} min</span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
     </div>
-  ) : (
-    <Fragment set:html={html} />
-  )}
-
-  {doc.relatedJavaFiles && doc.relatedJavaFiles.length > 0 && (
-    <JavaCodeViewer filePaths={doc.relatedJavaFiles} />
-  )}
-</ObsidianLayout>
-
-<!-- Mermaid diagram client script -->
-<script>
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-
-  function initMermaid() {
-    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: isDark ? 'dark' : 'neutral',
-      fontFamily: 'Inter, sans-serif',
-      securityLevel: 'loose',
-    });
-    mermaid.run({
-      querySelector: '.mermaid',
-    });
-  }
-
-  if (document.querySelector('.mermaid')) {
-    initMermaid();
-  }
-</script>
+  </ObsidianLayout>
+)}

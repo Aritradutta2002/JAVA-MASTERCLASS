@@ -1,0 +1,200 @@
+---
+import ObsidianLayout from '../layouts/ObsidianLayout.astro';
+import { buildNavigationTree, getAllDocs } from '../lib/content';
+import { DOMAIN_COLORS } from '../lib/constants';
+import { ArrowRight, BookOpen, Clock, FileText, Waypoints } from 'lucide-react';
+
+const allDocs = getAllDocs();
+const navigation = buildNavigationTree(allDocs);
+
+interface PathDefinition {
+  id: string;
+  title: string;
+  domain: string;
+  weeks: string;
+  level: string;
+  intro: string;
+  outcome: string;
+  docs: typeof allDocs;
+}
+
+const definitions: Omit<PathDefinition, 'docs'>[] = [
+  {
+    id: 'java-backend-foundations',
+    title: 'Java backend foundations',
+    domain: 'core-java',
+    weeks: '4 weeks',
+    level: 'Beginner → Advanced',
+    intro:
+      'Build the language and runtime foundation that every Java interview assumes. Read in order: object model, memory, collections, generics, modern Java, concurrency, and design patterns.',
+    outcome: 'Explain the JVM memory model, choose the right collection, reason about happens-before, and apply the GoF patterns.',
+  },
+  {
+    id: 'spring-boot-in-production',
+    title: 'Spring Boot in production',
+    domain: 'spring-boot',
+    weeks: '6 weeks',
+    level: 'Intermediate → Advanced',
+    intro:
+      'Follow a request from auto-configuration through MVC, persistence, security, messaging, caching, observability, and deployment.',
+    outcome: 'Design, secure, test, and operate a production Spring Boot service, and defend the trade-offs in a design interview.',
+  },
+  {
+    id: 'distributed-systems-and-hld',
+    title: 'Distributed systems and HLD',
+    domain: 'system-design',
+    weeks: '5 weeks',
+    level: 'Intermediate → Expert',
+    intro:
+      'Start with fundamentals and CAP, then move through storage, caching, messaging, APIs, security, observability, and full case studies.',
+    outcome: 'Run a structured 45-minute system design interview and justify consistency, partitioning, and failure-handling choices.',
+  },
+  {
+    id: 'interview-algorithms',
+    title: 'Interview algorithms',
+    domain: 'java-dsa',
+    weeks: '8 weeks',
+    level: 'Beginner → Advanced',
+    intro:
+      'Learn the patterns first, then the data structures, then the graph and dynamic-programming masterclasses. Every pattern points to runnable Java.',
+    outcome: 'Recognise problem patterns quickly, derive complexity, and implement clean Java solutions under time pressure.',
+  },
+  {
+    id: 'databases-and-caching',
+    title: 'Databases and caching',
+    domain: 'database-caching',
+    weeks: '3 weeks',
+    level: 'Intermediate → Advanced',
+    intro:
+      'Understand what the database actually does: storage engines, B+ trees, query planning, transactions, replication, sharding, and cache correctness.',
+    outcome: 'Read an EXPLAIN plan, design an index, reason about isolation, and choose a caching strategy without lying to yourself about consistency.',
+  },
+];
+
+const paths: PathDefinition[] = definitions.map((definition) => ({
+  ...definition,
+  docs: allDocs
+    .filter((doc) => doc.domain === definition.domain)
+    .sort((a, b) => a.filePath.localeCompare(b.filePath, undefined, { numeric: true })),
+}));
+
+const fmt = new Intl.NumberFormat('en-US');
+---
+
+<ObsidianLayout
+  title="Learning paths"
+  description="Structured Java, Spring Boot, system design, database, and algorithms study plans built from the Java Masterclass."
+  navigation={navigation}
+  wide
+>
+  <div class="not-prose space-y-10">
+    <header class="space-y-3 border-b border-obs-border pb-6">
+      <p class="eyebrow"><Waypoints className="h-3.5 w-3.5" /> Structured study</p>
+      <h1 class="font-serif text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
+        Learning paths
+      </h1>
+      <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
+        The same content, sequenced. Each path is a reading order with an explicit outcome, not a
+        deadline. Move at the speed your interviews demand.
+      </p>
+      <nav aria-label="Jump to a path" class="flex flex-wrap gap-1.5 pt-2">
+        {paths.map((path) => (
+          <a
+            href={`#${path.id}`}
+            class="rounded-full border border-obs-border bg-obs-surface px-2.5 py-1 text-[0.65rem] font-semibold text-obs-text-muted transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
+          >
+            {path.title}
+          </a>
+        ))}
+      </nav>
+    </header>
+
+    {paths.map((path, pathIndex) => {
+      const color = DOMAIN_COLORS[path.domain];
+      const totalMinutes = path.docs.reduce((sum, doc) => sum + doc.readingTimeMinutes, 0);
+      return (
+        <section id={path.id} class="scroll-mt-24 space-y-4" aria-labelledby={`${path.id}-heading`}>
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <span
+                class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border font-mono text-sm font-bold"
+                style={{ backgroundColor: color?.bg, color: color?.text, borderColor: color?.border }}
+              >
+                {String(pathIndex + 1).padStart(2, '0')}
+              </span>
+              <div>
+                <h2 id={`${path.id}-heading`} class="font-serif text-2xl font-bold text-obs-text-primary">
+                  {path.title}
+                </h2>
+                <div class="mt-1 flex flex-wrap items-center gap-2 text-[0.64rem] text-obs-text-muted">
+                  <span class="badge">{path.weeks}</span>
+                  <span class="badge">{path.level}</span>
+                  <span class="inline-flex items-center gap-1">
+                    <FileText className="h-3 w-3" /> {path.docs.length} chapters
+                  </span>
+                  <span class="inline-flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> {fmt.format(totalMinutes)} min total
+                  </span>
+                </div>
+              </div>
+            </div>
+            <a
+              href={path.domain === 'java-dsa' ? '/java-dsa' : `/${path.domain}`}
+              class="btn btn-secondary"
+            >
+              Open domain <ArrowRight className="h-3.5 w-3.5" />
+            </a>
+          </div>
+
+          <div class="grid gap-4 lg:grid-cols-[1fr_16rem]">
+            <div class="surface-card overflow-hidden">
+              <ol class="divide-y divide-obs-border-subtle">
+                {path.docs.map((doc, index) => (
+                  <li>
+                    <a href={doc.slug} class="group flex items-center gap-3 px-4 py-2.5">
+                      <span class="w-6 shrink-0 text-right font-mono text-[0.62rem] text-obs-text-muted">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span class="min-w-0 flex-1">
+                        <span class="block truncate text-[0.8rem] font-semibold text-obs-text-primary group-hover:text-obs-accent">
+                          {doc.title}
+                        </span>
+                        <span class="block truncate text-[0.6rem] text-obs-text-muted">
+                          {doc.categoryTitle} · {doc.readingTimeMinutes} min
+                        </span>
+                      </span>
+                      <ArrowRight className="h-3 w-3 shrink-0 text-obs-text-muted opacity-0 transition-opacity group-hover:opacity-100" />
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <aside class="space-y-3">
+              <div class="surface-card p-4">
+                <p class="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-obs-accent">Why this order</p>
+                <p class="mt-1.5 text-[0.76rem] leading-relaxed text-obs-text-muted">{path.intro}</p>
+              </div>
+              <div class="surface-card p-4">
+                <p class="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-obs-emerald">Outcome</p>
+                <p class="mt-1.5 text-[0.76rem] leading-relaxed text-obs-text-muted">{path.outcome}</p>
+              </div>
+            </aside>
+          </div>
+        </section>
+      );
+    })}
+
+    <section class="surface-card flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center">
+      <div>
+        <p class="eyebrow"><BookOpen className="h-3.5 w-3.5" /> Keep going</p>
+        <h2 class="mt-1 font-serif text-xl font-bold text-obs-text-primary">Track what you have finished</h2>
+        <p class="mt-1 max-w-xl text-xs leading-relaxed text-obs-text-muted">
+          The study checklist stores progress in your browser. Use it alongside these paths to keep
+          a visible record of what is done and what still needs a second pass.
+        </p>
+      </div>
+      <a href="/checklist" class="btn btn-primary">Open checklist</a>
+    </section>
+  </div>
+</ObsidianLayout>

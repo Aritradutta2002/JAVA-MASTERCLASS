@@ -1,0 +1,91 @@
+---
+import ObsidianLayout from '../../layouts/ObsidianLayout.astro';
+import { buildNavigationTree, getAllDocs } from '../../lib/content';
+import { DOMAIN_COLORS } from '../../lib/constants';
+import { ArrowRight, BookMarked, FileText, ShieldCheck } from 'lucide-react';
+
+const allDocs = getAllDocs();
+const navigation = buildNavigationTree(allDocs);
+
+const standards = allDocs
+  .filter((doc) => doc.kind === 'standard')
+  .sort((a, b) => a.domainTitle.localeCompare(b.domainTitle));
+
+const fmt = new Intl.NumberFormat('en-US');
+---
+
+<ObsidianLayout
+  title="Engineering standards"
+  description="Coding, documentation, and content standards for each domain in the Java Masterclass."
+  navigation={navigation}
+  wide
+>
+  <div class="not-prose space-y-8">
+    <header class="space-y-3 border-b border-obs-border pb-6">
+      <p class="eyebrow"><ShieldCheck className="h-3.5 w-3.5" /> Standards</p>
+      <h1 class="font-serif text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
+        Engineering standards
+      </h1>
+      <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
+        Each domain keeps an explicit standard covering structure, naming, code examples, and
+        review expectations. These are the rules the chapters are written against.
+      </p>
+    </header>
+
+    {standards.length === 0 ? (
+      <div class="surface-card p-8 text-center">
+        <BookMarked className="mx-auto h-5 w-5 text-obs-accent" />
+        <p class="mt-2 text-sm font-semibold text-obs-text-primary">No standards found</p>
+        <p class="mt-1 text-xs text-obs-text-muted">Add a STANDARD.md to a domain root to publish it here.</p>
+      </div>
+    ) : (
+      <div class="grid gap-3 md:grid-cols-2">
+        {standards.map((doc) => {
+          const color = DOMAIN_COLORS[doc.domain];
+          return (
+            <a
+              href={`/standards/${doc.domain}`}
+              class="surface-card surface-card-hover group flex flex-col p-5"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <span
+                  class="rounded-full border px-2 py-0.5 text-[0.58rem] font-bold uppercase tracking-wider"
+                  style={{ backgroundColor: color?.bg, color: color?.text, borderColor: color?.border }}
+                >
+                  {doc.domainTitle}
+                </span>
+                <span class="badge"><FileText className="h-3 w-3" /> Standard</span>
+              </div>
+              <h2 class="mt-2 font-serif text-lg font-bold text-obs-text-primary group-hover:text-obs-accent">
+                {doc.title}
+              </h2>
+              {doc.summary && (
+                <p class="mt-1.5 line-clamp-3 text-[0.78rem] leading-relaxed text-obs-text-muted">{doc.summary}</p>
+              )}
+              <div class="mt-4 flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-[0.64rem] text-obs-text-muted">
+                <span>{fmt.format(doc.wordCount)} words · {doc.readingTimeMinutes} min</span>
+                <span class="inline-flex items-center gap-1 font-semibold text-obs-accent">
+                  Read <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    )}
+
+    <section class="surface-card flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center">
+      <div>
+        <p class="eyebrow"><BookMarked className="h-3.5 w-3.5" /> Reference desk</p>
+        <h2 class="mt-1 font-serif text-xl font-bold text-obs-text-primary">Cheat sheets and checklists</h2>
+        <p class="mt-1 max-w-xl text-xs leading-relaxed text-obs-text-muted">
+          Condensed domain revision notes and the master study checklist live alongside these
+          standards.
+        </p>
+      </div>
+      <a href="/reference/quick-references" class="btn btn-primary">
+        Quick references <ArrowRight className="h-3.5 w-3.5" />
+      </a>
+    </section>
+  </div>
+</ObsidianLayout>

@@ -1,14 +1,42 @@
 ---
+import '@fontsource-variable/inter';
+import '@fontsource-variable/literata';
+import '@fontsource-variable/jetbrains-mono';
+import 'katex/dist/katex.min.css';
 import '../styles/global.css';
 import '../styles/markdown.css';
+
 import Header from '../components/Header.astro';
 import SidebarTree from '../components/SidebarTree';
 import TableOfContents from '../components/TableOfContents';
 import BacklinksPanel from '../components/BacklinksPanel';
 import CommandPalette from '../components/CommandPalette';
-import type { DocMetadata, HeadingItem, BacklinkItem, OutgoingLinkItem, NavigationNode } from '../lib/types';
-import { DOMAIN_COLORS, DOMAIN_TITLES } from '../lib/constants';
-import { Clock, Star, ArrowLeft, ArrowRight, BookOpen, Layers, Bookmark, Check } from 'lucide-react';
+import type {
+  BacklinkItem,
+  DocMetadata,
+  HeadingItem,
+  NavigationNode,
+  OutgoingLinkItem,
+} from '../lib/types';
+import { DOMAIN_COLORS, SITE } from '../lib/constants';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Clock,
+  FileText,
+  Hash,
+  ListTree,
+  Pin,
+  Sparkles,
+  X,
+} from 'lucide-react';
+
+interface RelatedDoc {
+  title: string;
+  slug: string;
+  domainTitle?: string;
+  summary?: string;
+}
 
 interface Props {
   title: string;
@@ -20,29 +48,109 @@ interface Props {
   navigation: NavigationNode[];
   prevDoc?: { title: string; slug: string } | null;
   nextDoc?: { title: string; slug: string } | null;
+  related?: RelatedDoc[];
+  eyebrow?: string;
+  noIndex?: boolean;
+  wide?: boolean;
+  canonicalPath?: string;
 }
 
 const {
   title,
-  description = 'Complete preparation kit for Java technical interviews at top tech companies.',
+  description = SITE.description,
   doc,
   headings = [],
   backlinks = [],
   outgoing = [],
   navigation,
-  prevDoc,
-  nextDoc,
+  prevDoc = null,
+  nextDoc = null,
+  related = [],
+  eyebrow,
+  noIndex = false,
+  wide = false,
+  canonicalPath,
 } = Astro.props;
 
-const currentSlug = doc?.slug || Astro.url.pathname;
+const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const site = Astro.site ?? new URL('https://java-masterclass.dev');
+const canonical = new URL(canonicalPath ?? pathname, site).toString();
+const pageTitle =
+  pathname === '/' ? `${SITE.name} — ${SITE.tagline}` : `${title} — ${SITE.name}`;
+const ogImage = new URL('/og-image.png', site).toString();
+const domainColor = doc ? DOMAIN_COLORS[doc.domain] : null;
+
+const domainHref = doc
+  ? doc.domain === 'root'
+    ? '/overview'
+    : doc.domain === 'java-dsa'
+      ? '/java-dsa'
+      : `/${doc.domain}`
+  : '/';
+
+const fileParts = doc ? doc.filePath.split('/') : [];
+const moduleSegment = fileParts.length > 2 ? fileParts[1] : null;
+const categoryHref = moduleSegment
+  ? `/${doc!.domain}/${moduleSegment.toLowerCase().replace(/_/g, '-')}`
+  : domainHref;
+
 const breadcrumbs = doc
-  ? [
-      { title: doc.domainTitle, slug: doc.domain === 'root' ? '/' : `/${doc.domain}` },
-      { title: doc.categoryTitle, slug: doc.slug },
-    ]
+  ? doc.kind === 'domain'
+    ? [{ title: doc.domainTitle, slug: domainHref }]
+    : doc.domain === 'root'
+    ? [
+        { title: 'Start Here', slug: '/overview' },
+        { title: doc.title, slug: doc.slug },
+      ]
+    : [
+        { title: doc.domainTitle, slug: domainHref },
+        { title: doc.categoryTitle, slug: categoryHref },
+      ]
   : [];
 
-const domainColor = doc ? DOMAIN_COLORS[doc.domain] : null;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${site.origin}/#website`,
+      url: site.origin,
+      name: SITE.name,
+      description: SITE.description,
+      inLanguage: 'en',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: `${site.origin}/search?q={search_term_string}`,
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    doc
+      ? {
+          '@type': ['TechArticle', 'LearningResource'],
+          '@id': `${canonical}#article`,
+          headline: doc.title,
+          name: doc.title,
+          description: doc.summary || description,
+          url: canonical,
+          isPartOf: { '@id': `${site.origin}/#website` },
+          about: doc.domainTitle,
+          keywords: doc.tags.join(', '),
+          timeRequired: `PT${doc.readingTimeMinutes}M`,
+          wordCount: doc.wordCount,
+          inLanguage: 'en',
+          educationalLevel: doc.level || 'Intermediate',
+        }
+      : {
+          '@type': 'WebPage',
+          '@id': `${canonical}#webpage`,
+          name: title,
+          description,
+          url: canonical,
+          isPartOf: { '@id': `${site.origin}/#website` },
+          inLanguage: 'en',
+        },
+  ],
+};
 ---
 
 <!doctype html>
@@ -50,380 +158,737 @@ const domainColor = doc ? DOMAIN_COLORS[doc.domain] : null;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle}</title>
     <meta name="description" content={description} />
-    <meta property="og:title" content={title ? `${title} — Java Masterclass` : 'Java Masterclass — Obsidian Knowledge Platform'} />
-    <meta property="og:description" content={description} />
-    <meta property="og:type" content="article" />
-    <meta property="og:url" content={`https://java-masterclass.dev${currentSlug}`} />
-    <meta name="twitter:card" content="summary_large_image" />
-    <title>{title ? `${title} — Java Masterclass` : 'Java Masterclass — Obsidian Knowledge Platform'}</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" />
+    <link rel="canonical" href={canonical} />
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+    <meta name="theme-color" content="#09090d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#fbfaf7" media="(prefers-color-scheme: light)" />
 
-    <!-- Theme initialization script (prevents FOUC) -->
+    <meta property="og:type" content={doc ? 'article' : 'website'} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${SITE.name} — ${SITE.tagline}`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="alternate" hreflang="en" href={canonical} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
     <script is:inline>
       try {
-        const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        const stored = localStorage.getItem('theme');
+        const theme =
+          stored ||
+          (window.matchMedia('(prefers-color-scheme: light)').matches
+            ? 'light'
+            : 'dark');
         document.documentElement.setAttribute('data-theme', theme);
-      } catch (e) {}
+      } catch (_) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
     </script>
   </head>
 
-  <body class="bg-obs-canvas text-obs-text-secondary antialiased transition-colors selection:bg-obs-accent/20 selection:text-obs-accent">
-    <!-- Accessible Skip to Content Link -->
+  <body
+    class="bg-obs-canvas text-obs-text-secondary antialiased selection:bg-obs-accent/20 selection:text-obs-accent"
+  >
     <a
       href="#main-content-wrapper"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-obs-accent focus:px-4 focus:py-2 focus:text-white focus:shadow-xl focus:outline-none"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-obs-accent focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-[#0b0714] focus:shadow-xl focus:outline-none"
     >
       Skip to content
     </a>
 
-    <!-- Top Reading Progress Bar -->
-    <div id="reading-progress" class="fixed top-0 left-0 z-50 h-0.5 bg-obs-accent w-0 transition-all duration-75"></div>
+    <div
+      id="reading-progress"
+      class="fixed left-0 top-0 z-[60] h-0.5 w-0 bg-gradient-to-r from-obs-accent to-obs-gold transition-[width] duration-75"
+      role="presentation"
+      aria-hidden="true"
+    ></div>
 
-    <!-- App Header -->
-    <Header breadcrumbs={breadcrumbs} />
+    <div data-pagefind-ignore class="contents">
+      <Header breadcrumbs={breadcrumbs} />
+    </div>
 
-    <!-- Three-Pane App Container -->
-    <div class="flex min-h-[calc(100vh-3.5rem)] w-full">
-      <!-- Left Sidebar: Explorer Tree -->
+    <div id="app-shell" class="mx-auto flex w-full max-w-[100rem]">
       <aside
         id="left-sidebar"
-        class="hidden md:block w-72 shrink-0 border-r border-obs-border bg-obs-sidebar overflow-hidden sticky top-14 h-[calc(100vh-3.5rem)]"
+        data-pagefind-ignore
+        class="sticky top-[var(--obs-header-height)] hidden h-[calc(100vh-var(--obs-header-height))] w-[var(--obs-sidebar-width)] shrink-0 overflow-hidden border-r border-obs-border bg-obs-sidebar/45 md:block"
+        aria-label="Knowledge base navigation"
       >
-        <SidebarTree client:load navigation={navigation} currentSlug={currentSlug} />
+        <SidebarTree client:idle navigation={navigation} currentSlug={pathname} />
       </aside>
 
-      <!-- Center Pane: Main Content Canvas -->
-      <main id="main-content-wrapper" class="flex-1 min-w-0 px-4 py-8 md:px-10 lg:px-12 max-w-4xl mx-auto focus:outline-none" tabindex="-1">
-        <!-- Article Header Card -->
-        {doc && (
-          <div class="mb-8 rounded-xl border border-obs-border bg-obs-sidebar/60 p-6 backdrop-blur-sm shadow-sm space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
-              <div class="flex items-center gap-2">
-                <span
-                  class="rounded-full px-2.5 py-0.5 font-semibold text-[11px] border"
-                  style={{
-                    backgroundColor: domainColor?.bg,
-                    color: domainColor?.text,
-                    borderColor: domainColor?.border,
-                  }}
-                >
-                  {doc.domainTitle}
-                </span>
-                <span class="text-obs-text-muted font-mono">/</span>
-                <span class="text-obs-text-muted font-medium">{doc.categoryTitle}</span>
-              </div>
-
-              <div class="flex items-center gap-3 text-obs-text-muted">
-                <!-- Pin / Favorite Page Button -->
-                <button
-                  id="pin-page-btn"
-                  data-slug={doc.slug}
-                  data-title={doc.title}
-                  data-domain={doc.domainTitle}
-                  class="flex items-center gap-1.5 rounded border border-obs-border bg-obs-surface px-2 py-1 text-[11px] text-obs-text-secondary hover:border-obs-accent/50 hover:text-obs-accent transition-colors"
-                  title="Pin this page to favorites"
-                >
-                  <Star className="h-3.5 w-3.5 star-icon" />
-                  <span class="pin-text hidden sm:inline">Pin</span>
-                </button>
-
-                <div class="flex items-center gap-1.5" title="Estimated reading time">
-                  <Clock className="h-3.5 w-3.5 text-obs-accent" />
-                  <span>{doc.readingTimeMinutes} min read</span>
-                </div>
-
-                {doc.lastUpdated && (
-                  <span class="text-[11px] hidden sm:inline">Updated {doc.lastUpdated}</span>
-                )}
-              </div>
-            </div>
-
-            <h1 class="text-3xl font-extrabold tracking-tight text-obs-text-primary md:text-4xl">
-              {doc.title}
-            </h1>
-
-            <!-- Badges Row -->
-            <div class="flex flex-wrap items-center gap-3 pt-2 text-xs border-t border-obs-border/50">
-              {doc.level && (
-                <div class="flex items-center gap-1.5 text-obs-text-secondary">
-                  <span class="text-obs-text-muted">Level:</span>
-                  <span class="font-medium text-obs-text-primary">{doc.level}</span>
-                </div>
-              )}
-              {doc.interviewFrequency && (
-                <div class="flex items-center gap-1.5 text-amber-400 font-medium">
-                  <span class="text-obs-text-muted">Frequency:</span>
-                  <span>{doc.interviewFrequency}</span>
-                </div>
-              )}
-              {doc.prerequisites && (
-                <div class="flex items-center gap-1.5 text-obs-text-muted text-[11px] w-full mt-1">
-                  <span class="font-semibold text-obs-text-secondary">Prerequisites:</span>
-                  <span class="truncate">{doc.prerequisites}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        <!-- Markdown Document Prose -->
-        <article class="obsidian-prose">
-          <slot />
-        </article>
-
-        <!-- Previous & Next Navigation Cards -->
-        {(prevDoc || nextDoc) && (
-          <div class="mt-14 pt-8 border-t border-obs-border grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {prevDoc ? (
-              <a
-                href={prevDoc.slug}
-                class="group flex flex-col p-4 rounded-xl border border-obs-border bg-obs-sidebar hover:border-obs-accent/50 hover:bg-obs-hover transition-colors"
+      <div id="content-grid" class="flex min-w-0 flex-1 flex-col xl:flex-row">
+        <main
+          id="main-content-wrapper"
+          tabindex="-1"
+          class="min-w-0 flex-1 px-4 pb-20 pt-7 focus:outline-none sm:px-6 lg:px-10"
+        >
+          <div class:list={['mx-auto w-full', wide ? 'max-w-[72rem]' : 'max-w-[var(--obs-reading-width)]']}>
+            {headings.length > 0 && (
+              <details
+                class="no-print mb-5 rounded-xl border border-obs-border bg-obs-surface/70 px-3 py-2 xl:hidden"
               >
-                <span class="flex items-center gap-1 text-[11px] font-semibold text-obs-text-muted uppercase tracking-wider group-hover:text-obs-accent">
-                  <ArrowLeft className="h-3 w-3" /> Previous Topic
-                </span>
-                <span class="mt-1 font-semibold text-sm text-obs-text-primary truncate">
-                  {prevDoc.title}
-                </span>
-              </a>
-            ) : <div />}
-
-            {nextDoc && (
-              <a
-                href={nextDoc.slug}
-                class="group flex flex-col items-end text-right p-4 rounded-xl border border-obs-border bg-obs-sidebar hover:border-obs-accent/50 hover:bg-obs-hover transition-colors"
-              >
-                <span class="flex items-center gap-1 text-[11px] font-semibold text-obs-text-muted uppercase tracking-wider group-hover:text-obs-accent">
-                  Next Topic <ArrowRight className="h-3 w-3" />
-                </span>
-                <span class="mt-1 font-semibold text-sm text-obs-text-primary truncate">
-                  {nextDoc.title}
-                </span>
-              </a>
+                <summary class="flex cursor-pointer items-center gap-2 text-xs font-semibold text-obs-text-primary">
+                  <ListTree className="h-3.5 w-3.5 text-obs-accent" />
+                  On this page
+                  <span class="ml-auto font-mono text-[0.62rem] font-normal text-obs-text-muted">
+                    {headings.filter((heading) => heading.depth >= 2).length} sections
+                  </span>
+                </summary>
+                <nav class="mt-2 max-h-72 overflow-y-auto border-t border-obs-border-subtle pt-2" aria-label="On this page">
+                  <ul class="space-y-0.5">
+                    {headings
+                      .filter((heading) => heading.depth >= 2 && heading.depth <= 3)
+                      .map((heading) => (
+                        <li>
+                          <a
+                            href={`#${heading.slug}`}
+                            style={`padding-left:${(heading.depth - 2) * 0.7}rem`}
+                            class="block rounded px-1.5 py-1 text-[0.76rem] text-obs-text-muted hover:bg-obs-hover hover:text-obs-accent"
+                          >
+                            {heading.text}
+                          </a>
+                        </li>
+                      ))}
+                  </ul>
+                </nav>
+              </details>
             )}
-          </div>
-        )}
-      </main>
 
-      <!-- Right Sidebar: On-page Table of Contents & Backlinks Panel -->
-      <aside
-        id="right-sidebar"
-        class="hidden xl:block w-72 shrink-0 border-l border-obs-border bg-obs-sidebar p-5 overflow-y-auto sticky top-14 h-[calc(100vh-3.5rem)] space-y-6"
-      >
-        <TableOfContents client:idle headings={headings} />
-        <BacklinksPanel client:idle backlinks={backlinks} outgoing={outgoing} />
-      </aside>
+            {doc ? (
+              <header class="mb-8 overflow-hidden rounded-2xl border border-obs-border bg-gradient-to-b from-obs-surface to-obs-canvas-soft/60 shadow-obs">
+                <div class="space-y-5 p-5 sm:p-7">
+                  <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex min-w-0 flex-wrap items-center gap-2 text-[0.68rem]">
+                      <a
+                        href={
+                          doc.domain === 'root'
+                            ? '/overview'
+                            : doc.domain === 'java-dsa'
+                              ? '/java-dsa'
+                              : `/${doc.domain}`
+                        }
+                        class="rounded-full border px-2.5 py-1 font-bold uppercase tracking-[0.1em]"
+                        style={{
+                          backgroundColor: domainColor?.bg,
+                          color: domainColor?.text,
+                          borderColor: domainColor?.border,
+                        }}
+                      >
+                        {doc.domainTitle}
+                      </a>
+                      <span class="text-obs-text-muted" aria-hidden="true">/</span>
+                      <span class="truncate font-medium text-obs-text-muted">{doc.categoryTitle}</span>
+                      {doc.level && <span class="badge">{doc.level}</span>}
+                      {doc.kind === 'standard' && (
+                        <span class="badge border-obs-gold/40 text-obs-gold">Standard</span>
+                      )}
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                      <button
+                        id="pin-page-btn"
+                        type="button"
+                        data-slug={doc.slug}
+                        data-title={doc.title}
+                        data-domain={doc.domainTitle}
+                        class="inline-flex items-center gap-1.5 rounded-md border border-obs-border bg-obs-canvas-soft px-2 py-1 text-[0.66rem] font-semibold text-obs-text-muted transition-colors hover:border-obs-gold/50 hover:text-obs-gold"
+                        title="Pin this page"
+                        aria-pressed="false"
+                      >
+                        <Pin className="h-3 w-3" />
+                        <span class="pin-text">Pin</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="space-y-3">
+                    <h1 class="text-balance text-[1.85rem] font-bold leading-[1.18] tracking-tight text-obs-text-primary sm:text-[2.2rem]">
+                      {doc.title}
+                    </h1>
+                    {doc.summary && (
+                      <p class="max-w-[42rem] text-pretty text-[0.9rem] leading-relaxed text-obs-text-muted">
+                        {doc.summary}
+                      </p>
+                    )}
+                  </div>
+
+                  <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-obs-border-subtle pt-3 text-[0.68rem] text-obs-text-muted">
+                    <span class="inline-flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5 text-obs-accent" />
+                      {doc.readingTimeMinutes} min read
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                      <FileText className="h-3.5 w-3.5 text-obs-accent" />
+                      {doc.wordCount.toLocaleString('en-US')} words
+                    </span>
+                    {doc.headings.length > 0 && (
+                      <span class="inline-flex items-center gap-1.5">
+                        <Hash className="h-3.5 w-3.5 text-obs-accent" />
+                        {doc.headings.filter((heading) => heading.depth === 2).length} sections
+                      </span>
+                    )}
+                    {doc.interviewFrequency && (
+                      <span class="inline-flex items-center gap-1.5 text-obs-gold">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {doc.interviewFrequency}
+                      </span>
+                    )}
+                    {doc.lastUpdated && <span>Updated {doc.lastUpdated}</span>}
+                  </div>
+
+                  {doc.tags.length > 0 && (
+                    <div class="flex flex-wrap gap-1.5">
+                      {doc.tags.slice(0, 9).map((tag) => (
+                        <a
+                          href={`/tags/${encodeURIComponent(tag)}`}
+                          class="rounded-md border border-obs-border-subtle bg-obs-canvas-soft px-1.5 py-0.5 font-mono text-[0.62rem] text-obs-text-muted transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
+                        >
+                          #{tag}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </header>
+            ) : (
+              eyebrow && (
+                <div class="mb-6">
+                  <p class="eyebrow">{eyebrow}</p>
+                </div>
+              )
+            )}
+
+            <article
+              class:list={[doc ? 'obsidian-prose' : 'page-body']}
+              data-pagefind-body={noIndex ? undefined : true}
+              data-pagefind-meta={`domain:${doc?.domainTitle ?? ''}`}
+            >
+              <slot />
+            </article>
+
+            {related.length > 0 && (
+              <section class="no-print mt-14 border-t border-obs-border pt-8" aria-labelledby="related-heading">
+                <div class="mb-4 flex items-center justify-between">
+                  <h2 id="related-heading" class="text-[0.7rem] font-bold uppercase tracking-[0.14em] text-obs-text-muted">
+                    Related topics
+                  </h2>
+                  <a href="/library" class="text-[0.7rem] font-semibold text-obs-accent hover:underline">
+                    Browse library
+                  </a>
+                </div>
+                <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  {related.map((item) => (
+                    <a
+                      href={item.slug}
+                      class="group rounded-xl border border-obs-border bg-obs-surface/60 p-3.5 transition-colors hover:border-obs-accent/40 hover:bg-obs-hover"
+                    >
+                      {item.domainTitle && (
+                        <span class="text-[0.6rem] font-bold uppercase tracking-[0.12em] text-obs-accent/80">
+                          {item.domainTitle}
+                        </span>
+                      )}
+                      <h3 class="mt-1 text-[0.88rem] font-semibold leading-snug text-obs-text-primary group-hover:text-obs-accent">
+                        {item.title}
+                      </h3>
+                      {item.summary && (
+                        <p class="mt-1 line-clamp-2 text-[0.72rem] leading-relaxed text-obs-text-muted">
+                          {item.summary}
+                        </p>
+                      )}
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {(prevDoc || nextDoc) && (
+              <nav
+                class="no-print mt-10 grid grid-cols-1 gap-3 border-t border-obs-border pt-6 sm:grid-cols-2"
+                aria-label="Previous and next topic"
+              >
+                {prevDoc ? (
+                  <a
+                    href={prevDoc.slug}
+                    class="group flex flex-col rounded-xl border border-obs-border bg-obs-surface/60 p-4 transition-colors hover:border-obs-accent/40 hover:bg-obs-hover"
+                  >
+                    <span class="inline-flex items-center gap-1 text-[0.6rem] font-bold uppercase tracking-[0.12em] text-obs-text-muted group-hover:text-obs-accent">
+                      <ArrowLeft className="h-3 w-3" /> Previous
+                    </span>
+                    <span class="mt-1 line-clamp-2 text-[0.84rem] font-semibold text-obs-text-primary">
+                      {prevDoc.title}
+                    </span>
+                  </a>
+                ) : (
+                  <div class="hidden sm:block"></div>
+                )}
+                {nextDoc && (
+                  <a
+                    href={nextDoc.slug}
+                    class="group flex flex-col items-end rounded-xl border border-obs-border bg-obs-surface/60 p-4 text-right transition-colors hover:border-obs-accent/40 hover:bg-obs-hover sm:col-start-2"
+                  >
+                    <span class="inline-flex items-center gap-1 text-[0.6rem] font-bold uppercase tracking-[0.12em] text-obs-text-muted group-hover:text-obs-accent">
+                      Next <ArrowRight className="h-3 w-3" />
+                    </span>
+                    <span class="mt-1 line-clamp-2 text-[0.84rem] font-semibold text-obs-text-primary">
+                      {nextDoc.title}
+                    </span>
+                  </a>
+                )}
+              </nav>
+            )}
+
+            <footer class="no-print mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-obs-border-subtle pt-5 text-[0.66rem] text-obs-text-muted">
+              <p>
+                {doc ? 'Found an issue? Every chapter is plain Markdown in the repository.' : 'Java Masterclass · A connected knowledge base.'}
+              </p>
+              <div class="flex items-center gap-3">
+                <a href="/docs/authoring" class="hover:text-obs-accent">Authoring</a>
+                <a href="/docs/deployment" class="hover:text-obs-accent">Deployment</a>
+                <a href="/search" class="hover:text-obs-accent">Search</a>
+                <a href="/graph" class="hover:text-obs-accent">Graph</a>
+              </div>
+            </footer>
+          </div>
+        </main>
+
+        {(doc || headings.length > 0 || backlinks.length > 0 || outgoing.length > 0) && (
+        <aside
+          id="right-sidebar"
+          data-pagefind-ignore
+          class="sticky top-[var(--obs-header-height)] hidden h-[calc(100vh-var(--obs-header-height))] w-[var(--obs-toc-width)] shrink-0 overflow-y-auto border-l border-obs-border bg-obs-sidebar/30 px-5 py-7 xl:block"
+          aria-label="Page outline and connections"
+        >
+          <div class="space-y-6">
+            <TableOfContents client:idle headings={headings} />
+            <BacklinksPanel client:idle backlinks={backlinks} outgoing={outgoing} />
+            <div class="border-t border-obs-border-subtle pt-4">
+              <a
+                href="/checklist"
+                class="flex items-center justify-between rounded-lg border border-obs-border bg-obs-surface px-3 py-2 text-[0.72rem] font-semibold text-obs-text-secondary transition-colors hover:border-obs-emerald/40 hover:text-obs-emerald"
+              >
+                Study checklist
+                <ArrowRight className="h-3 w-3" />
+              </a>
+            </div>
+          </div>
+        </aside>
+        )}
+      </div>
     </div>
 
-    <!-- Global Command Palette Island -->
-    <CommandPalette client:idle />
+    <!-- Mobile navigation drawer -->
+    <div
+      id="mobile-drawer"
+      data-pagefind-ignore
+      class="fixed inset-0 z-50 hidden md:hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Navigation menu"
+    >
+      <div id="mobile-drawer-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div class="absolute inset-y-0 left-0 flex w-[min(21rem,90vw)] flex-col border-r border-obs-border bg-obs-sidebar shadow-2xl">
+        <div class="flex h-14 items-center justify-between border-b border-obs-border px-3">
+          <a href="/" class="flex items-center gap-2 text-sm font-bold text-obs-text-primary">
+            <span class="flex h-7 w-7 items-center justify-center rounded-md border border-obs-accent/35 bg-obs-accent/10 text-obs-accent">
+              <Sparkles className="h-3.5 w-3.5" />
+            </span>
+            Java Masterclass
+          </a>
+          <button id="mobile-drawer-close" type="button" class="icon-btn" aria-label="Close navigation menu">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div class="min-h-0 flex-1">
+          <SidebarTree client:idle navigation={navigation} currentSlug={pathname} />
+        </div>
+      </div>
+    </div>
 
-    <!-- Fullscreen Diagram Lightbox Modal -->
-    <div id="diagram-lightbox" class="fixed inset-0 z-50 hidden bg-black/90 p-4 backdrop-blur-md flex flex-col items-center justify-center">
-      <div class="flex items-center justify-between w-full max-w-5xl px-4 py-2 text-white">
-        <span class="text-xs font-mono text-obs-text-muted">Fullscreen Architecture Diagram View</span>
-        <button id="close-lightbox-btn" class="rounded bg-obs-surface p-1.5 hover:bg-obs-hover text-white text-xs">
-          ✕ Close
+    <div id="command-palette-root" data-pagefind-ignore>
+      <CommandPalette client:idle />
+    </div>
+
+    <button
+      id="back-to-top"
+      type="button"
+      class="no-print fixed bottom-5 right-5 z-30 hidden h-9 w-9 items-center justify-center rounded-full border border-obs-border bg-obs-surface text-obs-text-secondary shadow-lg transition hover:border-obs-accent/40 hover:text-obs-accent"
+      aria-label="Back to top"
+    >
+      <ArrowRight className="h-4 w-4 -rotate-90" />
+    </button>
+
+    <div
+      id="diagram-lightbox"
+      class="fixed inset-0 z-[70] hidden flex-col bg-black/90 p-4 backdrop-blur-md"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Expanded diagram"
+    >
+      <div class="mx-auto flex w-full max-w-6xl items-center justify-between py-2 text-white">
+        <span class="text-[0.68rem] font-medium uppercase tracking-[0.14em] text-white/60">
+          Diagram view
+        </span>
+        <button
+          id="close-lightbox-btn"
+          type="button"
+          class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-xs font-semibold text-white hover:bg-white/20"
+        >
+          Close
         </button>
       </div>
-      <div id="lightbox-content" class="w-full max-w-5xl flex-1 flex items-center justify-center p-4 overflow-auto">
-      </div>
+      <div id="lightbox-content" class="mx-auto flex w-full max-w-6xl flex-1 items-center justify-center overflow-auto p-2"></div>
     </div>
 
-    <!-- Client enhancements script -->
     <script>
-      // Reading progress bar
-      function updateReadingProgress() {
+      import mermaid from 'mermaid';
+
+      const root = document.documentElement;
+
+      /* ---------------------------------------------------------------- theme */
+      function applyThemeIcons() {
+        const isDark = root.getAttribute('data-theme') !== 'light';
+        document.querySelectorAll<HTMLElement>('.theme-icon-light').forEach((element) => {
+          element.classList.toggle('hidden', !isDark);
+        });
+        document.querySelectorAll<HTMLElement>('.theme-icon-dark').forEach((element) => {
+          element.classList.toggle('hidden', isDark);
+        });
+      }
+
+      function setTheme(next: 'light' | 'dark') {
+        root.setAttribute('data-theme', next);
+        try {
+          localStorage.setItem('theme', next);
+        } catch {
+          /* ignore */
+        }
+        applyThemeIcons();
+        rerenderMermaid();
+      }
+
+      function setupTheme() {
+        applyThemeIcons();
+        const button = document.getElementById('theme-toggle-btn');
+        if (!button || button.dataset.bound === 'true') return;
+        button.dataset.bound = 'true';
+        button.addEventListener('click', () => {
+          setTheme(root.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+        });
+      }
+
+      /* --------------------------------------------------------- reading mode */
+      function setupReadingMode() {
+        const button = document.getElementById('reading-mode-btn');
+        try {
+          if (localStorage.getItem('zen-mode') === 'true') {
+            document.body.classList.add('zen-mode');
+          }
+        } catch {
+          /* ignore */
+        }
+        const active = document.body.classList.contains('zen-mode');
+        button?.setAttribute('aria-pressed', String(active));
+        if (!button || button.dataset.bound === 'true') return;
+        button.dataset.bound = 'true';
+        button.addEventListener('click', () => {
+          const enabled = document.body.classList.toggle('zen-mode');
+          button.setAttribute('aria-pressed', String(enabled));
+          try {
+            localStorage.setItem('zen-mode', String(enabled));
+          } catch {
+            /* ignore */
+          }
+        });
+      }
+
+      /* ---------------------------------------------------------- progress bar */
+      function updateProgress() {
         const bar = document.getElementById('reading-progress');
         if (!bar) return;
-        const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-        if (totalHeight <= 0) {
-          bar.style.width = '0%';
-          return;
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.width = scrollable <= 0 ? '0%' : `${Math.min(100, Math.max(0, (window.scrollY / scrollable) * 100))}%`;
+        const backToTop = document.getElementById('back-to-top');
+        backToTop?.classList.toggle('hidden', window.scrollY < 700);
+      }
+
+      /* ---------------------------------------------------------- mobile menu */
+      function setupDrawer() {
+        const drawer = document.getElementById('mobile-drawer');
+        const open = document.getElementById('mobile-menu-btn');
+        const close = document.getElementById('mobile-drawer-close');
+        const backdrop = document.getElementById('mobile-drawer-backdrop');
+        if (!drawer || !open) return;
+
+        const show = () => {
+          drawer.classList.remove('hidden');
+          open.setAttribute('aria-expanded', 'true');
+          document.body.style.overflow = 'hidden';
+          drawer.querySelector<HTMLElement>('a, button')?.focus();
+        };
+        const hide = () => {
+          drawer.classList.add('hidden');
+          open.setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = '';
+          open.focus();
+        };
+
+        if (open.dataset.bound !== 'true') {
+          open.dataset.bound = 'true';
+          open.addEventListener('click', show);
+          close?.addEventListener('click', hide);
+          backdrop?.addEventListener('click', hide);
+          drawer.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') hide();
+          });
         }
-        const progress = Math.min(100, Math.max(0, (window.scrollY / totalHeight) * 100));
-        bar.style.width = `${progress}%`;
       }
-      window.addEventListener('scroll', updateReadingProgress, { passive: true });
 
-      // Copy code button enhancement
-      function enhanceCodeBlocks() {
-        document.querySelectorAll('pre').forEach((pre) => {
-          if (pre.querySelector('.copy-code-btn')) return;
-
-          const btn = document.createElement('button');
-          btn.className = 'copy-code-btn absolute top-2 right-2 flex items-center gap-1 rounded bg-obs-surface px-2 py-1 text-[10px] font-mono text-obs-text-muted border border-obs-border hover:bg-obs-hover hover:text-obs-text-primary transition-colors';
-          btn.innerHTML = '<span>Copy</span>';
-
-          btn.addEventListener('click', async () => {
-            const code = pre.querySelector('code')?.innerText || pre.innerText;
-            try {
-              await navigator.clipboard.writeText(code);
-              btn.innerHTML = '<span class="text-emerald-400 font-semibold">Copied!</span>';
-              setTimeout(() => {
-                btn.innerHTML = '<span>Copy</span>';
-              }, 2000);
-            } catch (err) {
-              btn.innerText = 'Failed';
-            }
+      /* -------------------------------------------------------------- diagram */
+      function rerenderMermaid() {
+        if (!document.querySelector('.mermaid')) return;
+        const isDark = root.getAttribute('data-theme') !== 'light';
+        try {
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: isDark ? 'dark' : 'neutral',
+            fontFamily: 'Inter Variable, Inter, sans-serif',
+            securityLevel: 'strict',
+            themeVariables: isDark
+              ? {
+                  background: '#13131b',
+                  primaryColor: '#1c1c27',
+                  primaryTextColor: '#f4f2ed',
+                  primaryBorderColor: '#3a3a4c',
+                  lineColor: '#807d8c',
+                  secondaryColor: '#1b1b25',
+                  tertiaryColor: '#0d0d13',
+                }
+              : {
+                  background: '#ffffff',
+                  primaryColor: '#f4f1e9',
+                  primaryTextColor: '#1b1b22',
+                  primaryBorderColor: '#d8d1c3',
+                  lineColor: '#7d7a82',
+                  secondaryColor: '#ece7dd',
+                  tertiaryColor: '#fbfaf7',
+                },
           });
+        } catch (error) {
+          console.warn('Mermaid theme update failed', error);
+        }
 
-          pre.classList.add('relative');
-          pre.appendChild(btn);
+        document.querySelectorAll<HTMLElement>('.mermaid').forEach((element) => {
+          const source = element.dataset.mermaidSource;
+          if (!source) return;
+          element.removeAttribute('data-processed');
+          element.textContent = source;
         });
-      }
 
-      // Copy link on headings enhancement
-      function enhanceHeadings() {
-        document.querySelectorAll('.obsidian-prose h2, .obsidian-prose h3, .obsidian-prose h4').forEach((heading) => {
-          if (heading.querySelector('.heading-anchor-btn')) return;
-          if (!heading.id) return;
-
-          const btn = document.createElement('button');
-          btn.className = 'heading-anchor-btn ml-2 text-obs-text-muted hover:text-obs-accent font-normal text-sm opacity-60 hover:opacity-100 transition-opacity';
-          btn.innerHTML = '#';
-          btn.title = 'Copy link to this section';
-
-          btn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const url = `${window.location.origin}${window.location.pathname}#${heading.id}`;
-            try {
-              await navigator.clipboard.writeText(url);
-              btn.innerHTML = '✓';
-              setTimeout(() => {
-                btn.innerHTML = '#';
-              }, 1500);
-            } catch (err) {}
+        mermaid
+          .run({ querySelector: '.mermaid', suppressErrors: true })
+          .catch((error) => {
+            console.warn('Mermaid render failed', error);
           });
-
-          heading.appendChild(btn);
-        });
       }
 
-      // Fullscreen diagram lightbox enhancement
       function enhanceDiagrams() {
         const lightbox = document.getElementById('diagram-lightbox');
-        const lightboxContent = document.getElementById('lightbox-content');
-        const closeBtn = document.getElementById('close-lightbox-btn');
-        if (!lightbox || !lightboxContent || !closeBtn) return;
-
-        closeBtn.onclick = () => lightbox.classList.add('hidden');
-        lightbox.onclick = (e) => {
-          if (e.target === lightbox) lightbox.classList.add('hidden');
-        };
+        const content = document.getElementById('lightbox-content');
+        const close = document.getElementById('close-lightbox-btn');
+        if (lightbox && content && close && close.dataset.bound !== 'true') {
+          close.dataset.bound = 'true';
+          const hide = () => {
+            lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex');
+          };
+          close.addEventListener('click', hide);
+          lightbox.addEventListener('click', (event) => {
+            if (event.target === lightbox) hide();
+          });
+          document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') hide();
+          });
+        }
 
         document.querySelectorAll('.mermaid-container').forEach((container) => {
           if (container.querySelector('.diagram-expand-btn')) return;
-
-          const btn = document.createElement('button');
-          btn.className = 'diagram-expand-btn mt-2 inline-flex items-center gap-1 rounded bg-obs-surface px-2.5 py-1 text-[11px] text-obs-text-muted border border-obs-border hover:text-obs-accent hover:border-obs-accent/50 transition-colors';
-          btn.innerHTML = '🔍 Fullscreen Diagram';
-
-          btn.addEventListener('click', () => {
-            lightboxContent.innerHTML = container.innerHTML;
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'diagram-expand-btn';
+          button.textContent = 'Expand diagram';
+          button.addEventListener('click', () => {
+            if (!lightbox || !content) return;
+            content.innerHTML = container.innerHTML;
             lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
           });
-
-          container.appendChild(btn);
+          container.parentElement?.appendChild(button);
         });
       }
 
-      // Pinned and Recently viewed notes tracker
-      function setupPinnedAndRecent() {
-        const path = window.location.pathname;
-        const pageTitle = document.title.replace(' — Java Masterclass', '');
-
-        // 1. Record recently viewed page
-        try {
-          if (path && path !== '/' && !path.includes('/search') && !path.includes('/graph')) {
-            let recents = JSON.parse(localStorage.getItem('obsidian-recent-pages') || '[]');
-            recents = recents.filter((r) => r.slug !== path);
-            recents.unshift({ title: pageTitle, slug: path });
-            if (recents.length > 8) recents.pop();
-            localStorage.setItem('obsidian-recent-pages', JSON.stringify(recents));
-            window.dispatchEvent(new CustomEvent('obsidian:recents-updated'));
-          }
-        } catch (e) {}
-
-        // 2. Pin page button
-        const pinBtn = document.getElementById('pin-page-btn');
-        if (pinBtn) {
-          const slug = pinBtn.getAttribute('data-slug') || path;
-          const title = pinBtn.getAttribute('data-title') || pageTitle;
-          const domain = pinBtn.getAttribute('data-domain') || '';
-
-          function updatePinUI() {
+      /* ---------------------------------------------------------- code copy */
+      function enhanceCodeBlocks() {
+        document.querySelectorAll<HTMLElement>('.obsidian-prose pre').forEach((pre) => {
+          if (pre.querySelector('.copy-code-btn')) return;
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'copy-code-btn';
+          button.textContent = 'Copy';
+          button.setAttribute('aria-label', 'Copy code to clipboard');
+          button.addEventListener('click', async () => {
+            const code = pre.querySelector('code')?.innerText ?? pre.innerText;
             try {
-              const pins = JSON.parse(localStorage.getItem('obsidian-pinned-pages') || '[]');
-              const isPinned = pins.some((p) => p.slug === slug);
-              const text = pinBtn.querySelector('.pin-text');
-              const icon = pinBtn.querySelector('.star-icon');
-              if (isPinned) {
-                pinBtn.classList.add('text-amber-400', 'border-amber-400/50');
-                if (text) text.textContent = 'Pinned';
-              } else {
-                pinBtn.classList.remove('text-amber-400', 'border-amber-400/50');
-                if (text) text.textContent = 'Pin';
-              }
-            } catch (e) {}
-          }
-
-          pinBtn.addEventListener('click', () => {
-            try {
-              let pins = JSON.parse(localStorage.getItem('obsidian-pinned-pages') || '[]');
-              const index = pins.findIndex((p) => p.slug === slug);
-              if (index >= 0) {
-                pins.splice(index, 1);
-              } else {
-                pins.push({ title, slug, domain });
-              }
-              localStorage.setItem('obsidian-pinned-pages', JSON.stringify(pins));
-              updatePinUI();
-              window.dispatchEvent(new CustomEvent('obsidian:pins-updated'));
-            } catch (e) {}
+              await navigator.clipboard.writeText(code);
+              button.textContent = 'Copied';
+              window.setTimeout(() => {
+                button.textContent = 'Copy';
+              }, 1800);
+            } catch {
+              button.textContent = 'Failed';
+            }
           });
-
-          updatePinUI();
-        }
+          pre.appendChild(button);
+        });
       }
 
-      // Fuzzy anchor scroll fallback
-      function handleAnchorScroll() {
-        const hash = window.location.hash.slice(1);
+      /* ---------------------------------------------------- pins and recents */
+      function setupPinsAndRecents() {
+        const path = window.location.pathname.replace(/\/+$/, '') || '/';
+        const pageTitle = document.title.split(' — ')[0];
+
+        try {
+          if (path !== '/' && !['/search', '/graph', '/library', '/paths', '/tags'].includes(path)) {
+            const recents = JSON.parse(localStorage.getItem('obsidian-recent-pages') || '[]');
+            const next = recents.filter((item: { slug: string }) => item.slug !== path);
+            next.unshift({ title: pageTitle, slug: path });
+            localStorage.setItem('obsidian-recent-pages', JSON.stringify(next.slice(0, 10)));
+            window.dispatchEvent(new CustomEvent('obsidian:recents-updated'));
+          }
+        } catch {
+          /* ignore */
+        }
+
+        const button = document.getElementById('pin-page-btn') as HTMLButtonElement | null;
+        if (!button || button.dataset.bound === 'true') return;
+        button.dataset.bound = 'true';
+        const slug = button.dataset.slug || path;
+        const title = button.dataset.title || pageTitle;
+        const domain = button.dataset.domain || '';
+        const label = button.querySelector<HTMLElement>('.pin-text');
+
+        const sync = () => {
+          try {
+            const pins = JSON.parse(localStorage.getItem('obsidian-pinned-pages') || '[]');
+            const pinned = pins.some((item: { slug: string }) => item.slug === slug);
+            button.setAttribute('aria-pressed', String(pinned));
+            button.classList.toggle('text-obs-gold', pinned);
+            button.classList.toggle('border-obs-gold/50', pinned);
+            if (label) label.textContent = pinned ? 'Pinned' : 'Pin';
+          } catch {
+            /* ignore */
+          }
+        };
+
+        button.addEventListener('click', () => {
+          try {
+            const pins = JSON.parse(localStorage.getItem('obsidian-pinned-pages') || '[]');
+            const index = pins.findIndex((item: { slug: string }) => item.slug === slug);
+            if (index >= 0) pins.splice(index, 1);
+            else pins.push({ title, slug, domain });
+            localStorage.setItem('obsidian-pinned-pages', JSON.stringify(pins));
+            sync();
+            window.dispatchEvent(new CustomEvent('obsidian:pins-updated'));
+          } catch {
+            /* ignore */
+          }
+        });
+
+        sync();
+      }
+
+      /* ------------------------------------------------------------- anchors */
+      function scrollToHash() {
+        const hash = decodeURIComponent(window.location.hash.slice(1));
         if (!hash) return;
         const target = document.getElementById(hash);
         if (target) {
-          target.scrollIntoView({ behavior: 'smooth' });
-        } else {
-          const cleanHash = hash.toLowerCase().replace(/[^a-z0-9]/g, '');
-          const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-          for (const h of headings) {
-            const hClean = h.id.toLowerCase().replace(/[^a-z0-9]/g, '');
-            if (hClean && (hClean.includes(cleanHash) || cleanHash.includes(hClean))) {
-              h.scrollIntoView({ behavior: 'smooth' });
-              break;
-            }
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          return;
+        }
+        const normalized = hash.toLowerCase().replace(/[^a-z0-9]/g, '');
+        for (const heading of document.querySelectorAll<HTMLElement>(
+          '.obsidian-prose h1, .obsidian-prose h2, .obsidian-prose h3, .obsidian-prose h4'
+        )) {
+          const id = heading.id.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (id && (id.includes(normalized) || normalized.includes(id))) {
+            heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            break;
           }
         }
       }
 
-      window.addEventListener('hashchange', handleAnchorScroll);
-      if (window.location.hash) {
-        setTimeout(handleAnchorScroll, 200);
+      /* --------------------------------------------------------- shortcuts */
+      function setupShortcuts() {
+        if (document.body.dataset.shortcutsBound === 'true') return;
+        document.body.dataset.shortcutsBound = 'true';
+        window.addEventListener('keydown', (event) => {
+          const target = event.target as HTMLElement;
+          const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
+          if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+            event.preventDefault();
+            window.dispatchEvent(new CustomEvent('obsidian:open-search'));
+            return;
+          }
+          if (typing || event.metaKey || event.ctrlKey || event.altKey) return;
+          if (event.key === '/') {
+            event.preventDefault();
+            window.dispatchEvent(new CustomEvent('obsidian:open-search'));
+          } else if (event.key.toLowerCase() === 'z') {
+            document.getElementById('reading-mode-btn')?.click();
+          } else if (event.key.toLowerCase() === 'g') {
+            window.location.href = '/graph';
+          }
+        });
       }
 
-      function initAll() {
+      function init() {
+        setupTheme();
+        setupReadingMode();
+        setupDrawer();
+        setupPinsAndRecents();
+        setupShortcuts();
         enhanceCodeBlocks();
-        enhanceHeadings();
         enhanceDiagrams();
-        setupPinnedAndRecent();
-        handleAnchorScroll();
+        rerenderMermaid();
+        updateProgress();
+        scrollToHash();
+        document.getElementById('back-to-top')?.addEventListener('click', () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
       }
 
-      initAll();
-      document.addEventListener('astro:after-swap', initAll);
+      window.addEventListener('scroll', updateProgress, { passive: true });
+      window.addEventListener('hashchange', scrollToHash);
+      window.addEventListener('resize', updateProgress, { passive: true });
+      document.addEventListener('astro:after-swap', init);
+      init();
     </script>
   </body>
 </html>

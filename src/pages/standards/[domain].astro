@@ -1,0 +1,54 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import ObsidianLayout from '../../layouts/ObsidianLayout.astro';
+import { buildNavigationTree, getAllDocs, getRelatedDocs } from '../../lib/content';
+import { renderMarkdown } from '../../lib/markdownRenderer';
+import type { NavigationNode } from '../../lib/types';
+
+export async function getStaticPaths() {
+  const allDocs = getAllDocs();
+  const navigation = buildNavigationTree(allDocs);
+  const standards = allDocs.filter((doc) => doc.kind === 'standard');
+
+  return await Promise.all(
+    standards.map(async (doc) => {
+      const fullPath = path.join(process.cwd(), doc.filePath);
+      const content = fs.existsSync(fullPath) ? fs.readFileSync(fullPath, 'utf-8') : '';
+      const html = await renderMarkdown(content, doc.filePath);
+      const related = getRelatedDocs(doc, allDocs, 4).map((item) => ({
+        title: item.title,
+        slug: item.slug,
+        domainTitle: item.domainTitle,
+        summary: item.summary,
+      }));
+
+      return {
+        params: { domain: doc.domain },
+        props: { doc, navigation, html, related },
+      };
+    })
+  );
+}
+
+interface Props {
+  doc: ReturnType<typeof getAllDocs>[number];
+  navigation: NavigationNode[];
+  html: string;
+  related: { title: string; slug: string; domainTitle: string; summary: string }[];
+}
+
+const { doc, navigation, html, related } = Astro.props;
+---
+
+<ObsidianLayout
+  title={doc.title}
+  description={doc.summary || `${doc.domainTitle} engineering standard for the Java Masterclass.`}
+  doc={doc}
+  headings={doc.headings}
+  navigation={navigation}
+  related={related}
+  canonicalPath={doc.slug}
+>
+  <Fragment set:html={html} />
+</ObsidianLayout>

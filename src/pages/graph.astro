@@ -1,18 +1,43 @@
 ---
 import ObsidianLayout from '../layouts/ObsidianLayout.astro';
 import ObsidianGraph from '../components/ObsidianGraph';
-import { getAllDocs, buildNavigationTree } from '../lib/content';
+import { buildNavigationTree, getAllDocs, getStats } from '../lib/content';
+import { buildKnowledgeGraph } from '../lib/graphBuilder';
+import { Compass, Network, Sparkles } from 'lucide-react';
 
 const allDocs = getAllDocs();
 const navigation = buildNavigationTree(allDocs);
+const stats = getStats(allDocs);
+const graph = buildKnowledgeGraph(allDocs);
+
+const fmt = new Intl.NumberFormat('en-US');
 ---
 
 <ObsidianLayout
-  title="Interactive Knowledge Graph"
-  description="Explore the interconnected conceptual graph of 416 topics and 1,620 relationships across Core Java, Spring Boot, System Design, and Algorithms."
+  title="Knowledge graph"
+  description={`Explore the interconnected conceptual graph of ${fmt.format(graph.nodes.length)} notes and ${fmt.format(graph.edges.length)} relationships across Core Java, Spring Boot, System Design, and Algorithms.`}
   navigation={navigation}
+  wide
 >
-  <div class="h-[80vh] w-full py-2">
-    <ObsidianGraph client:load />
+  <div class="not-prose space-y-5">
+    <header class="space-y-2 border-b border-obs-border pb-5">
+      <p class="eyebrow"><Compass className="h-3.5 w-3.5" /> Relationship engine</p>
+      <h1 class="font-serif text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
+        The knowledge graph
+      </h1>
+      <p class="max-w-3xl text-sm leading-relaxed text-obs-text-muted">
+        Each node is a chapter; each edge is a resolved internal link. Drag to pan, scroll to zoom, and
+        select a node to read. Prefer text? Switch to the accessible list view.
+      </p>
+      <div class="flex flex-wrap gap-2 pt-1 text-[0.66rem]">
+        <span class="badge"><Network className="h-3 w-3" /> {fmt.format(graph.nodes.length)} notes</span>
+        <span class="badge"><Sparkles className="h-3 w-3" /> {fmt.format(graph.edges.length)} connections</span>
+        <span class="badge">{fmt.format(stats.domains)} domains</span>
+      </div>
+    </header>
+
+    <div class="h-[calc(100vh-15rem)] min-h-[28rem] w-full overflow-hidden rounded-2xl border border-obs-border bg-obs-surface shadow-obs">
+      <ObsidianGraph client:only="react" />
+    </div>
   </div>
 </ObsidianLayout>

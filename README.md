@@ -46,44 +46,61 @@ Interview-Ready-with-Java/
 │   └── 14-Deployment-and-DevOps/      # Docker, Kubernetes, CI/CD, observability
 │
 ├── 📂 DATABASE_CACHING/       # SQL, Databases & Caching Interview Ready Kit
-│   ├── 01-SQL-Databases/      # 9 Chapters: Engines, B+ Trees, CTEs, MVCC, Scaling, Q&A
+│   ├── 01-SQL-Databases/      # Engines, B+ Trees, CTEs, MVCC, scaling, Q&A
+│   ├── 02-NoSQL-Databases/    # MongoDB, Cassandra, DynamoDB modeling
 │   ├── QUICK-REFERENCE.md     # High-density reference & checklists
-│   └── README.md              # Master Syllabus & Study Plan
+│   └── README.md              # Master syllabus & study plan
 │
-├── 📂 JAVA_BACKEND_INTERVIEW/ # End-to-end backend interview roadmap
-│   ├── README.md              # March-to-May 2026 roadmap
-│   └── CHECKLIST.md           # Self-assessment checklist
+├── 📂 CLOUD_DEVOPS/           # Cloud & DevOps syllabus + quick reference
+├── 📂 DOCKER_JAVA_BACKEND/    # Docker for Java backend syllabus + quick reference
+├── 📂 docs/                   # Authoring and deployment guides
 │
 └── 📂 JAVA_DSA/               # Data Structures & Algorithms
-    ├── ARRAYS/                # Array problems & patterns
-    ├── BACKTRACKING/          # Backtracking algorithms
-    ├── BASICS/                # Basic programming
-    ├── BINARY_SEARCH/         # Binary search variants
-    ├── BINARY_SEARCH_TREES/   # BST operations
-    ├── BINARY_TREES/          # Tree traversals & problems
-    ├── BIT_MANIPULATION/      # Bit manipulation
-    ├── DYNAMIC_PROGRAMMING/   # DP patterns (1D, 2D, String)
-    ├── GRAPHS/                # Graph algorithms
-    ├── GREEDY/                # Greedy algorithms
-    ├── HASHING/               # HashMap problems
-    ├── HEAP_PRIORITY_QUEUE/   # Heap & Priority Queue
-    ├── LINKEDLISTS/           # Linked List problems
-    ├── MATHEMATICS/           # Math problems
-    ├── MONOTONIC_STACK_QUEUE/ # Monotonic stack
-    ├── PREFIX_SUM/            # Prefix sum technique
-    ├── RECURSION/             # Recursion problems
-    ├── SEARCHING/             # Search algorithms
-    ├── SEGMENT_TREE/          # Segment tree
-    ├── SLIDING_WINDOW/        # Sliding window
-    ├── SORTING/               # Sorting algorithms
-    ├── STACK_QUEUE/           # Stack & Queue
-    ├── STRINGS/               # String algorithms
-    ├── SYSTEM_DESIGN/         # LRU, LFU Cache
-    ├── TRIE/                  # Trie data structure
-    └── TWO_POINTER/           # Two pointer technique
+    ├── dsa/                   # Structured curriculum
+    │   ├── algorithms/        # Sorting, searching, recursion, greedy, backtracking
+    │   ├── competitive/       # LeetCode, Codeforces, CSES practice tracks
+    │   ├── datastructures/    # Arrays, graphs, heaps, trees, tries, stacks & queues
+    │   ├── dynamicprogramming/
+    │   ├── fundamentals/      # Basics, mathematics, collections
+    │   ├── systemdesign/      # LRU/LFU cache, rate limiter, real-world design
+    │   └── techniques/        # Sliding window, two pointers, prefix sums, hashing, bit tricks
+    └── resources/             # 18 focused reference tracks
+        ├── ARRAY/  BACKTRACKING/  BIT_MANIPULATION/  DYNAMIC_PROGRAMMING/
+        ├── FOUNDATIONS/  GRAPH/  GREEDY/  HASHING/  HEAP/  LINKEDLIST/
+        ├── QUEUE/  RECURSION/  SEARCHING/  SORTING/  STACK/  STRING/
+        └── TREE/  TRIE/
 ```
 
 ---
+
+## 🌐 Documentation Website
+
+This repository includes a premium, Obsidian-inspired documentation and knowledge-base site built with **Astro**, **React islands**, and **Tailwind CSS**. It renders every Markdown chapter in place — no content is moved or duplicated.
+
+### Run the site locally
+
+```bash
+npm ci            # install dependencies
+npm run dev       # start the dev server at http://localhost:4321
+npm run build     # static build + Pagefind search index
+npm run check     # Astro and TypeScript diagnostics
+npm run verify    # validate every internal route and anchor
+npm run preview   # preview the production build
+```
+
+### What the site provides
+
+- Hierarchical, searchable sidebar with mobile drawer, pinned pages, and recently viewed
+- Instant command palette (`⌘K` / `Ctrl+K`) plus Pagefind full-text search
+- Per-page table of contents, breadcrumbs, previous/next navigation, and related topics
+- Automatic backlinks and an interactive knowledge graph
+- Reading mode, dark and light themes, code copy buttons, Mermaid diagrams, and KaTeX math
+- Generated library, learning paths, A–Z index, glossary, tags, quick references, and standards
+- Static generation, semantic HTML, keyboard support, reduced-motion support, and SEO metadata
+- Deployment and authoring guides: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) and [`docs/CONTENT_AUTHORING_GUIDE.md`](docs/CONTENT_AUTHORING_GUIDE.md), also published at [the authoring guide](/docs/authoring)
+
+---
+
 
 ## 📚 CORE_JAVA - Core Java Interview Notes
 
@@ -122,7 +139,7 @@ Click on any folder to explore detailed interview notes and concepts.
 
 ## 🌱 SPRING_BOOT - Spring Boot Interview Preparation
 
-**The complete 3-4+ years Java Backend Developer roadmap** — 14 topic areas, 57 deep-dive
+**The complete 3-4+ years Java Backend Developer roadmap** — 14 topic areas, 85 deep-dive
 chapters, 400+ interview questions with expert answers, counter-questions (interviewer
 push-back), production incident walkthroughs and system design solutions.
 
@@ -183,62 +200,62 @@ push-back), production incident walkthroughs and system design solutions.
 
 | Folder | Description | Key Topics | Link |
 |--------|-------------|------------|------|
-| **BASICS** | Basic programming concepts | Fibonacci, Factorial, Prime, Palindrome | [Open Folder](JAVA_DSA/BASICS) |
-| **MATHEMATICS** | Mathematical algorithms | GCD, LCM, Sieve, Prime Factors, Modular Arithmetic | [Open Folder](JAVA_DSA/MATHEMATICS) |
-| **BIT_MANIPULATION** | Bit manipulation techniques | XOR tricks, Bitmask DP, Power of 2, Count Set Bits | [Open Folder](JAVA_DSA/BIT_MANIPULATION) |
+| **BASICS** | Basic programming concepts | Fibonacci, Factorial, Prime, Palindrome | [Open Folder](JAVA_DSA/dsa/fundamentals/basics) |
+| **MATHEMATICS** | Mathematical algorithms | GCD, LCM, Sieve, Prime Factors, Modular Arithmetic | [Open Folder](JAVA_DSA/dsa/fundamentals/mathematics) |
+| **BIT_MANIPULATION** | Bit manipulation techniques | XOR tricks, Bitmask DP, Power of 2, Count Set Bits | [Open Folder](JAVA_DSA/dsa/techniques/bitmanipulation) |
 
 ### 📊 Arrays & Strings
 
 | Folder | Description | Key Problems | Link |
 |--------|-------------|--------------|------|
-| **ARRAYS** | Array problems & patterns | Two Sum, Best Time to Buy/Sell Stock, Product Except Self, Kadane's Algorithm | [Open Folder](JAVA_DSA/ARRAYS) |
-| **STRINGS** | String algorithms | KMP, Rabin-Karp, Manacher, Palindrome, Anagram | [Open Folder](JAVA_DSA/STRINGS) |
-| **SORTING** | Sorting algorithms | Quick Sort, Merge Sort, Counting Sort, Heap Sort | [Open Folder](JAVA_DSA/SORTING) |
-| **TWO_POINTER** | Two pointer technique | 3Sum, Container With Most Water, Trapping Rain Water | [Open Folder](JAVA_DSA/TWO_POINTER) |
-| **SLIDING_WINDOW** | Sliding window patterns | Minimum Window Substring, Longest Substring Without Repeating | [Open Folder](JAVA_DSA/SLIDING_WINDOW) |
-| **PREFIX_SUM** | Prefix sum technique | Subarray Sum Equals K, Range Sum Query | [Open Folder](JAVA_DSA/PREFIX_SUM) |
+| **ARRAYS** | Array problems & patterns | Two Sum, Best Time to Buy/Sell Stock, Product Except Self, Kadane's Algorithm | [Open Folder](JAVA_DSA/resources/ARRAY) |
+| **STRINGS** | String algorithms | KMP, Rabin-Karp, Manacher, Palindrome, Anagram | [Open Folder](JAVA_DSA/resources/STRING) |
+| **SORTING** | Sorting algorithms | Quick Sort, Merge Sort, Counting Sort, Heap Sort | [Open Folder](JAVA_DSA/resources/SORTING) |
+| **TWO_POINTER** | Two pointer technique | 3Sum, Container With Most Water, Trapping Rain Water | [Open Folder](JAVA_DSA/resources/ARRAY) |
+| **SLIDING_WINDOW** | Sliding window patterns | Minimum Window Substring, Longest Substring Without Repeating | [Open Folder](JAVA_DSA/resources/ARRAY) |
+| **PREFIX_SUM** | Prefix sum technique | Subarray Sum Equals K, Range Sum Query | [Open Folder](JAVA_DSA/dsa/techniques/prefixsum) |
 
 ### 🔗 Linear Data Structures
 
 | Folder | Description | Key Topics | Link |
 |--------|-------------|------------|------|
-| **LINKEDLISTS** | Linked List problems | Reverse, Merge K Sorted, Cycle Detection, LRU Cache | [Open Folder](JAVA_DSA/LINKEDLISTS) |
-| **STACK_QUEUE** | Stack & Queue | Valid Parentheses, Min Stack, Queue using Stack | [Open Folder](JAVA_DSA/STACK_QUEUE) |
-| **HASHING** | HashMap problems | Two Sum, Group Anagrams, Longest Consecutive Sequence | [Open Folder](JAVA_DSA/HASHING) |
+| **LINKEDLISTS** | Linked List problems | Reverse, Merge K Sorted, Cycle Detection, LRU Cache | [Open Folder](JAVA_DSA/resources/LINKEDLIST) |
+| **STACK_QUEUE** | Stack & Queue | Valid Parentheses, Min Stack, Queue using Stack | [Open Folder](JAVA_DSA/resources/STACK) |
+| **HASHING** | HashMap problems | Two Sum, Group Anagrams, Longest Consecutive Sequence | [Open Folder](JAVA_DSA/resources/HASHING) |
 
 ### 🌳 Tree Data Structures
 
 | Folder | Description | Key Topics | Link |
 |--------|-------------|------------|------|
-| **BINARY_TREES** | Binary Tree problems | Traversals, LCA, Maximum Path Sum, Serialize/Deserialize | [Open Folder](JAVA_DSA/BINARY_TREES) |
-| **BINARY_SEARCH_TREES** | BST operations | Validate BST, Kth Smallest, Lowest Common Ancestor | [Open Folder](JAVA_DSA/BINARY_SEARCH_TREES) |
-| **SEGMENT_TREE** | Range queries | Range Sum, Range Minimum Query, Lazy Propagation | [Open Folder](JAVA_DSA/SEGMENT_TREE) |
-| **TRIE** | Prefix tree | Trie Implementation, Word Search II, Autocomplete System | [Open Folder](JAVA_DSA/TRIE) |
+| **BINARY_TREES** | Binary Tree problems | Traversals, LCA, Maximum Path Sum, Serialize/Deserialize | [Open Folder](JAVA_DSA/resources/TREE) |
+| **BINARY_SEARCH_TREES** | BST operations | Validate BST, Kth Smallest, Lowest Common Ancestor | [Open Folder](JAVA_DSA/dsa/datastructures/trees/bst) |
+| **SEGMENT_TREE** | Range queries | Range Sum, Range Minimum Query, Lazy Propagation | [Open Folder](JAVA_DSA/dsa/datastructures/advanced/segmenttree) |
+| **TRIE** | Prefix tree | Trie Implementation, Word Search II, Autocomplete System | [Open Folder](JAVA_DSA/dsa/datastructures/tries) |
 
 ### 🕸️ Graph & Dynamic Programming
 
 | Folder | Description | Key Topics | Link |
 |--------|-------------|------------|------|
-| **GRAPHS** | Graph algorithms | BFS, DFS, Dijkstra, Bellman-Ford, MST, Topological Sort | [Open Folder](JAVA_DSA/GRAPHS) |
-| **DYNAMIC_PROGRAMMING** | DP patterns | 1D DP, 2D DP, Knapsack, LIS, LCS, String DP | [Open Folder](JAVA_DSA/DYNAMIC_PROGRAMMING) |
+| **GRAPHS** | Graph algorithms | BFS, DFS, Dijkstra, Bellman-Ford, MST, Topological Sort | [Open Folder](JAVA_DSA/resources/GRAPH) |
+| **DYNAMIC_PROGRAMMING** | DP patterns | 1D DP, 2D DP, Knapsack, LIS, LCS, String DP | [Open Folder](JAVA_DSA/resources/DYNAMIC_PROGRAMMING) |
 
 ### 🔄 Advanced Techniques
 
 | Folder | Description | Key Topics | Link |
 |--------|-------------|------------|------|
-| **BACKTRACKING** | Backtracking algorithms | N-Queens, Sudoku Solver, Permutations, Combination Sum | [Open Folder](JAVA_DSA/BACKTRACKING) |
-| **RECURSION** | Recursion problems | Tower of Hanoi, Generate Parentheses, Subsets | [Open Folder](JAVA_DSA/RECURSION) |
-| **BINARY_SEARCH** | Binary search variants | Search in Rotated Array, Find Minimum, Binary Search on Answer | [Open Folder](JAVA_DSA/BINARY_SEARCH) |
-| **GREEDY** | Greedy algorithms | Jump Game, Gas Station, Merge Intervals, Task Scheduler | [Open Folder](JAVA_DSA/GREEDY) |
-| **HEAP_PRIORITY_QUEUE** | Heap problems | Kth Largest, Top K Frequent, Median Finder, Merge K Lists | [Open Folder](JAVA_DSA/HEAP_PRIORITY_QUEUE) |
-| **MONOTONIC_STACK_QUEUE** | Monotonic stack | Largest Rectangle, Maximal Rectangle, Daily Temperatures | [Open Folder](JAVA_DSA/MONOTONIC_STACK_QUEUE) |
-| **SEARCHING** | Search algorithms | Linear Search, Binary Search, Ternary Search | [Open Folder](JAVA_DSA/SEARCHING) |
+| **BACKTRACKING** | Backtracking algorithms | N-Queens, Sudoku Solver, Permutations, Combination Sum | [Open Folder](JAVA_DSA/resources/BACKTRACKING) |
+| **RECURSION** | Recursion problems | Tower of Hanoi, Generate Parentheses, Subsets | [Open Folder](JAVA_DSA/dsa/algorithms/recursion) |
+| **BINARY_SEARCH** | Binary search variants | Search in Rotated Array, Find Minimum, Binary Search on Answer | [Open Folder](JAVA_DSA/resources/SEARCHING) |
+| **GREEDY** | Greedy algorithms | Jump Game, Gas Station, Merge Intervals, Task Scheduler | [Open Folder](JAVA_DSA/dsa/algorithms/greedy) |
+| **HEAP_PRIORITY_QUEUE** | Heap problems | Kth Largest, Top K Frequent, Median Finder, Merge K Lists | [Open Folder](JAVA_DSA/dsa/datastructures/heaps) |
+| **MONOTONIC_STACK_QUEUE** | Monotonic stack | Largest Rectangle, Maximal Rectangle, Daily Temperatures | [Open Folder](JAVA_DSA/dsa/techniques/monotonicstructures) |
+| **SEARCHING** | Search algorithms | Linear Search, Binary Search, Ternary Search | [Open Folder](JAVA_DSA/dsa/algorithms/searching) |
 
 ### 💻 System Design
 
 | Folder | Description | Key Implementations | Link |
 |--------|-------------|---------------------|------|
-| **SYSTEM_DESIGN** | Design patterns implementations | LRU Cache, LFU Cache, MinStack, Design Twitter | [Open Folder](JAVA_DSA/SYSTEM_DESIGN) |
+| **SYSTEM_DESIGN** | Design patterns implementations | LRU Cache, LFU Cache, MinStack, Design Twitter | [Open Folder](JAVA_DSA/dsa/systemdesign) |
 
 ---
 
@@ -246,29 +263,29 @@ push-back), production incident walkthroughs and system design solutions.
 
 ### Java Backend Track
 
-- **Start with the Spring Boot roadmap** in [SPRING_BOOT/README.md](SPRING_BOOT/README.md) — 14 topic areas, 57 deep-dive chapters, built for 3-4+ years backend roles
+- **Start with the Spring Boot roadmap** in [SPRING_BOOT/README.md](SPRING_BOOT/README.md) — 14 topic areas, 85 deep-dive chapters, built for 3-4+ years backend roles
 - Work the [SPRING_BOOT master checklist](MASTER_CHECKLIST.md#2-spring--spring-boot) to track chapter-by-chapter progress
-- Use the end-to-end roadmap in [JAVA_BACKEND_INTERVIEW/README.md](JAVA_BACKEND_INTERVIEW/README.md)
-- Use the self-review sheet in [JAVA_BACKEND_INTERVIEW/CHECKLIST.md](JAVA_BACKEND_INTERVIEW/CHECKLIST.md)
+- Use the end-to-end roadmap in [MASTER_CHECKLIST.md](MASTER_CHECKLIST.md)
+- Use the self-review sheet in [MASTER_CHECKLIST.md](MASTER_CHECKLIST.md) and the interactive [study checklist](/checklist) on the site
 - Best fit for candidates targeting Java backend rounds by **May 31, 2026**
 
 ### For Beginners
-1. Start with [BASICS](JAVA_DSA/BASICS) and [ARRAYS](JAVA_DSA/ARRAYS)
+1. Start with [BASICS](JAVA_DSA/dsa/fundamentals/basics) and [ARRAYS](JAVA_DSA/resources/ARRAY)
 2. Learn [CORE_JAVA](CORE_JAVA) fundamentals
-3. Practice [TWO_POINTER](JAVA_DSA/TWO_POINTER) and [SLIDING_WINDOW](JAVA_DSA/SLIDING_WINDOW)
-4. Move to [BINARY_TREES](JAVA_DSA/BINARY_TREES) and [BINARY_SEARCH](JAVA_DSA/BINARY_SEARCH)
+3. Practice [TWO_POINTER](JAVA_DSA/resources/ARRAY) and [SLIDING_WINDOW](JAVA_DSA/resources/ARRAY)
+4. Move to [BINARY_TREES](JAVA_DSA/resources/TREE) and [BINARY_SEARCH](JAVA_DSA/resources/SEARCHING)
 
 ### For Intermediate
-1. Master [DYNAMIC_PROGRAMMING](JAVA_DSA/DYNAMIC_PROGRAMMING) patterns
-2. Solve [GRAPHS](JAVA_DSA/GRAPHS) problems
-3. Practice [BACKTRACKING](JAVA_DSA/BACKTRACKING)
-4. Study [SYSTEM_DESIGN](JAVA_DSA/SYSTEM_DESIGN)
+1. Master [DYNAMIC_PROGRAMMING](JAVA_DSA/resources/DYNAMIC_PROGRAMMING) patterns
+2. Solve [GRAPHS](JAVA_DSA/resources/GRAPH) problems
+3. Practice [BACKTRACKING](JAVA_DSA/resources/BACKTRACKING)
+4. Study [SYSTEM_DESIGN](JAVA_DSA/dsa/systemdesign)
 
 ### For Advanced
-1. [SEGMENT_TREE](JAVA_DSA/SEGMENT_TREE) and advanced data structures
-2. [BIT_MANIPULATION](JAVA_DSA/BIT_MANIPULATION) tricks
-3. Complex [DYNAMIC_PROGRAMMING](JAVA_DSA/DYNAMIC_PROGRAMMING) problems
-4. [TRIE](JAVA_DSA/TRIE) and advanced string algorithms
+1. [SEGMENT_TREE](JAVA_DSA/dsa/datastructures/advanced/segmenttree) and advanced data structures
+2. [BIT_MANIPULATION](JAVA_DSA/dsa/techniques/bitmanipulation) tricks
+3. Complex [DYNAMIC_PROGRAMMING](JAVA_DSA/resources/DYNAMIC_PROGRAMMING) problems
+4. [TRIE](JAVA_DSA/dsa/datastructures/tries) and advanced string algorithms
 
 ---
 
@@ -290,25 +307,25 @@ push-back), production incident walkthroughs and system design solutions.
 ## 🔥 Most Asked Interview Problems
 
 ### Arrays
-- [Two Sum](JAVA_DSA/ARRAYS/LeetCode/TwoSum_Leetcode1.java)
-- [Best Time to Buy and Sell Stock](JAVA_DSA/ARRAYS/LeetCode/BestTimeToBuyAndSellStock_Leetcode121.java)
-- [Product of Array Except Self](JAVA_DSA/ARRAYS/ProductExceptSelf_LC238.java)
-- [Maximum Subarray (Kadane's)](JAVA_DSA/ARRAYS/MaximumSubarray_LC53.java)
+- [Two Sum](JAVA_DSA/dsa/datastructures/arrays/patterns/TwoSum_Leetcode1.java)
+- [Best Time to Buy and Sell Stock](JAVA_DSA/dsa/datastructures/arrays/leetcode/BestTimeToBuyAndSellStock_Leetcode121.java)
+- [Product of Array Except Self](JAVA_DSA/dsa/datastructures/arrays/basics/ProductExceptSelf_LC238.java)
+- [Maximum Subarray (Kadane's)](JAVA_DSA/dsa/datastructures/arrays/basics/MaximumSubarray_LC53.java)
 
 ### Trees
-- [Binary Tree Inorder Traversal](JAVA_DSA/BINARY_TREES/Traversal_Techniques)
-- [Lowest Common Ancestor](JAVA_DSA/BINARY_TREES/TREES_PROBLEM_SET/MEDIUM)
-- [Serialize and Deserialize Binary Tree](JAVA_DSA/BINARY_TREES/TREES_PROBLEM_SET/DIFFICULT)
+- [Binary Tree Inorder Traversal](JAVA_DSA/dsa/datastructures/trees/binarytrees/traversal)
+- [Lowest Common Ancestor](JAVA_DSA/dsa/datastructures/trees/binarytrees/problems/medium)
+- [Serialize and Deserialize Binary Tree](JAVA_DSA/dsa/datastructures/trees/binarytrees/problems/difficult)
 
 ### Graphs
-- [Clone Graph](JAVA_DSA/GRAPHS/problems/Medium)
-- [Number of Provinces](JAVA_DSA/GRAPHS/problems/Medium)
-- [Course Schedule](JAVA_DSA/GRAPHS/problems/Medium)
+- [Clone Graph](JAVA_DSA/dsa/datastructures/graphs/problems/medium)
+- [Number of Provinces](JAVA_DSA/dsa/datastructures/graphs/problems/medium)
+- [Course Schedule](JAVA_DSA/dsa/datastructures/graphs/problems/medium)
 
 ### Dynamic Programming
-- [Climbing Stairs](JAVA_DSA/DYNAMIC_PROGRAMMING/java/one_dimensional)
-- [Longest Increasing Subsequence](JAVA_DSA/DYNAMIC_PROGRAMMING/java/subsequence_problems)
-- [Edit Distance](JAVA_DSA/DYNAMIC_PROGRAMMING/java/string_dp)
+- [Climbing Stairs](JAVA_DSA/dsa/dynamicprogramming/java/one_dimensional)
+- [Longest Increasing Subsequence](JAVA_DSA/dsa/dynamicprogramming/java/subsequence_problems)
+- [Edit Distance](JAVA_DSA/dsa/dynamicprogramming/java/string_dp)
 
 ---
 
@@ -338,26 +355,26 @@ java JAVA_DSA.ARRAYS.LeetCode.TwoSum_Leetcode1
 
 ### Week 1-2: Fundamentals
 - [CORE_JAVA](CORE_JAVA) - OOP, Collections, Java 8
-- [ARRAYS](JAVA_DSA/ARRAYS) - All easy problems
-- [STRINGS](JAVA_DSA/STRINGS) - Basic problems
+- [ARRAYS](JAVA_DSA/resources/ARRAY) - All easy problems
+- [STRINGS](JAVA_DSA/resources/STRING) - Basic problems
 
 ### Week 3-4: Data Structures
-- [LINKEDLISTS](JAVA_DSA/LINKEDLISTS)
-- [STACK_QUEUE](JAVA_DSA/STACK_QUEUE)
-- [BINARY_TREES](JAVA_DSA/BINARY_TREES)
-- [HASHING](JAVA_DSA/HASHING)
+- [LINKEDLISTS](JAVA_DSA/resources/LINKEDLIST)
+- [STACK_QUEUE](JAVA_DSA/resources/STACK)
+- [BINARY_TREES](JAVA_DSA/resources/TREE)
+- [HASHING](JAVA_DSA/resources/HASHING)
 
 ### Week 5-6: Algorithms
-- [BINARY_SEARCH](JAVA_DSA/BINARY_SEARCH)
-- [TWO_POINTER](JAVA_DSA/TWO_POINTER)
-- [SLIDING_WINDOW](JAVA_DSA/SLIDING_WINDOW)
-- [SORTING](JAVA_DSA/SORTING)
+- [BINARY_SEARCH](JAVA_DSA/resources/SEARCHING)
+- [TWO_POINTER](JAVA_DSA/resources/ARRAY)
+- [SLIDING_WINDOW](JAVA_DSA/resources/ARRAY)
+- [SORTING](JAVA_DSA/resources/SORTING)
 
 ### Week 7-8: Advanced
-- [DYNAMIC_PROGRAMMING](JAVA_DSA/DYNAMIC_PROGRAMMING)
-- [GRAPHS](JAVA_DSA/GRAPHS)
-- [BACKTRACKING](JAVA_DSA/BACKTRACKING)
-- [SYSTEM_DESIGN](JAVA_DSA/SYSTEM_DESIGN)
+- [DYNAMIC_PROGRAMMING](JAVA_DSA/resources/DYNAMIC_PROGRAMMING)
+- [GRAPHS](JAVA_DSA/resources/GRAPH)
+- [BACKTRACKING](JAVA_DSA/resources/BACKTRACKING)
+- [SYSTEM_DESIGN](JAVA_DSA/dsa/systemdesign)
 
 ### Spring Boot Track (8 weeks)
 - [SPRING_BOOT](SPRING_BOOT) - the complete 3-4+ years Java backend roadmap

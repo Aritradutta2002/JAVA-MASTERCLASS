@@ -1,0 +1,33 @@
+---
+import {
+  BookOpen,
+  Code2,
+  Compass,
+  Container,
+  Cpu,
+  Database,
+  Layers,
+} from 'lucide-react';
+
+interface Props {
+  domain: string;
+  class?: string;
+}
+
+const { domain, class: className = 'h-4 w-4' } = Astro.props;
+
+const icons: Record<string, any> = {
+  'core-java': Cpu,
+  'spring-boot': Layers,
+  'system-design': Compass,
+  'database-caching': Database,
+  'java-dsa': Code2,
+  'cloud-devops': Container,
+  'docker-java-backend': Container,
+  root: BookOpen,
+};
+
+const Icon = icons[domain] ?? BookOpen;
+---
+
+<Icon className={className} />

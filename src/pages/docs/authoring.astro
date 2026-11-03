@@ -1,0 +1,95 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import ObsidianLayout from '../../layouts/ObsidianLayout.astro';
+import { buildNavigationTree, getAllDocs, getStats } from '../../lib/content';
+import { renderMarkdown } from '../../lib/markdownRenderer';
+import { ArrowRight, BookOpen, FileText, PenLine, Workflow } from 'lucide-react';
+
+const GUIDE_PATH = 'docs/CONTENT_AUTHORING_GUIDE.md';
+
+const allDocs = getAllDocs();
+const navigation = buildNavigationTree(allDocs);
+const stats = getStats(allDocs);
+
+const fullPath = path.join(process.cwd(), GUIDE_PATH);
+const source = fs.existsSync(fullPath) ? fs.readFileSync(fullPath, 'utf-8') : '# Authoring guide\n\nThe guide is missing.';
+const html = await renderMarkdown(source, GUIDE_PATH, { stripTitle: false });
+
+const fmt = new Intl.NumberFormat('en-US');
+---
+
+<ObsidianLayout
+  title="Authoring guide"
+  description="How to add chapters, link concepts, embed runnable code, and maintain the Java Masterclass knowledge base."
+  navigation={navigation}
+  eyebrow="Contribute"
+  wide
+>
+  <div class="not-prose mb-8 grid gap-3 sm:grid-cols-3">
+    <div class="surface-card flex items-start gap-3 p-4">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obs-accent/30 bg-obs-accent/10 text-obs-accent">
+        <PenLine className="h-4 w-4" />
+      </span>
+      <div>
+        <p class="text-[0.8rem] font-semibold text-obs-text-primary">Write in Markdown</p>
+        <p class="mt-0.5 text-[0.66rem] leading-relaxed text-obs-text-muted">
+          Drop a file in a domain folder. Routes, navigation, search, and backlinks are generated.
+        </p>
+      </div>
+    </div>
+    <div class="surface-card flex items-start gap-3 p-4">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obs-emerald/30 bg-obs-emerald/10 text-obs-emerald">
+        <Workflow className="h-4 w-4" />
+      </span>
+      <div>
+        <p class="text-[0.8rem] font-semibold text-obs-text-primary">Link concepts</p>
+        <p class="mt-0.5 text-[0.66rem] leading-relaxed text-obs-text-muted">
+          Relative links and wiki links become graph edges and backlinks automatically.
+        </p>
+      </div>
+    </div>
+    <div class="surface-card flex items-start gap-3 p-4">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obs-gold/30 bg-obs-gold/10 text-obs-gold">
+        <BookOpen className="h-4 w-4" />
+      </span>
+      <div>
+        <p class="text-[0.8rem] font-semibold text-obs-text-primary">{fmt.format(stats.documents)} live documents</p>
+        <p class="mt-0.5 text-[0.66rem] leading-relaxed text-obs-text-muted">
+          Every existing chapter is an example of the structure described below.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <article class="obsidian-prose">
+    <Fragment set:html={html} />
+  </article>
+
+  <div class="not-prose mt-10 grid gap-3 border-t border-obs-border pt-6 sm:grid-cols-2">
+    <a href="/reference/quick-references" class="surface-card surface-card-hover group flex items-center gap-3 p-4">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obs-accent/30 bg-obs-accent/10 text-obs-accent">
+        <FileText className="h-4 w-4" />
+      </span>
+      <span class="min-w-0">
+        <span class="block text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent">
+          Quick references
+        </span>
+        <span class="block text-[0.66rem] text-obs-text-muted">See the reference format in practice.</span>
+      </span>
+      <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-obs-text-muted" />
+    </a>
+    <a href="/standards" class="surface-card surface-card-hover group flex items-center gap-3 p-4">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obs-gold/30 bg-obs-gold/10 text-obs-gold">
+        <BookOpen className="h-4 w-4" />
+      </span>
+      <span class="min-w-0">
+        <span class="block text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent">
+          Engineering standards
+        </span>
+        <span class="block text-[0.66rem] text-obs-text-muted">The conventions each domain follows.</span>
+      </span>
+      <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-obs-text-muted" />
+    </a>
+  </div>
+</ObsidianLayout>

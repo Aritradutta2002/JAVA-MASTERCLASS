@@ -1,165 +1,197 @@
 ---
+import fs from 'node:fs';
+import path from 'node:path';
 import ObsidianLayout from '../../layouts/ObsidianLayout.astro';
-import { getAllDocs, buildNavigationTree } from '../../lib/content';
-import { Code2, GitFork, ArrowRight, BookOpen, Layers, Terminal, Sparkles, CheckCircle } from 'lucide-react';
+import { buildNavigationTree, getAllDocs } from '../../lib/content';
+import {
+  ArrowRight,
+  Boxes,
+  Code2,
+  FileText,
+  GitFork,
+  Layers,
+  Sparkles,
+  Terminal,
+} from 'lucide-react';
 
 const allDocs = getAllDocs();
 const navigation = buildNavigationTree(allDocs);
 
-// Filter DSA topics
-const graphDocs = allDocs.filter(d => d.slug.includes('resources/graph'));
-const dpDocs = allDocs.filter(d => d.slug.includes('resources/dynamic-programming'));
-const arrayDocs = allDocs.filter(d => d.slug.includes('resources/array'));
-const foundationDocs = allDocs.filter(d => d.slug.includes('resources/foundations'));
-const dsaPatternDocs = allDocs.filter(d => d.slug.includes('java-dsa/dsa/'));
+const dsaDocs = allDocs
+  .filter((doc) => doc.domain === 'java-dsa' && !doc.isEmpty)
+  .sort((a, b) => a.filePath.localeCompare(b.filePath, undefined, { numeric: true }));
+
+const dsaReadingMinutes = dsaDocs.reduce((sum, doc) => sum + doc.readingTimeMinutes, 0);
+const dsaSections = dsaDocs.reduce((sum, doc) => sum + doc.headings.length, 0);
+
+function countJava(dir: string): number {
+  let total = 0;
+  const full = path.join(process.cwd(), dir);
+  if (!fs.existsSync(full)) return 0;
+  const walk = (current: string) => {
+    for (const item of fs.readdirSync(current, { withFileTypes: true })) {
+      if (item.name.startsWith('.')) continue;
+      const next = path.join(current, item.name);
+      if (item.isDirectory()) walk(next);
+      else if (item.name.endsWith('.java')) total += 1;
+    }
+  };
+  walk(full);
+  return total;
+}
+
+const dsaJavaFiles = countJava('JAVA_DSA');
+
+const groupMeta: Record<string, { title: string; description: string; icon: typeof Code2 }> = {
+  datastructures: {
+    title: 'Data structures',
+    description: 'Arrays, strings, heaps, tries, trees, stacks, queues, graphs, and disjoint-set union.',
+    icon: Boxes,
+  },
+  algorithms: {
+    title: 'Algorithms',
+    description: 'Sorting, searching, recursion, greedy, and backtracking, with pattern-driven problem sets.',
+    icon: GitFork,
+  },
+  techniques: {
+    title: 'Problem-solving techniques',
+    description: 'Sliding window, two pointers, prefix sums, hashing, monotonic structures, and bit manipulation.',
+    icon: Sparkles,
+  },
+  dynamicprogramming: {
+    title: 'Dynamic programming',
+    description: 'Memoization, tabulation, knapsack variants, LCS, LIS, and graph DP.',
+    icon: Layers,
+  },
+  systemdesign: {
+    title: 'DSA-flavoured system design',
+    description: 'Applying algorithmic thinking to backend design problems.',
+    icon: Terminal,
+  },
+  resources: {
+    title: 'Reference library',
+    description: 'Condensed theory sheets and reference material organised by data structure and algorithm.',
+    icon: FileText,
+  },
+};
+
+const groups = new Map<string, typeof dsaDocs>();
+for (const doc of dsaDocs) {
+  const parts = doc.filePath.split('/');
+  const key = parts[1] === 'resources' ? 'resources' : parts[2] || 'general';
+  if (!groups.has(key)) groups.set(key, []);
+  groups.get(key)!.push(doc);
+}
+
+const orderedGroups = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+const fmt = new Intl.NumberFormat('en-US');
 ---
 
 <ObsidianLayout
-  title="Data Structures & Algorithms Masterclass"
-  description="Comprehensive DSA curriculum covering Graph Theory, Dynamic Programming, Algorithmic Patterns, and 621 Java Implementations."
+  title="Data structures & algorithms"
+  description="A complete DSA curriculum: data structures, algorithms, patterns, graph and dynamic-programming masterclasses, and runnable Java implementations."
   navigation={navigation}
+  wide
 >
-  <div class="space-y-10 py-4 max-w-4xl mx-auto">
-    <!-- Hero Banner -->
-    <div class="rounded-2xl border border-obs-border bg-gradient-to-b from-obs-sidebar via-obs-surface to-obs-canvas p-8 md:p-10 shadow-lg space-y-4">
-      <div class="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-400">
-        <Code2 className="h-3.5 w-3.5" />
-        <span>Algorithms & Problem Solving Track</span>
-      </div>
-
-      <h1 class="text-3xl md:text-4xl font-extrabold text-obs-text-primary !border-none !p-0">
-        Data Structures & Algorithms Masterclass
-      </h1>
-
-      <p class="text-sm md:text-base text-obs-text-secondary leading-relaxed">
-        A rigorous collection of theoretical guides, pattern breakdowns, and <strong class="text-obs-text-primary">621 production Java implementations</strong> covering graph theory, dynamic programming, monotonic structures, bit manipulation, and search techniques.
-      </p>
-
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-obs-border/50">
-        <div>
-          <div class="text-xl font-bold text-obs-text-primary font-mono">18</div>
-          <div class="text-xs text-obs-text-muted">Graph Chapters</div>
-        </div>
-        <div>
-          <div class="text-xl font-bold text-obs-text-primary font-mono">19</div>
-          <div class="text-xs text-obs-text-muted">DP Categories</div>
-        </div>
-        <div>
-          <div class="text-xl font-bold text-obs-text-primary font-mono">621</div>
-          <div class="text-xs text-obs-text-muted">Java Solutions</div>
-        </div>
-        <div>
-          <div class="text-xl font-bold text-rose-400 font-mono">100%</div>
-          <div class="text-xs text-obs-text-muted">Dry-Run Traces</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 18-Chapter Graph Theory Masterclass -->
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-xl font-bold text-obs-text-primary !border-none !m-0">
-            18-Chapter Graph Theory Masterclass
-          </h2>
-          <p class="text-xs text-obs-text-muted mt-1">
-            Complete textbook on graph algorithms from BFS/DFS traversals to Tarjan SCC, Maximum Flow, and 2-SAT.
-          </p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-        {graphDocs.map((doc) => (
-          <a
-            href={doc.slug}
-            class="flex items-center justify-between p-3 rounded-lg border border-obs-border bg-obs-sidebar hover:border-obs-accent/50 hover:bg-obs-hover transition-colors group"
-          >
-            <div class="truncate pr-2">
-              <div class="text-xs font-semibold text-obs-text-primary group-hover:text-obs-accent truncate">
-                {doc.title}
-              </div>
-              <div class="text-[11px] text-obs-text-muted">
-                {doc.readingTimeMinutes} min read · {doc.wordCount} words
-              </div>
-            </div>
-            <ArrowRight className="h-3.5 w-3.5 text-obs-text-muted group-hover:text-obs-accent shrink-0" />
-          </a>
-        ))}
-      </div>
-    </div>
-
-    <!-- Dynamic Programming & Array Patterns -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- DP Masterclass -->
-      <div class="space-y-3">
-        <h2 class="text-lg font-bold text-obs-text-primary !border-none !m-0">
-          Dynamic Programming
-        </h2>
-        <p class="text-xs text-obs-text-muted">
-          From recursion to memoization, tabulation, Knapsack variants, LCS, and LIS.
+  <div class="not-prose space-y-9">
+    <header class="relative overflow-hidden rounded-3xl border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/70 to-obs-canvas-soft p-6 shadow-obs sm:p-9">
+      <div class="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-obs-rose/10 blur-3xl"></div>
+      <div class="relative space-y-4">
+        <p class="eyebrow"><Code2 className="h-3.5 w-3.5" /> Algorithms track</p>
+        <h1 class="max-w-3xl text-balance font-serif text-3xl font-bold leading-tight tracking-tight text-obs-text-primary sm:text-4xl">
+          Data structures & algorithms, from pattern to proof
+        </h1>
+        <p class="max-w-2xl text-pretty text-sm leading-relaxed text-obs-text-secondary">
+          Theory, pattern breakdowns, dry runs, and {fmt.format(dsaJavaFiles)} runnable Java
+          implementations. Every section is a navigable chapter with complexity analysis and
+          interview framing.
         </p>
-        <div class="space-y-2">
-          {dpDocs.map((doc) => (
-            <a
-              href={doc.slug}
-              class="flex items-center justify-between p-2.5 rounded-lg border border-obs-border bg-obs-surface hover:border-obs-accent/50 hover:bg-obs-hover transition-colors group"
-            >
-              <span class="text-xs font-medium text-obs-text-primary group-hover:text-obs-accent truncate">
-                {doc.title}
-              </span>
-              <ArrowRight className="h-3 w-3 text-obs-text-muted group-hover:text-obs-accent shrink-0" />
-            </a>
+
+        <div class="grid grid-cols-2 gap-3 border-t border-obs-border-subtle pt-4 sm:grid-cols-4">
+          {[
+            { label: 'Chapters', value: fmt.format(dsaDocs.length) },
+            { label: 'Java files', value: fmt.format(dsaJavaFiles) },
+            { label: 'Sections', value: fmt.format(dsaSections) },
+            { label: 'Reading hours', value: `${fmt.format(Math.round(dsaReadingMinutes / 60))}` },
+          ].map((item) => (
+            <div>
+              <div class="font-mono text-xl font-bold text-obs-text-primary">{item.value}</div>
+              <div class="text-[0.6rem] font-medium uppercase tracking-[0.12em] text-obs-text-muted">{item.label}</div>
+            </div>
           ))}
         </div>
       </div>
+    </header>
 
-      <!-- Array & Complexity Foundations -->
-      <div class="space-y-3">
-        <h2 class="text-lg font-bold text-obs-text-primary !border-none !m-0">
-          Arrays & Complexity Foundations
-        </h2>
-        <p class="text-xs text-obs-text-muted">
-          Prefix sum, sliding window, Big-O notation, and complexity cheat sheets.
-        </p>
-        <div class="space-y-2">
-          {[...arrayDocs, ...foundationDocs].map((doc) => (
-            <a
-              href={doc.slug}
-              class="flex items-center justify-between p-2.5 rounded-lg border border-obs-border bg-obs-surface hover:border-obs-accent/50 hover:bg-obs-hover transition-colors group"
-            >
-              <span class="text-xs font-medium text-obs-text-primary group-hover:text-obs-accent truncate">
-                {doc.title}
-              </span>
-              <ArrowRight className="h-3 w-3 text-obs-text-muted group-hover:text-obs-accent shrink-0" />
-            </a>
-          ))}
-        </div>
-      </div>
-    </div>
+    <nav aria-label="DSA sections" class="flex flex-wrap gap-1.5">
+      {orderedGroups.map(([key, docs]) => (
+        <a
+          href={`#dsa-${key}`}
+          class="rounded-full border border-obs-border bg-obs-surface px-2.5 py-1 text-[0.65rem] font-semibold text-obs-text-muted transition-colors hover:border-obs-accent/45 hover:text-obs-accent"
+        >
+          {groupMeta[key]?.title ?? key} <span class="ml-1 opacity-60">{docs.length}</span>
+        </a>
+      ))}
+    </nav>
 
-    <!-- Algorithmic Patterns & DSA Guides -->
-    <div class="space-y-4">
-      <h2 class="text-xl font-bold text-obs-text-primary !border-none !m-0">
-        Algorithmic Patterns & Problem Collections (40 Tracks)
-      </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-        {dsaPatternDocs.map((doc) => (
-          <a
-            href={doc.slug}
-            class="flex items-center justify-between p-2.5 rounded-lg border border-obs-border bg-obs-sidebar hover:border-obs-accent/50 hover:bg-obs-hover transition-colors group"
-          >
-            <div class="truncate pr-2">
-              <div class="text-xs font-medium text-obs-text-primary group-hover:text-obs-accent truncate">
-                {doc.title}
-              </div>
-              <div class="text-[10px] text-obs-text-muted truncate">
-                {doc.categoryTitle}
-              </div>
+    {orderedGroups.map(([key, docs]) => {
+      const meta = groupMeta[key];
+      const Icon = meta?.icon ?? FileText;
+      return (
+        <section id={`dsa-${key}`} class="scroll-mt-24 space-y-3" aria-labelledby={`dsa-${key}-heading`}>
+          <div class="flex items-start gap-3 border-b border-obs-border pb-2">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obs-rose/30 bg-obs-rose/10 text-obs-rose">
+              <Icon className="h-4 w-4" />
+            </span>
+            <div>
+              <h2 id={`dsa-${key}-heading`} class="font-serif text-xl font-bold text-obs-text-primary">
+                {meta?.title ?? key}
+              </h2>
+              <p class="text-[0.72rem] text-obs-text-muted">
+                {meta?.description ?? `${docs.length} chapters`}
+              </p>
             </div>
-            <ArrowRight className="h-3 w-3 text-obs-text-muted group-hover:text-obs-accent shrink-0" />
-          </a>
-        ))}
+            <span class="ml-auto shrink-0 font-mono text-[0.66rem] text-obs-text-muted">{docs.length}</span>
+          </div>
+
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {docs.map((doc) => (
+              <a href={doc.slug} class="surface-card surface-card-hover group flex flex-col p-3.5">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-[0.58rem] font-bold uppercase tracking-[0.1em] text-obs-accent/80">
+                    {doc.moduleTitle}
+                  </span>
+                  <span class="font-mono text-[0.58rem] text-obs-text-muted">{doc.readingTimeMinutes} min</span>
+                </div>
+                <h3 class="mt-1 font-serif text-[0.92rem] font-semibold leading-snug text-obs-text-primary group-hover:text-obs-accent">
+                  {doc.title}
+                </h3>
+                {doc.summary && (
+                  <p class="mt-1 line-clamp-2 text-[0.7rem] leading-relaxed text-obs-text-muted">{doc.summary}</p>
+                )}
+                <div class="mt-auto flex items-center justify-between border-t border-obs-border-subtle pt-2 text-[0.6rem] text-obs-text-muted">
+                  <span>{fmt.format(doc.wordCount)} words</span>
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      );
+    })}
+
+    <section class="surface-card flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center">
+      <div>
+        <p class="eyebrow"><Code2 className="h-3.5 w-3.5" /> Browse the source</p>
+        <h2 class="mt-1 font-serif text-xl font-bold text-obs-text-primary">
+          {fmt.format(dsaJavaFiles)} Java implementations
+        </h2>
+        <p class="mt-1 max-w-xl text-xs leading-relaxed text-obs-text-muted">
+          The Java sources sit alongside their chapters in the repository, organised by the same
+          data-structure and algorithm hierarchy.
+        </p>
       </div>
-    </div>
+      <a href="/library" class="btn btn-primary">Browse the library <ArrowRight className="h-3.5 w-3.5" /></a>
+    </section>
   </div>
 </ObsidianLayout>

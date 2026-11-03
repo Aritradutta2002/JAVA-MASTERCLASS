@@ -51,7 +51,7 @@ export function resolveInternalLink(currentDocPath: string, rawUrl: string): { u
   const trimmed = rawUrl.trim();
 
   // External links
-  if (/^(https?:|mailto:|tel:|javascript:)/i.test(trimmed)) {
+  if (/^(https?:|mailto:|tel:|javascript:|\/\/)/i.test(trimmed)) {
     return { url: trimmed, isExternal: true, isAnchor: false };
   }
 
@@ -70,7 +70,7 @@ export function resolveInternalLink(currentDocPath: string, rawUrl: string): { u
 
   // Static practice schema asset
   if (cleanPath.endsWith('practice-schema.sql')) {
-    return { url: '/database-caching/01-sql-databases/practice-schema.sql', isExternal: false, isAnchor: false };
+    return { url: `/practice-schema.sql${anchor}`, isExternal: false, isAnchor: false };
   }
 
   // 1. Direct candidate matching
@@ -99,7 +99,27 @@ export function resolveInternalLink(currentDocPath: string, rawUrl: string): { u
   }
 
   // 3. Known structural aliases and corrections
+  // Legacy repository paths that no longer exist but are still referenced by
+  // the root README and older notes.
+  if (/^JAVA_BACKEND_INTERVIEW\//i.test(cleanPath)) {
+    if (/checklist/i.test(cleanPath)) {
+      return { url: `/master-checklist${anchor}`, isExternal: false, isAnchor: false };
+    }
+    return { url: `/overview${anchor}`, isExternal: false, isAnchor: false };
+  }
+
+  // Repository guides that are rendered as dedicated pages.
+  if (/CONTENT_AUTHORING_GUIDE\.md$/i.test(cleanPath)) {
+    return { url: `/docs/authoring${anchor}`, isExternal: false, isAnchor: false };
+  }
+  if (/DEPLOYMENT\.md$/i.test(cleanPath)) {
+    return { url: `/docs/deployment${anchor}`, isExternal: false, isAnchor: false };
+  }
+
   // Checklist links
+  if (/master[_-]?checklist\.md/i.test(cleanPath)) {
+    return { url: `/master-checklist${anchor}`, isExternal: false, isAnchor: false };
+  }
   if (/checklist\.md/i.test(cleanPath)) {
     return { url: `/checklist${anchor}`, isExternal: false, isAnchor: false };
   }
@@ -250,23 +270,108 @@ export function resolveInternalLink(currentDocPath: string, rawUrl: string): { u
 }
 
 export function transformMarkdownContent(content: string, currentDocPath: string): string {
-  // 1. Transform [[Wiki Links]]
-  let transformed = content.replace(/\[\[(.*?)\]\]/g, (match, inner) => {
-    if (inner.includes('==') || inner.includes('!=') || inner.includes('], [') || /^\s*["\$\d]/.test(inner)) {
+  const lines = content.split('\n');
+  const output: string[] = [];
+  let buffer: string[] = [];
+  let inFence = false;
+  let fenceChar = '';
+
+  const flush = () => {
+    if (!buffer.length) return;
+    output.push(transformProse(buffer.join('\n'), currentDocPath));
+    buffer = [];
+  };
+
+  for (const line of lines) {
+    const fence = line.match(/^\s*(`{3,}|~{3,})/);
+    if (fence) {
+      if (!inFence) {
+        flush();
+        inFence = true;
+        fenceChar = fence[1][0];
+        output.push(line);
+      } else if (fence[1][0] === fenceChar) {
+        inFence = false;
+        output.push(line);
+      } else {
+        output.push(line);
+      }
+      continue;
+    }
+    if (inFence) output.push(line);
+    else buffer.push(line);
+  }
+  flush();
+  return output.join('\n');
+}
+
+const SAFE_HTML_TAGS = new Set([
+  'a', 'abbr', 'b', 'blockquote', 'br', 'caption', 'code', 'col', 'colgroup',
+  'dd', 'del', 'details', 'div', 'dl', 'dt', 'em', 'figcaption', 'figure',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'i', 'img', 'ins', 'kbd', 'li',
+  'mark', 'ol', 'p', 'picture', 'pre', 'q', 's', 'samp', 'small', 'source',
+  'span', 'strong', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'tfoot',
+  'th', 'thead', 'tr', 'u', 'ul', 'var', 'video',
+]);
+
+function escapeUnknownHtml(value: string): string {
+  return value.replace(/<\/?([A-Za-z][A-Za-z0-9]*)(?:\s[^<>]*)?\/?>/g, (match, tag) => {
+    if (SAFE_HTML_TAGS.has(String(tag).toLowerCase())) return match;
+    return match.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  });
+}
+
+function transformProse(prose: string, currentDocPath: string): string {
+  // Protect inline code spans with placeholders so that links whose *label*
+  // contains code (e.g. [`STANDARD.md`](./STANDARD.md)) are still rewritten,
+  // while URLs that appear inside code are never touched.
+  const codeSpans: string[] = [];
+  const tokenPrefix = '\u0000OBSCODE';
+  const tokenSuffix = '\u0000';
+  const withPlaceholders = prose.replace(/(`+[^`\n]*?`+)/g, (match) => {
+    const token = `${tokenPrefix}${codeSpans.length}${tokenSuffix}`;
+    codeSpans.push(match);
+    return token;
+  });
+
+  const transformed = transformLinks(escapeUnknownHtml(withPlaceholders), currentDocPath);
+
+  return transformed.replace(
+    /\u0000OBSCODE(\d+)\u0000/g,
+    (_match, index: string) => codeSpans[Number(index)] ?? ''
+  );
+}
+
+function transformLinks(prose: string, currentDocPath: string): string {
+  // Obsidian-style wiki links. Skip obvious shell/code fragments.
+  let transformed = prose.replace(/\[\[([^\]]+)\]\]/g, (match, inner: string) => {
+    if (
+      inner.includes('==') ||
+      inner.includes('!=') ||
+      inner.includes('], [') ||
+      /^\s*["$\d]/.test(inner)
+    ) {
       return match;
     }
-    const parts = inner.split('|');
-    const target = parts[0].trim();
-    const label = parts[1] ? parts[1].trim() : target;
+    const [targetPart, labelPart] = inner.split('|');
+    const target = targetPart.trim();
+    const label = labelPart ? labelPart.trim() : target;
     const resolved = resolveInternalLink(currentDocPath, target);
+    if (resolved.url === target && !resolved.isExternal && !target.startsWith('/')) {
+      return `<span class="unresolved-link" title="No matching note yet">${label}</span>`;
+    }
     return `[${label}](${resolved.url})`;
   });
 
-  // 2. Transform Standard Markdown Links [Text](url)
-  transformed = transformed.replace(/(?<!!)\[([^\]]+)\]\(([^)]+)\)/g, (match, text, rawUrl) => {
-    const resolved = resolveInternalLink(currentDocPath, rawUrl);
-    return `[${text}](${resolved.url})`;
-  });
+  // Standard Markdown links.
+  transformed = transformed.replace(
+    /(?<!!)\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g,
+    (_match, text: string, rawUrl: string) => {
+      const resolved = resolveInternalLink(currentDocPath, rawUrl);
+      return `[${text}](${resolved.url})`;
+    }
+  );
 
   return transformed;
 }
+

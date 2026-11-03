@@ -1,0 +1,133 @@
+---
+import ObsidianLayout from '../layouts/ObsidianLayout.astro';
+import { buildNavigationTree, getAllDocs } from '../lib/content';
+import { Search, Sparkles } from 'lucide-react';
+
+const allDocs = getAllDocs();
+const navigation = buildNavigationTree(allDocs);
+---
+
+<ObsidianLayout
+  title="Search"
+  description="Search across every chapter, table, and code explanation in the Java Masterclass."
+  navigation={navigation}
+  noIndex
+  wide
+>
+  <div class="not-prose mx-auto max-w-4xl space-y-6">
+    <header class="space-y-3 border-b border-obs-border pb-6">
+      <p class="eyebrow"><Search className="h-3.5 w-3.5" /> Full-text search</p>
+      <h1 class="font-serif text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
+        Find the exact paragraph
+      </h1>
+      <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
+        The static index searches the full text of every chapter — including headings, tables, and
+        prose. Use quotes for exact phrases or a few distinctive keywords.
+      </p>
+    </header>
+
+    <form action="/search" method="get" role="search" class="flex items-center gap-2 rounded-xl border border-obs-border bg-obs-surface p-2 shadow-obs focus-within:border-obs-accent/50">
+      <label for="page-search-input" class="sr-only">Search all chapters</label>
+      <Search className="ml-2 h-4 w-4 shrink-0 text-obs-accent" />
+      <input
+        id="page-search-input"
+        name="q"
+        type="search"
+        placeholder="Search JVM, Kafka, CAP theorem, sliding window…"
+        class="min-w-0 flex-1 bg-transparent py-2 text-sm text-obs-text-primary placeholder:text-obs-text-muted focus:outline-none"
+        autocomplete="off"
+      />
+      <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    <div id="pagefind-search" class="min-h-[12rem]"></div>
+
+    <div id="search-fallback" class="hidden rounded-xl border border-obs-border bg-obs-surface p-8 text-center">
+      <Sparkles className="mx-auto h-5 w-5 text-obs-accent" />
+      <p class="mt-2 text-sm font-semibold text-obs-text-primary">The full-text index is built at deploy time</p>
+      <p class="mx-auto mt-1 max-w-md text-xs leading-relaxed text-obs-text-muted">
+        Run <code class="rounded bg-obs-tag px-1 py-0.5 font-mono text-[0.7rem]">npm run build</code> to
+        generate the Pagefind index, or use the instant command palette now.
+      </p>
+      <button id="fallback-open-palette" type="button" class="btn btn-primary mt-4">
+        Open command palette
+      </button>
+    </div>
+
+    <div class="grid gap-3 sm:grid-cols-3">
+      <a href="/library" class="surface-card surface-card-hover p-4">
+        <span class="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-obs-accent">Library</span>
+        <span class="mt-1 block text-sm font-semibold text-obs-text-primary">Browse by domain</span>
+      </a>
+      <a href="/tags" class="surface-card surface-card-hover p-4">
+        <span class="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-obs-accent">Tags</span>
+        <span class="mt-1 block text-sm font-semibold text-obs-text-primary">Browse by concept</span>
+      </a>
+      <a href="/graph" class="surface-card surface-card-hover p-4">
+        <span class="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-obs-accent">Graph</span>
+        <span class="mt-1 block text-sm font-semibold text-obs-text-primary">Follow connections</span>
+      </a>
+    </div>
+  </div>
+
+  <script is:inline>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const initialQuery = params.get('q') || '';
+      const mount = document.getElementById('pagefind-search');
+      const fallback = document.getElementById('search-fallback');
+      const fallbackButton = document.getElementById('fallback-open-palette');
+      const input = document.getElementById('page-search-input');
+
+      if (input && initialQuery) input.value = initialQuery;
+      fallbackButton?.addEventListener('click', function () {
+        window.dispatchEvent(new CustomEvent('obsidian:open-search'));
+      });
+
+      function showFallback() {
+        if (mount) mount.classList.add('hidden');
+        fallback?.classList.remove('hidden');
+      }
+
+      function init() {
+        if (!window.PagefindUI || !mount) {
+          showFallback();
+          return;
+        }
+        try {
+          new window.PagefindUI({
+            element: mount,
+            showSubResults: true,
+            showImages: false,
+            resetStyles: false,
+            bundlePath: '/pagefind/',
+            translations: {
+              placeholder: 'Search every chapter…',
+              zero_results: 'No results for [SEARCH_TERM]',
+            },
+          });
+          const pagefindInput = mount.querySelector('.pagefind-ui__search-input');
+          if (pagefindInput && initialQuery) {
+            pagefindInput.value = initialQuery;
+            pagefindInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        } catch (error) {
+          console.error('Pagefind failed to initialise', error);
+          showFallback();
+        }
+      }
+
+      const stylesheet = document.createElement('link');
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = '/pagefind/pagefind-ui.css';
+      document.head.appendChild(stylesheet);
+
+      const script = document.createElement('script');
+      script.src = '/pagefind/pagefind-ui.js';
+      script.async = true;
+      script.onload = init;
+      script.onerror = showFallback;
+      document.body.appendChild(script);
+    })();
+  </script>
+</ObsidianLayout>

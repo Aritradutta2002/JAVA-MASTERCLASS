@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type { GraphNode, GraphEdge } from '../lib/types';
 import type { KnowledgeGraphData } from '../lib/graphBuilder';
 import { DOMAIN_COLORS, DOMAIN_TITLES } from '../lib/constants';
-import { Compass, ZoomIn, ZoomOut, RotateCcw, List, Eye, Search, ExternalLink } from 'lucide-react';
+import { Compass, ZoomIn, ZoomOut, RotateCcw, List, Search, ExternalLink } from 'lucide-react';
 
 interface SimNode extends GraphNode {
   x: number;
@@ -312,7 +312,7 @@ export default function ObsidianGraph() {
     transformRef.current.k = newK;
   };
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = () => {
     if (hoveredNode) {
       window.location.href = hoveredNode.slug;
     }

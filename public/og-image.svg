@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Java Masterclass — a connected knowledge base">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0b11"/>
+      <stop offset="0.55" stop-color="#0d0d13"/>
+      <stop offset="1" stop-color="#13131b"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0.85" cy="0.12" r="0.55">
+      <stop offset="0" stop-color="#a78bfa" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0.08" cy="0.9" r="0.5">
+      <stop offset="0" stop-color="#d9b98a" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#d9b98a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c4b5fd"/>
+      <stop offset="0.6" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#d9b98a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glowA)"/>
+  <rect width="1200" height="630" fill="url(#glowB)"/>
+
+  <g opacity="0.42" stroke="#3a3a4c" stroke-width="1">
+    <path d="M80 96h1040M80 534h1040"/>
+    <path d="M96 80v470M1104 80v470"/>
+  </g>
+
+  <g transform="translate(96 96)">
+    <rect width="64" height="64" rx="16" fill="#1c1c27" stroke="#a78bfa" stroke-opacity="0.42"/>
+    <g transform="translate(17 15)" fill="none" stroke="#c4b5fd" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+      <path d="M8 6h8M8 10h8M8 14h5"/>
+    </g>
+    <text x="86" y="27" font-family="Inter, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#f4f2ed">Java Masterclass</text>
+    <text x="86" y="49" font-family="Inter, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" letter-spacing="3" fill="#807d8c">CONNECTED KNOWLEDGE BASE</text>
+  </g>
+
+  <g transform="translate(96 226)">
+    <text font-family="Georgia, 'Times New Roman', serif" font-size="68" font-weight="700" fill="#f4f2ed">Read deeply.</text>
+    <text y="86" font-family="Georgia, 'Times New Roman', serif" font-size="68" font-weight="700" fill="url(#accent)">Connect everything.</text>
+  </g>
+
+  <g transform="translate(96 404)">
+    <text font-family="Inter, Helvetica, Arial, sans-serif" font-size="22" fill="#b9b6c2">Core Java · Spring Boot · System Design · Databases · Caching · DSA</text>
+  </g>
+
+  <g transform="translate(96 470)" font-family="Inter, Helvetica, Arial, sans-serif">
+    <g>
+      <rect width="188" height="56" rx="12" fill="#1c1c27" stroke="#262633"/>
+      <text x="20" y="24" font-size="11" font-weight="700" letter-spacing="1.6" fill="#807d8c">CHAPTERS</text>
+      <text x="20" y="44" font-size="19" font-weight="700" fill="#f4f2ed">340+</text>
+    </g>
+    <g transform="translate(206 0)">
+      <rect width="188" height="56" rx="12" fill="#1c1c27" stroke="#262633"/>
+      <text x="20" y="24" font-size="11" font-weight="700" letter-spacing="1.6" fill="#807d8c">DIAGRAMS</text>
+      <text x="20" y="44" font-size="19" font-weight="700" fill="#f4f2ed">Mermaid</text>
+    </g>
+    <g transform="translate(412 0)">
+      <rect width="188" height="56" rx="12" fill="#1c1c27" stroke="#262633"/>
+      <text x="20" y="24" font-size="11" font-weight="700" letter-spacing="1.6" fill="#807d8c">JAVA FILES</text>
+      <text x="20" y="44" font-size="19" font-weight="700" fill="#f4f2ed">1,200+</text>
+    </g>
+    <g transform="translate(618 0)">
+      <rect width="188" height="56" rx="12" fill="#1c1c27" stroke="#262633"/>
+      <text x="20" y="24" font-size="11" font-weight="700" letter-spacing="1.6" fill="#807d8c">SEARCH</text>
+      <text x="20" y="44" font-size="19" font-weight="700" fill="#f4f2ed">Full text</text>
+    </g>
+  </g>
+</svg>

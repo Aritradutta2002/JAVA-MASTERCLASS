@@ -1,40 +1,72 @@
 ---
-import { Search, Compass, Eye, Moon, Sun, Menu, BookOpen, CheckSquare } from 'lucide-react';
+import {
+  BookOpen,
+  Command,
+  Eye,
+  GitBranch,
+  Library,
+  Menu,
+  Moon,
+  Search,
+  Sun,
+  Waypoints,
+} from 'lucide-react';
 
 interface Props {
   breadcrumbs?: { title: string; slug: string }[];
 }
 
 const { breadcrumbs = [] } = Astro.props;
+const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
 ---
 
-<header class="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-obs-border bg-obs-sidebar/90 px-4 backdrop-blur-md transition-colors">
-  <!-- Left: Mobile Toggle & Breadcrumbs -->
-  <div class="flex items-center gap-3 overflow-hidden">
+<header
+  class="sticky top-0 z-40 flex h-[var(--obs-header-height)] w-full items-center justify-between gap-3 border-b border-obs-border bg-obs-canvas/85 px-3 backdrop-blur-xl md:px-4"
+>
+  <div class="flex min-w-0 items-center gap-2.5">
     <button
       id="mobile-menu-btn"
-      class="flex h-8 w-8 items-center justify-center rounded-md border border-obs-border bg-obs-surface text-obs-text-secondary hover:bg-obs-hover md:hidden"
-      aria-label="Toggle navigation menu"
+      type="button"
+      class="icon-btn md:hidden"
+      aria-label="Open navigation menu"
+      aria-controls="mobile-drawer"
+      aria-expanded="false"
     >
       <Menu className="h-4 w-4" />
     </button>
 
-    <a href="/" class="flex items-center gap-2 font-semibold text-obs-text-primary hover:text-obs-accent transition-colors">
-      <div class="flex h-7 w-7 items-center justify-center rounded-md bg-obs-accent/20 border border-obs-accent/40 text-obs-accent">
+    <a
+      href="/"
+      class="group flex shrink-0 items-center gap-2 font-semibold text-obs-text-primary"
+      aria-label="Java Masterclass home"
+    >
+      <span
+        class="relative flex h-8 w-8 items-center justify-center rounded-lg border border-obs-accent/35 bg-obs-accent/10 text-obs-accent shadow-sm transition-colors group-hover:border-obs-accent/60"
+      >
         <BookOpen className="h-4 w-4" />
-      </div>
-      <span class="hidden sm:inline-block tracking-tight text-sm font-bold">Java Masterclass</span>
+        <span class="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-obs-emerald ring-2 ring-obs-canvas"></span>
+      </span>
+      <span class="hidden flex-col leading-none sm:flex">
+        <span class="text-[0.82rem] font-bold tracking-tight">Java Masterclass</span>
+        <span class="mt-0.5 text-[0.58rem] font-medium uppercase tracking-[0.18em] text-obs-text-muted">
+          Knowledge base
+        </span>
+      </span>
     </a>
 
     {breadcrumbs.length > 0 && (
-      <nav class="hidden md:flex items-center gap-1.5 text-xs text-obs-text-muted overflow-hidden whitespace-nowrap" aria-label="Breadcrumb">
-        <span class="text-obs-border">/</span>
-        {breadcrumbs.map((crumb, idx) => (
-          <span class="flex items-center gap-1.5 overflow-hidden">
-            {idx > 0 && <span class="text-obs-border">/</span>}
+      <nav
+        aria-label="Breadcrumb"
+        class="hidden min-w-0 items-center gap-1 text-[0.72rem] text-obs-text-muted lg:flex"
+      >
+        <span aria-hidden="true" class="text-obs-border">/</span>
+        {breadcrumbs.map((crumb, index) => (
+          <span class="flex min-w-0 items-center gap-1">
+            {index > 0 && <span aria-hidden="true" class="text-obs-border">/</span>}
             <a
               href={crumb.slug}
-              class="hover:text-obs-accent truncate max-w-[140px] transition-colors"
+              class="max-w-[13rem] truncate rounded px-0.5 transition-colors hover:text-obs-accent"
+              aria-current={crumb.slug === pathname ? 'page' : undefined}
             >
               {crumb.title}
             </a>
@@ -44,136 +76,66 @@ const { breadcrumbs = [] } = Astro.props;
     )}
   </div>
 
-  <!-- Right: Search trigger, Graph, Zen, Checklist, Theme -->
-  <div class="flex items-center gap-2">
-    <!-- Global Search Button -->
+  <div class="flex shrink-0 items-center gap-1.5">
     <button
       id="open-command-palette-btn"
-      class="flex h-8 items-center gap-2 rounded-md border border-obs-border bg-obs-surface px-2.5 text-xs text-obs-text-muted hover:border-obs-accent/50 hover:text-obs-text-primary transition-all shadow-sm"
-      aria-label="Search or run command"
+      type="button"
+      class="flex h-[2.15rem] items-center gap-2 rounded-lg border border-obs-border bg-obs-surface px-2.5 text-xs text-obs-text-muted transition-colors hover:border-obs-accent/40 hover:text-obs-text-primary"
+      aria-label="Search the knowledge base"
     >
       <Search className="h-3.5 w-3.5 text-obs-accent" />
-      <span class="hidden sm:inline">Search docs...</span>
-      <kbd class="hidden md:inline-flex rounded border border-obs-border bg-obs-canvas px-1.5 py-0.5 text-[10px] font-mono text-obs-text-muted">
-        ⌘K
+      <span class="hidden sm:inline">Search</span>
+      <kbd class="ml-1 hidden items-center gap-0.5 text-[0.62rem] md:inline-flex">
+        <Command className="h-2.5 w-2.5" />K
       </kbd>
     </button>
 
-    <!-- Study Checklist -->
     <a
-      href="/checklist"
-      class="hidden sm:flex h-8 items-center gap-1.5 rounded-md border border-obs-border bg-obs-surface px-2.5 text-xs text-obs-text-secondary hover:bg-obs-hover hover:text-obs-accent transition-colors"
-      title="Master Study Checklist"
+      href="/library"
+      class="hidden h-[2.15rem] items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-obs-text-muted transition-colors hover:bg-obs-surface hover:text-obs-text-primary lg:flex"
+      aria-label="Browse the complete library"
     >
-      <CheckSquare className="h-3.5 w-3.5 text-emerald-400" />
-      <span class="hidden lg:inline">Checklist</span>
+      <Library className="h-3.5 w-3.5" />
+      Library
     </a>
-
-    <!-- Knowledge Graph Button -->
+    <a
+      href="/paths"
+      class="hidden h-[2.15rem] items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-obs-text-muted transition-colors hover:bg-obs-surface hover:text-obs-text-primary lg:flex"
+      aria-label="View learning paths"
+    >
+      <Waypoints className="h-3.5 w-3.5" />
+      Paths
+    </a>
     <a
       href="/graph"
-      class="flex h-8 w-8 sm:w-auto sm:px-2.5 items-center justify-center gap-1.5 rounded-md border border-obs-border bg-obs-surface text-xs text-obs-text-secondary hover:bg-obs-hover hover:text-obs-accent transition-colors"
-      title="Interactive Knowledge Graph (Press G)"
+      class="hidden h-[2.15rem] items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-obs-text-muted transition-colors hover:bg-obs-surface hover:text-obs-text-primary xl:flex"
+      aria-label="Open the knowledge graph"
     >
-      <Compass className="h-3.5 w-3.5 text-obs-accent" />
-      <span class="hidden lg:inline">Graph</span>
+      <GitBranch className="h-3.5 w-3.5" />
+      Graph
     </a>
 
-    <!-- Zen Mode Toggle -->
-    <button
-      id="zen-mode-btn"
-      class="flex h-8 w-8 items-center justify-center rounded-md border border-obs-border bg-obs-surface text-obs-text-secondary hover:bg-obs-hover hover:text-obs-accent transition-colors"
-      title="Toggle Zen / Focus Reading Mode (Press Z)"
-      aria-label="Toggle Zen mode"
-    >
-      <Eye className="h-3.5 w-3.5" />
-    </button>
+    <span class="mx-0.5 hidden h-5 w-px bg-obs-border sm:block" aria-hidden="true"></span>
 
-    <!-- Theme Switcher -->
+    <button
+      id="reading-mode-btn"
+      type="button"
+      class="icon-btn hidden sm:inline-flex"
+      title="Toggle focus reading mode (Z)"
+      aria-label="Toggle focus reading mode"
+      aria-pressed="false"
+    >
+      <Eye className="h-4 w-4" />
+    </button>
     <button
       id="theme-toggle-btn"
-      class="flex h-8 w-8 items-center justify-center rounded-md border border-obs-border bg-obs-surface text-obs-text-secondary hover:bg-obs-hover hover:text-obs-accent transition-colors"
-      title="Toggle Dark / Light Theme"
+      type="button"
+      class="icon-btn"
+      title="Toggle dark and light theme"
       aria-label="Toggle color theme"
     >
-      <Sun className="h-3.5 w-3.5 hidden dark-icon" />
-      <Moon className="h-3.5 w-3.5 light-icon" />
+      <Sun className="theme-icon theme-icon-light h-4 w-4" />
+      <Moon className="theme-icon theme-icon-dark h-4 w-4" />
     </button>
   </div>
 </header>
-
-<script>
-  // Theme toggle script
-  function setupThemeToggle() {
-    const btn = document.getElementById('theme-toggle-btn');
-    if (!btn) return;
-
-    function updateIcons() {
-      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-      document.querySelectorAll('.dark-icon').forEach(el => el.classList.toggle('hidden', !isDark));
-      document.querySelectorAll('.light-icon').forEach(el => el.classList.toggle('hidden', isDark));
-    }
-
-    btn.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme');
-      const next = current === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('theme', next);
-      updateIcons();
-    });
-
-    updateIcons();
-  }
-
-  // Zen mode script
-  function setupZenMode() {
-    const btn = document.getElementById('zen-mode-btn');
-    if (!btn) return;
-
-    function toggleZen() {
-      const isZen = document.body.classList.toggle('zen-mode');
-      localStorage.setItem('zen-mode', isZen ? 'true' : 'false');
-    }
-
-    btn.addEventListener('click', toggleZen);
-
-    // Keyboard shortcut 'z' outside inputs
-    window.addEventListener('keydown', (e) => {
-      if (e.key.toLowerCase() === 'z' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName) && !e.ctrlKey && !e.metaKey) {
-        toggleZen();
-      }
-      if (e.key.toLowerCase() === 'g' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName) && !e.ctrlKey && !e.metaKey) {
-        window.location.href = '/graph';
-      }
-    });
-
-    if (localStorage.getItem('zen-mode') === 'true') {
-      document.body.classList.add('zen-mode');
-    }
-  }
-
-  // Mobile menu drawer
-  function setupMobileMenu() {
-    const btn = document.getElementById('mobile-menu-btn');
-    const sidebar = document.getElementById('left-sidebar');
-    if (!btn || !sidebar) return;
-
-    btn.addEventListener('click', () => {
-      sidebar.classList.toggle('hidden');
-      sidebar.classList.toggle('fixed');
-      sidebar.classList.toggle('inset-0');
-      sidebar.classList.toggle('z-50');
-      sidebar.classList.toggle('bg-obs-canvas/95');
-      sidebar.classList.toggle('p-4');
-    });
-  }
-
-  setupThemeToggle();
-  setupZenMode();
-  setupMobileMenu();
-  document.addEventListener('astro:after-swap', () => {
-    setupThemeToggle();
-    setupZenMode();
-    setupMobileMenu();
-  });
-</script>
