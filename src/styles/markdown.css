@@ -331,6 +331,7 @@
   border: 1px solid var(--obs-border);
   border-radius: 0.7rem;
   background: var(--obs-code-bg) !important;
+  color: var(--obs-text-secondary);
   font-family: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace,
     monospace;
   font-size: 0.855rem;

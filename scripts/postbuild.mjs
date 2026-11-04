@@ -32,10 +32,16 @@ if (!fs.existsSync(binary)) {
   );
 } else {
   console.log('[postbuild] Building Pagefind index…');
-  const result = spawnSync(binary, ['--site', 'dist', '--force-language', 'en'], {
-    stdio: 'inherit',
-    cwd: root,
-  });
+  const result =
+    process.platform === 'win32'
+      ? spawnSync('cmd.exe', ['/c', 'npx pagefind --site dist --force-language en'], {
+          stdio: 'inherit',
+          cwd: root,
+        })
+      : spawnSync(binary, ['--site', 'dist', '--force-language', 'en'], {
+          stdio: 'inherit',
+          cwd: root,
+        });
 
   if (result.status !== 0) {
     console.error('[postbuild] Pagefind failed.');

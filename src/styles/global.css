@@ -357,6 +357,33 @@ html[data-theme='light'] .theme-icon-light {
   display: none;
 }
 
+/* Shiki dual-theme syntax highlighting support */
+html[data-theme='dark'] .astro-code,
+html[data-theme='dark'] .astro-code span,
+html[data-theme='dark'] .shiki,
+html[data-theme='dark'] .shiki span,
+html:not([data-theme='light']) .astro-code,
+html:not([data-theme='light']) .astro-code span,
+html:not([data-theme='light']) .shiki,
+html:not([data-theme='light']) .shiki span {
+  color: var(--shiki-dark, var(--obs-text-primary)) !important;
+  font-style: var(--shiki-dark-font-style, inherit) !important;
+  font-weight: var(--shiki-dark-font-weight, inherit) !important;
+  text-decoration: var(--shiki-dark-text-decoration, inherit) !important;
+}
+
+html[data-theme='dark'] .astro-code,
+html[data-theme='dark'] .shiki,
+html:not([data-theme='light']) .astro-code,
+html:not([data-theme='light']) .shiki {
+  background-color: var(--obs-code-bg) !important;
+}
+
+html[data-theme='light'] .astro-code,
+html[data-theme='light'] .shiki {
+  background-color: var(--obs-code-bg) !important;
+}
+
 /* Mermaid expand button */
 .diagram-expand-btn {
   display: inline-flex;
