@@ -413,14 +413,23 @@ body.zen-mode #mobile-drawer {
   display: none !important;
 }
 
-body.zen-mode #main-content-wrapper {
-  max-width: var(--obs-reading-width) !important;
+body.zen-mode #reading-mode-btn {
+  background: var(--obs-surface-hover);
+  color: var(--obs-accent);
+  border-color: color-mix(in srgb, var(--obs-accent) 40%, var(--obs-border));
 }
 
-@media (min-width: 768px) {
-  body.zen-mode #content-grid {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
+body.zen-mode #content-grid {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+}
+
+body.zen-mode #main-content-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 /* Native details animation */
