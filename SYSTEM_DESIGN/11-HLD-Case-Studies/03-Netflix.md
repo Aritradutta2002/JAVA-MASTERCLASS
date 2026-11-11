@@ -92,9 +92,9 @@ Catalog service owns metadata; encoding pipeline owns media assets; playback ser
 
 ```mermaid
 erDiagram
-    CLIENT ||--o{{ RESOURCE : owns
-    RESOURCE ||--o{{ EVENT : emits
-    EVENT ||--o{{ PROJECTION : materializes
+    CLIENT ||--o{ RESOURCE : owns
+    RESOURCE ||--o{ EVENT : emits
+    EVENT ||--o{ PROJECTION : materializes
     CLIENT {
       string id PK
       string tenant_id

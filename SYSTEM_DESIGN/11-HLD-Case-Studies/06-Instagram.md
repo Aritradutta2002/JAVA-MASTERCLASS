@@ -92,9 +92,9 @@ User service owns relationships; media owns posts; feed owns entries; like owns 
 
 ```mermaid
 erDiagram
-    CLIENT ||--o{{ RESOURCE : owns
-    RESOURCE ||--o{{ EVENT : emits
-    EVENT ||--o{{ PROJECTION : materializes
+    CLIENT ||--o{ RESOURCE : owns
+    RESOURCE ||--o{ EVENT : emits
+    EVENT ||--o{ PROJECTION : materializes
     CLIENT {
       string id PK
       string tenant_id

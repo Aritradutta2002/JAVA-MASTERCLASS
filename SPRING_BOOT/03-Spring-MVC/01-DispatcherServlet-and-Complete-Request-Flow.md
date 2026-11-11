@@ -695,7 +695,7 @@ flowchart TD
     IV --> RES[ArgumentResolverComposite]
     RES --> INV[Method.invoke]
     INV --> RVH[ReturnValueHandler]
-    RVH -->|@ResponseBody| CONV[HttpMessageConverter]
+    RVH -->|"@ResponseBody"| CONV[HttpMessageConverter]
     RVH -->|ModelAndView| VR[ViewResolver]
 
     style CHAIN fill:#e3f2fd,stroke:#1565c0

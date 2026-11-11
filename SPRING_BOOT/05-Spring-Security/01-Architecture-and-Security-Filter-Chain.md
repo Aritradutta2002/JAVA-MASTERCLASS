@@ -961,8 +961,8 @@ sequenceDiagram
     A->>A: context empty → install AnonymousAuthenticationToken
     A->>E: doFilter
     E->>Z: doFilter
-    Z->>Z: rule = authenticated(); token is anonymous → DENY
-    Z--xE: throw AccessDeniedException
+    Z->>Z: rule = authenticated(), token is anonymous → DENY
+    Z--x E: throw AccessDeniedException
     E->>E: trustResolver.isAnonymous(auth) == true
     E-->>C: 401 + WWW-Authenticate: Bearer
     E-->>D2: chain stops — controller never runs
@@ -976,14 +976,14 @@ but *inside* the authentication filters.
 
 ```mermaid
 flowchart TD
-    A[Request arrives] --> B[FilterChainProxy.getFilterChain]
-    B --> C{chain @Order(1)<br/>securityMatcher '/api/**'<br/>matches?}
-    C -- yes --> H[Use chain #1<br/>STATELESS API<br/>csrf disabled]
-    C -- no --> D{chain @Order(2)<br/>securityMatcher '/ui/**'<br/>matches?}
-    D -- yes --> I[Use chain #2<br/>SESSION UI<br/>csrf enabled]
-    D -- no --> E{chain @Order(3)<br/>no matcher = catch-all<br/>matches?}
-    E -- yes --> J[Use chain #3<br/>DEFAULT policy]
-    E -- no --> K[NO CHAIN MATCHED<br/>request rejected]
+    A["Request arrives"] --> B["FilterChainProxy.getFilterChain"]
+    B --> C{"chain @Order(1)<br/>securityMatcher '/api/**'<br/>matches?"}
+    C -- yes --> H["Use chain #1<br/>STATELESS API<br/>csrf disabled"]
+    C -- no --> D{"chain @Order(2)<br/>securityMatcher '/ui/**'<br/>matches?"}
+    D -- yes --> I["Use chain #2<br/>SESSION UI<br/>csrf enabled"]
+    D -- no --> E{"chain @Order(3)<br/>no matcher = catch-all<br/>matches?"}
+    E -- yes --> J["Use chain #3<br/>DEFAULT policy"]
+    E -- no --> K["NO CHAIN MATCHED<br/>request rejected"]
 
     style H fill:#d4edda
     style I fill:#d1ecf1
@@ -1038,17 +1038,17 @@ Each row's "what breaks" column is the interview answer.
 ```mermaid
 graph TD
     subgraph Servlet["Servlet container layer"]
-        FR[FilterRegistrationBean<br/>order -100]
-        DFP[DelegatingFilterProxy<br/>'springSecurityFilterChain']
+        FR["FilterRegistrationBean<br/>order -100"]
+        DFP["DelegatingFilterProxy<br/>'springSecurityFilterChain'"]
         FR --> DFP
     end
 
     subgraph SpringSecurity["Spring Security layer"]
-        FCP[FilterChainProxy<br/>holds List&lt;SecurityFilterChain&gt;]
-        SFC[SecurityFilterChain<br/>matches() + getFilters()]
-        SF[SecurityFilter<br/>extends jakarta.servlet.Filter]
-        OPF[OncePerRequestFilter]
-        VFC[FilterChainProxy.VirtualFilterChain]
+        FCP["FilterChainProxy<br/>holds List&lt;SecurityFilterChain&gt;"]
+        SFC["SecurityFilterChain<br/>matches() + getFilters()"]
+        SF["SecurityFilter<br/>extends jakarta.servlet.Filter"]
+        OPF["OncePerRequestFilter"]
+        VFC["FilterChainProxy.VirtualFilterChain"]
 
         FCP -->|selects the first match| SFC
         SFC -->|getFilters| SF

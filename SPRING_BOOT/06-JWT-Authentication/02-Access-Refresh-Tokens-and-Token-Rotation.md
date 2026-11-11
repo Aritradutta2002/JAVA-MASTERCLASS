@@ -634,7 +634,7 @@ sequenceDiagram
     AUTH->>AUTH: verify password (bcrypt/Argon2), load authorities
     AUTH->>DB: INSERT refresh_token (family=F1, token_hash=SHA256(raw), used_at=NULL)
     AUTH-->>UI: 200 OK {accessToken: "<jwt>", expiresIn: 600}
-    AUTH-->>UI: Set-Cookie: rt=<raw>; HttpOnly; Secure; SameSite=Strict; Path=/api/auth
+    AUTH-->>UI: Set-Cookie: rt=<raw>, HttpOnly, Secure, SameSite=Strict, Path=/api/auth
 
     UI->>API: GET /api/orders/42<br/>Authorization: Bearer <jwt>
     API->>API: verify signature + exp/iss/aud locally
@@ -650,7 +650,7 @@ sequenceDiagram
     DB-->>AUTH: row(family=F1, used_at=NULL, revoked_at=NULL)
     AUTH->>DB: UPDATE row SET used_at=now<br/>INSERT new row (family=F1, used_at=NULL)
     AUTH-->>UI: 200 OK {accessToken: "<new jwt>", expiresIn: 600}
-    AUTH-->>UI: Set-Cookie: rt=<new raw>; HttpOnly; Secure; SameSite=Strict
+    AUTH-->>UI: Set-Cookie: rt=<new raw>, HttpOnly, Secure, SameSite=Strict
 
     UI->>API: GET /api/orders/42 (RETRY ONCE)<br/>Authorization: Bearer <new jwt>
     API-->>UI: 200 OK

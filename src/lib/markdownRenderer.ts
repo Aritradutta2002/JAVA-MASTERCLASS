@@ -97,8 +97,16 @@ interface ExtractedDiagram {
 }
 
 function extractMermaid(markdown: string): { markdown: string; diagrams: ExtractedDiagram[] } {
+  // Stash outer code fences with 4+ backticks so nested ```mermaid examples in authoring docs are not stripped
+  const stashedOuter: string[] = [];
+  const withoutOuter = markdown.replace(/^(`{4,})[^\n]*\n[\s\S]*?^\1\s*$/gm, (match) => {
+    const idx = stashedOuter.length;
+    stashedOuter.push(match);
+    return `<!--STASHED_OUTER_FENCE_${idx}-->`;
+  });
+
   const diagrams: ExtractedDiagram[] = [];
-  const markdownWithout = markdown.replace(
+  const markdownWithout = withoutOuter.replace(
     /^```mermaid[^\n]*\n([\s\S]*?)^```\s*$/gim,
     (_, source: string) => {
       const index = diagrams.length;
@@ -106,7 +114,12 @@ function extractMermaid(markdown: string): { markdown: string; diagrams: Extract
       return `<div data-mermaid-placeholder="${index}"></div>`;
     }
   );
-  return { markdown: markdownWithout, diagrams };
+
+  const restoredMarkdown = markdownWithout.replace(/<!--STASHED_OUTER_FENCE_(\d+)-->/g, (_, idx) => {
+    return stashedOuter[Number(idx)] || '';
+  });
+
+  return { markdown: restoredMarkdown, diagrams };
 }
 
 function sanitizeHtml(html: string): string {

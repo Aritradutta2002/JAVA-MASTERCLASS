@@ -1266,7 +1266,7 @@ flowchart TD
     D1 --> D2{"@ConditionalOn* satisfied?"}
     D2 -->|yes| E
     D2 -->|no| D3["SKIP - recorded in ConditionEvaluationReport"]
-    C -->|@ComponentScan| E["ConfigurationClassBeanDefinitionReader<br/>register @Bean methods"]
+    C -->|"@ComponentScan"| E["ConfigurationClassBeanDefinitionReader<br/>register @Bean methods"]
     B --> F["@PropertySource / @Profile / @ImportResource"]
     E --> G["BeanDefinitionRegistry<br/>= the set of beans that exist"]
     G --> H["registerBeanPostProcessors()"]

@@ -851,7 +851,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[the proxy intercepts the call] --> B{@PreAuthorize present?}
+    A[the proxy intercepts the call] --> B{"@PreAuthorize present?"}
     B -- no --> J[the method proceeds]
     B -- yes --> C[the expression parser]
     C --> D[the evaluation context: the authentication, the beans, the args]

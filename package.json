@@ -10,7 +10,8 @@
     "postbuild": "node scripts/postbuild.mjs",
     "check": "astro check",
     "verify": "node scripts/verify-links.mjs",
-    "verify:all": "npm run build && node scripts/verify-links.mjs"
+    "verify:mermaid": "node scripts/verify-mermaid.mjs",
+    "verify:all": "npm run verify:mermaid && npm run build && node scripts/verify-links.mjs"
   },
   "engines": {
     "node": ">=22"

@@ -850,7 +850,7 @@ sequenceDiagram
 
     CTX-->>L: deliver ContextRefreshedEvent (synchronous, same thread)
     SA->>SA: afterRefresh() — publish ApplicationReadyEvent
-    SA-->>M: run() returns; Tomcat serves requests
+    SA-->>M: run() returns, Tomcat serves requests
 
     Note over M,CTX: later — a request handler publishes a domain event
     M->>CTX: publishEvent(new OrderPlacedEvent(...))

@@ -92,9 +92,9 @@ Meeting service owns schedule/participants; signaling service owns ephemeral sta
 
 ```mermaid
 erDiagram
-    CLIENT ||--o{{ RESOURCE : owns
-    RESOURCE ||--o{{ EVENT : emits
-    EVENT ||--o{{ PROJECTION : materializes
+    CLIENT ||--o{ RESOURCE : owns
+    RESOURCE ||--o{ EVENT : emits
+    EVENT ||--o{ PROJECTION : materializes
     CLIENT {
       string id PK
       string tenant_id

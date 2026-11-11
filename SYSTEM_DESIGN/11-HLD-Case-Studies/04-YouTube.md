@@ -92,9 +92,9 @@ Video service owns metadata; media pipeline owns assets; feed service owns gener
 
 ```mermaid
 erDiagram
-    CLIENT ||--o{{ RESOURCE : owns
-    RESOURCE ||--o{{ EVENT : emits
-    EVENT ||--o{{ PROJECTION : materializes
+    CLIENT ||--o{ RESOURCE : owns
+    RESOURCE ||--o{ EVENT : emits
+    EVENT ||--o{ PROJECTION : materializes
     CLIENT {
       string id PK
       string tenant_id

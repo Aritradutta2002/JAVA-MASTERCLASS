@@ -821,51 +821,119 @@ const jsonLd = {
       }
 
       /* -------------------------------------------------------------- diagram */
-      function rerenderMermaid() {
-        if (!document.querySelector('.mermaid')) return;
+      let mermaidRenderBatch = 0;
+      async function rerenderMermaid() {
+        const elements = document.querySelectorAll<HTMLElement>('.mermaid');
+        if (elements.length === 0) return;
         const isDark = root.getAttribute('data-theme') !== 'light';
         try {
           mermaid.initialize({
             startOnLoad: false,
             theme: isDark ? 'dark' : 'neutral',
             fontFamily: 'Inter Variable, Inter, sans-serif',
-            securityLevel: 'strict',
+            securityLevel: 'loose',
+            flowchart: {
+              htmlLabels: true,
+              useMaxWidth: true,
+            },
+            sequence: {
+              useMaxWidth: true,
+            },
             themeVariables: isDark
               ? {
+                  darkMode: true,
                   background: '#13131b',
+                  mainBkg: '#1c1c27',
                   primaryColor: '#1c1c27',
                   primaryTextColor: '#f4f2ed',
                   primaryBorderColor: '#3a3a4c',
                   lineColor: '#807d8c',
                   secondaryColor: '#1b1b25',
                   tertiaryColor: '#0d0d13',
+                  nodeBorder: '#3a3a4c',
+                  nodeTextColor: '#f4f2ed',
+                  clusterBkg: '#14141e',
+                  clusterBorder: '#3a3a4c',
+                  defaultLinkColor: '#807d8c',
+                  titleColor: '#f4f2ed',
+                  edgeLabelBackground: '#13131b',
+                  actorBorder: '#3a3a4c',
+                  actorBkg: '#1c1c27',
+                  actorTextColor: '#f4f2ed',
+                  actorLineColor: '#807d8c',
+                  signalColor: '#f4f2ed',
+                  signalTextColor: '#f4f2ed',
+                  labelBoxBkgColor: '#1c1c27',
+                  labelBoxBorderColor: '#3a3a4c',
+                  labelTextColor: '#f4f2ed',
+                  loopTextColor: '#f4f2ed',
+                  noteBorderColor: '#3a3a4c',
+                  noteBkgColor: '#1c1c27',
+                  noteTextColor: '#f4f2ed',
                 }
               : {
+                  darkMode: false,
                   background: '#ffffff',
+                  mainBkg: '#f4f1e9',
                   primaryColor: '#f4f1e9',
                   primaryTextColor: '#1b1b22',
                   primaryBorderColor: '#d8d1c3',
                   lineColor: '#7d7a82',
                   secondaryColor: '#ece7dd',
                   tertiaryColor: '#fbfaf7',
+                  nodeBorder: '#d8d1c3',
+                  nodeTextColor: '#1b1b22',
+                  clusterBkg: '#faf8f5',
+                  clusterBorder: '#d8d1c3',
+                  defaultLinkColor: '#7d7a82',
+                  titleColor: '#1b1b22',
+                  edgeLabelBackground: '#ffffff',
+                  actorBorder: '#d8d1c3',
+                  actorBkg: '#f4f1e9',
+                  actorTextColor: '#1b1b22',
+                  actorLineColor: '#7d7a82',
+                  signalColor: '#1b1b22',
+                  signalTextColor: '#1b1b22',
+                  labelBoxBkgColor: '#ffffff',
+                  labelBoxBorderColor: '#d8d1c3',
+                  labelTextColor: '#1b1b22',
+                  loopTextColor: '#1b1b22',
+                  noteBorderColor: '#d8d1c3',
+                  noteBkgColor: '#fff9e6',
+                  noteTextColor: '#1b1b22',
                 },
           });
         } catch (error) {
           console.warn('Mermaid theme update failed', error);
         }
 
-        document.querySelectorAll<HTMLElement>('.mermaid').forEach((element) => {
-          const source = element.dataset.mermaidSource;
-          if (!source) return;
-          element.removeAttribute('data-processed');
-          element.textContent = source;
-        });
+        mermaidRenderBatch += 1;
+        const currentBatch = mermaidRenderBatch;
 
-        mermaid
-          .run({ querySelector: '.mermaid', suppressErrors: true })
-          .catch((error) => {
-            console.warn('Mermaid render failed', error);
-          });
+        for (let i = 0; i < elements.length; i++) {
+          const element = elements[i];
+          const figure = element.closest('.mermaid-figure');
+          const source = element.dataset.mermaidSource;
+          if (!source) continue;
+
+          try {
+            const id = `mermaid-svg-${currentBatch}-${i}`;
+            const { svg, bindFunctions } = await mermaid.render(id, source);
+            element.innerHTML = svg;
+            if (typeof bindFunctions === 'function') {
+              bindFunctions(element);
+            }
+            figure?.classList.add('is-rendered');
+            figure?.classList.remove('has-error');
+          } catch (renderError) {
+            console.warn(`Mermaid render failed for diagram ${i}:`, renderError);
+            element.innerHTML = `<div class="mermaid-error"><p class="font-medium text-xs">Diagram render notice</p><p class="text-[0.7rem] text-obs-text-muted mt-0.5">Could not render diagram preview.</p></div>`;
+            figure?.classList.remove('is-rendered');
+            figure?.classList.add('has-error');
+            const details = figure?.querySelector<HTMLDetailsElement>('.mermaid-source');
+            if (details) details.open = true;
+          }
+        }
       }
 
       function enhanceDiagrams() {

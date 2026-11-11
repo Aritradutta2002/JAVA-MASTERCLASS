@@ -92,9 +92,9 @@ Gateway owns payment attempt/idempotency; ledger owns immutable double-entry pos
 
 ```mermaid
 erDiagram
-    CLIENT ||--o{{ RESOURCE : owns
-    RESOURCE ||--o{{ EVENT : emits
-    EVENT ||--o{{ PROJECTION : materializes
+    CLIENT ||--o{ RESOURCE : owns
+    RESOURCE ||--o{ EVENT : emits
+    EVENT ||--o{ PROJECTION : materializes
     CLIENT {
       string id PK
       string tenant_id

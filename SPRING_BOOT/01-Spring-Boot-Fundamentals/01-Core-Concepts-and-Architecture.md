@@ -1430,7 +1430,6 @@ find the two or three groups that actually change together, not to create 40 POM
 | 10 | **B** | `health` is the only endpoint exposed over the web by default. |
 | 11 | **B** | `ApplicationStartedEvent` is pre-runners; `ApplicationReadyEvent` is post-runners. |
 
-```
 ---
 
 ## 21. Cheat Sheet / One-Page Summary
@@ -1468,6 +1467,7 @@ find the two or three groups that actually change together, not to create 40 POM
 │  9. @PropertySource on a @Configuration class                             │
 │ 10. default properties (SpringApplication.setDefaultProperties)           │
 └────────────────────────────────────────────────────────────────────────────┘
+```
 
 ## 22. Real-World Production Notes
 

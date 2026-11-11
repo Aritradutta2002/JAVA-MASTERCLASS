@@ -649,7 +649,7 @@ flowchart TD
     I4 -->|Yes| J{"REVOCATION CHECKS"}
     J --> J1{"ver == ver:sub ?"}
     J1 -->|No| Z8["401 invalid_token<br/>(version revoked)"]
-    J1 -->|Yes| J2{"jti in denylist?<br/>(optional)"]
+    J1 -->|Yes| J2{"jti in denylist?<br/>(optional)"}
     J2 -->|Yes| Z9["401 invalid_token<br/>(denylisted)"]
     J2 -->|No| K["✅ AUTHENTICATED"]
     K --> L["AuthorizationFilter<br/>→ 403 if unauthorised"]

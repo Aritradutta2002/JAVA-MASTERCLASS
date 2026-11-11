@@ -2512,12 +2512,12 @@ regression is caught by the build rather than by a user.
 
 ```mermaid
 graph TD
-    UI[Product Detail Screen] --> E1[GET /products/{id}]
-    UI --> E2[GET /products/{id}/variants]
-    UI --> E3[GET /products/{id}/reviews]
-    E1 --> Q1[1 projection query<br/>product + brand + category]
-    E2 --> Q2[1 projection query<br/>variants (a separate page)]
-    E3 --> Q3[1 projection query<br/>reviews (a separate page)]
+    UI["Product Detail Screen"] --> E1["GET /products/{id}"]
+    UI --> E2["GET /products/{id}/variants"]
+    UI --> E3["GET /products/{id}/reviews"]
+    E1 --> Q1["1 projection query<br/>product + brand + category"]
+    E2 --> Q2["1 projection query<br/>variants (a separate page)"]
+    E3 --> Q3["1 projection query<br/>reviews (a separate page)"]
     Q1 --> DB[(PostgreSQL)]
     Q2 --> DB
     Q3 --> DB

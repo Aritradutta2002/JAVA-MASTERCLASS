@@ -2474,12 +2474,12 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    API[REST Controllers] --> APP[Application Services<br/>@Transactional — the business boundary]
-    APP --> DOMAIN[Domain Model<br/>entities + invariants]
-    APP --> REPO[Repositories<br/>@Transactional(readOnly=true) by default]
+    API["REST Controllers"] --> APP["Application Services<br/>@Transactional — the business boundary"]
+    APP --> DOMAIN["Domain Model<br/>entities + invariants"]
+    APP --> REPO["Repositories<br/>@Transactional(readOnly=true) by default"]
     REPO --> DB[(PostgreSQL)]
-    APP -->|outbox| RELAY[Relay]
-    RELAY --> EXT[External services]
+    APP -->|outbox| RELAY["Relay"]
+    RELAY --> EXT["External services"]
 ```
 
 **The design:**

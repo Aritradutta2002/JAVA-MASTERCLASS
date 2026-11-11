@@ -66,9 +66,6 @@ the presence of a jar would silently change your application's behaviour.
 **The solution.** Boot replaces hand-written wiring with a **declarative, conditional
 contract**:
 
-```
-```
-
 **Why this is safe — and this is the crux of the whole chapter.** The word **conditional**
 carries the entire design:
 
@@ -114,11 +111,6 @@ to disable one of them — pushing a Boot-version problem into every consumer.
 ```
 
 **What to look at:** the input is a **list of class names**, not a scan. The decision is a
-**pure function of (classpath, bean definitions, environment)** — and the report tells you
-exactly why each decision was made.
-```
-
-**What to look at:** the input is a **list of class names**, not a scan. The decision is a
 **pure function of (classpath, bean definitions, environment)**. The output is a report that
 tells you exactly why each decision was made.
 ---
@@ -145,7 +137,6 @@ The location is fixed by the Boot contract:
    org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
    org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration
    ...
-```
 ```
 
 ```text
@@ -188,7 +179,6 @@ public class PaymentApplication {
         return "pong";
     }
 }
-```
 ```
 
 | | `@Configuration` | `@AutoConfiguration` |
@@ -258,7 +248,6 @@ public class VendorAutoConfiguration {
     public Object vendorClient() { return new SomeVendorClient(); }
 }
 ```
-```
 
 **The rule:** `@ConditionalOnClass` is evaluated by **reading the annotation metadata**, not
 by loading the class. If the annotation is on a `@Bean` method, Spring must load the method's
@@ -293,7 +282,6 @@ explicitly enable it. That is the safe default, but it surprises people who expe
         → ConditionEvaluator.shouldSkip(...) evaluates every @Conditional
         → match  → ConfigurationClassParser registers the @Bean methods
         → no match → recorded as a negative match in the report
-```
 ```
 
 **Key insight:** the *ordering* is resolved **before** the conditions are evaluated, so
@@ -379,7 +367,6 @@ two-hour investigation into a five-second answer.
         │     └─ every @Conditional → matches(context, metadata)
         ├─ match    → ConfigurationClassParser.register() → BeanDefinitions
         └─ no match → ConditionEvaluationReport.negativeMatch
-```
 ```
 
 **The extension points:**
@@ -617,7 +604,6 @@ public class PlatformAutoConfiguration {
     }
 }
 ```
-```
 
 **The registration file**
 (`acme-platform/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`):
@@ -671,9 +657,6 @@ application starts, but the endpoint that uses it throws
 curl -s http://localhost:8080/actuator/beans | jq '.contexts.application.beans'
 java -jar app.jar --logging.level.org.springframework.context.annotation=TRACE
 curl -s http://localhost:8080/actuator/mappings | jq '.contexts.application.mappings'
-```
-```
-```
 ```
 
 **The expected output.**
@@ -742,8 +725,6 @@ class PlatformAutoConfigurationTests {
               .run(context -> assertThat(context).doesNotHaveBean(RestClient.class));
     }
 }
-```
-```
 ```
 
 **The expected output.**
@@ -859,7 +840,6 @@ completion for the properties your library introduces:
       "defaultValue": "https://api.acme.internal" }
   ]
 }
-```
 ```
 ---
 
@@ -1264,7 +1244,6 @@ interface so the back-off actually works.
    acme-billing-app / acme-notify-app — each its own @SpringBootApplication and fat JAR,
    sharing only a versioned acme-core-domain library
 ```
-```
 
 health indicator, the Micrometer tags, the shared error envelope.
 
@@ -1296,9 +1275,6 @@ depends on a specific application's data model.
    IN:  Dependency set · Auto-configuration · HealthIndicator · Micrometer tags
    OUT: Business logic · Credentials · Endpoints · Schema · Global state
 ```
-```
-```
-
 
 | Decision | Trade-off |
 |---|---|

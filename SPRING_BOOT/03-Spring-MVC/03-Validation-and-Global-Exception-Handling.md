@@ -726,11 +726,11 @@ Compare with the same request reaching the service: **+8 ms** (DB round trip) an
 ```mermaid
 flowchart TD
     EX[Exception thrown during handler invocation] --> E1{ExceptionHandlerExceptionResolver}
-    E1 -->|@ExceptionHandler in the controller class| H1[handled - highest priority]
-    E1 -->|no method-level handler| E2{@ControllerAdvice beans, in @Order order}
+    E1 -->|"@ExceptionHandler in the controller class"| H1[handled - highest priority]
+    E1 -->|no method-level handler| E2{"@ControllerAdvice beans, in @Order order"}
     E2 -->|an advice handles it| H2[handled - advice wins]
     E2 -->|no advice handles it| E3{ResponseStatusExceptionResolver}
-    E3 -->|@ResponseStatus or ResponseStatusException| H3[status applied]
+    E3 -->|"@ResponseStatus or ResponseStatusException"| H3[status applied]
     E3 -->|not a status-carrying exception| E4{DefaultHandlerExceptionResolver}
     E4 -->|known framework exception| H4[built-in status table]
     E4 -->|unknown exception| RETHROW[rethrow to the servlet container - 500]

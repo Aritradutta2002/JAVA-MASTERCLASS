@@ -608,7 +608,7 @@ sequenceDiagram
     API->>A: LOGIN_SUCCESS user=42957 device="Chrome 133" ip=203.0.113.24
     API-->>C: 200 OK
     Note over C,API: {"accessToken":"eyJhbGciOiJSUzI1NiIs…",<br/>"expiresIn":600,"tokenType":"Bearer"}
-    API-->>C: Set-Cookie: rt=…; HttpOnly; Secure; SameSite=Strict; Path=/api/auth
+    API-->>C: Set-Cookie: rt=…, HttpOnly, Secure, SameSite=Strict, Path=/api/auth
 
     Note over C: The JWT payload (readable by anyone who sees it):
     Note over C: {"iss":"https://auth.acme.com","sub":"42957",<br/>"aud":["orders-api"],"roles":["STAFF","PAYMENT_INITIATE"],<br/>"tenant_id":"t_9931","exp":1745006000,"jti":"f492a307-…"}
@@ -632,7 +632,7 @@ sequenceDiagram
     U->>A: POST /api/orders/42/pay  (user's token in the header)
     A->>A: validate the user token (aud=orders-api ✓)
     A->>AS: POST /oauth2/token<br/>grant_type=urn:ietf:params:oauth:grant-type:token-exchange<br/>subject_token=<user token><br/>requested_subject=service-b
-    AS->>AS: validate the user token; check service-a is<br/>ALLOWED to delegate to service-b
+    AS->>AS: validate the user token, check service-a is<br/>ALLOWED to delegate to service-b
     alt not allowed
         AS-->>A: 400 invalid_grant
     end

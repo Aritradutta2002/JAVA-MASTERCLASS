@@ -978,15 +978,15 @@ sequenceDiagram
 flowchart TD
     P[Controller method parameters] --> Q{For each parameter, in order}
     Q --> C1{RequestParamMethodArgumentResolver}
-    C1 -->|@RequestParam| R1[read the query string or the form body]
+    C1 -->|"@RequestParam"| R1[read the query string or the form body]
     C1 -->|no| C2{RequestResponseBodyMethodProcessor}
-    C2 -->|@RequestBody| R2[converter reads the body, then @Valid runs]
+    C2 -->|"@RequestBody"| R2[converter reads the body, then @Valid runs]
     C2 -->|no| C3{PathVariableMethodArgumentResolver}
-    C3 -->|@PathVariable| R3[read the URI template variable]
+    C3 -->|"@PathVariable"| R3[read the URI template variable]
     C3 -->|no| C4{RequestHeaderMethodArgumentResolver}
-    C4 -->|@RequestHeader| R4[read the header]
+    C4 -->|"@RequestHeader"| R4[read the header]
     C4 -->|no| C5{RequestAttributeMethodArgumentResolver}
-    C5 -->|@RequestAttribute| R5[read the server-side attribute]
+    C5 -->|"@RequestAttribute"| R5[read the server-side attribute]
     C5 -->|no| C6{Custom resolvers - YOURS, registered first}
     C6 -->|supportsParameter = true| R6[your resolveArgument]
     C6 -->|no| C7{ServletModelAttributeMethodProcessor}

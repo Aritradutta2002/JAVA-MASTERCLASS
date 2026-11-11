@@ -625,6 +625,57 @@
 .obsidian-prose .mermaid svg {
   max-width: 100% !important;
   height: auto;
+  overflow: visible;
+}
+
+/* Mermaid theme & contrast enhancements */
+.obsidian-prose .mermaid svg text {
+  font-family: 'Inter Variable', 'Inter', sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+html[data-theme='dark'] .obsidian-prose .mermaid svg .nodeLabel,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .cluster-label,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .edgeLabel,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .label {
+  color: var(--obs-text-primary) !important;
+}
+
+html[data-theme='dark'] .obsidian-prose .mermaid svg .edgeLabel {
+  background-color: var(--obs-surface) !important;
+}
+
+/* Ensure text on light-tinted nodes in dark mode remains readable with dark text */
+html[data-theme='dark'] .obsidian-prose .mermaid svg .node[style*='fill: rgb(255'] .nodeLabel,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .node[style*='fill:#fff'] .nodeLabel,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .node[style*='fill:#ffe'] .nodeLabel,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .node[style*='fill:#ffd'] .nodeLabel,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .node[style*='fill:#d6f'] .nodeLabel,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .node[style*='fill:#e8f'] .nodeLabel,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .node[style*='fill: #fff'] .nodeLabel,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .node[style*='fill: #ffe'] .nodeLabel,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .node[style*='fill: #ffd'] .nodeLabel,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .node[style*='fill: #d6f'] .nodeLabel,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .node[style*='fill: #e8f'] .nodeLabel {
+  color: #111116 !important;
+}
+
+/* Invert high-brightness cluster fills in dark mode to sleek tinted dark surfaces */
+html[data-theme='dark'] .obsidian-prose .mermaid svg .cluster rect[style*='#e8f4ff'],
+html[data-theme='dark'] .obsidian-prose .mermaid svg .cluster rect[style*='rgb(232, 244, 255)'] {
+  fill: rgba(59, 130, 246, 0.12) !important;
+}
+
+html[data-theme='dark'] .obsidian-prose .mermaid svg .cluster rect[style*='#fff4e6'],
+html[data-theme='dark'] .obsidian-prose .mermaid svg .cluster rect[style*='rgb(255, 244, 230)'] {
+  fill: rgba(245, 158, 11, 0.12) !important;
+}
+
+html[data-theme='dark'] .obsidian-prose .mermaid svg .cluster .cluster-label span,
+html[data-theme='dark'] .obsidian-prose .mermaid svg .cluster text {
+  color: #f4f2ed !important;
+  fill: #f4f2ed !important;
+  font-weight: 600;
 }
 
 .obsidian-prose .mermaid-source {
@@ -648,6 +699,10 @@
 
 .obsidian-prose .mermaid-figure.is-rendered .mermaid-source {
   display: none;
+}
+
+.obsidian-prose .mermaid-figure.has-error {
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 .obsidian-prose .mermaid-error {

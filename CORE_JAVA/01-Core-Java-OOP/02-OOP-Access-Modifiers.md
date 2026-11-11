@@ -307,8 +307,8 @@ graph LR
     Ext["com.acme.web<br/>(other package)"]
     Ext -->|"✅ public only"| Svc
     Ext -.->|"❌ not visible"| Repo
-    style pkg fill:#e8f4ff,stroke:#3b82f6
-    style Ext fill:#fff4e6,stroke:#f59e0b
+    style pkg stroke:#3b82f6,stroke-width:2px
+    style Ext stroke:#f59e0b,stroke-width:2px
 ```
 **What to look at:** the *dotted* edges are the compile errors you get when a class in another package reaches for a package-private member. Only the **bold** edge crosses the package boundary.
 
