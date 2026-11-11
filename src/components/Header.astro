@@ -5,8 +5,12 @@ import {
   Eye,
   GitBranch,
   Library,
+  Maximize2,
   Menu,
+  Minimize2,
   Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
   Search,
   Sun,
   Waypoints,
@@ -33,6 +37,23 @@ const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
       aria-expanded="false"
     >
       <Menu className="h-4 w-4" />
+    </button>
+
+    <button
+      id="desktop-sidebar-toggle-btn"
+      type="button"
+      class="icon-btn hidden md:inline-flex"
+      title="Collapse sidebar ([ or Ctrl+B)"
+      aria-label="Collapse navigation sidebar"
+      aria-controls="left-sidebar"
+      aria-expanded="true"
+    >
+      <span class="sidebar-icon-close inline-flex">
+        <PanelLeftClose className="h-4 w-4" />
+      </span>
+      <span class="sidebar-icon-open hidden">
+        <PanelLeftOpen className="h-4 w-4" />
+      </span>
     </button>
 
     <a
@@ -116,6 +137,22 @@ const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
     </a>
 
     <span class="mx-0.5 hidden h-5 w-px bg-obs-border sm:block" aria-hidden="true"></span>
+
+    <button
+      id="reading-width-btn"
+      type="button"
+      class="icon-btn hidden sm:inline-flex"
+      title="Toggle dynamic wider theory view (W)"
+      aria-label="Toggle dynamic wider theory view"
+      aria-pressed="false"
+    >
+      <span class="width-icon-normal inline-flex">
+        <Maximize2 className="h-4 w-4" />
+      </span>
+      <span class="width-icon-wide hidden">
+        <Minimize2 className="h-4 w-4" />
+      </span>
+    </button>
 
     <button
       id="reading-mode-btn"

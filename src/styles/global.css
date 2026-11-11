@@ -29,7 +29,10 @@
     --obs-header-height: 3.75rem;
     --obs-sidebar-width: 19rem;
     --obs-toc-width: 17rem;
-    --obs-reading-width: 46rem;
+    --obs-reading-width: 52rem;
+    --obs-reading-width-folded: 80rem;
+    --obs-reading-width-wide: 76rem;
+    --obs-reading-width-folded-wide: 92rem;
     color-scheme: dark;
   }
 
@@ -409,7 +412,8 @@ html[data-theme='light'] .shiki {
 /* Reading / zen mode */
 body.zen-mode #left-sidebar,
 body.zen-mode #right-sidebar,
-body.zen-mode #mobile-drawer {
+body.zen-mode #mobile-drawer,
+body.zen-mode #sidebar-edge-tab {
   display: none !important;
 }
 
@@ -430,6 +434,141 @@ body.zen-mode #main-content-wrapper {
   max-width: 100% !important;
   margin-left: auto !important;
   margin-right: auto !important;
+}
+
+/* Page load transition suppress */
+html.no-transitions,
+html.no-transitions *,
+html.no-transitions *::before,
+html.no-transitions *::after {
+  transition: none !important;
+}
+
+/* Left sidebar folding animations & visibility */
+#left-sidebar {
+  transition: width 280ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 200ms ease,
+              border-color 200ms ease;
+  will-change: width, opacity;
+}
+
+html.sidebar-folded #left-sidebar {
+  width: 0 !important;
+  min-width: 0 !important;
+  border-right-width: 0 !important;
+  border-color: transparent !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+}
+
+/* Header sidebar toggle icons and highlight */
+html.sidebar-folded .sidebar-icon-close {
+  display: none !important;
+}
+
+html.sidebar-folded .sidebar-icon-open {
+  display: inline-flex !important;
+}
+
+html.sidebar-folded #desktop-sidebar-toggle-btn {
+  border-color: color-mix(in srgb, var(--obs-accent) 45%, var(--obs-border));
+  color: var(--obs-accent);
+  background: var(--obs-accent-subtle);
+}
+
+/* Unfold docked edge tab (replaces floating content-overlapping rail) */
+#sidebar-edge-tab {
+  opacity: 0;
+  transform: translateX(-100%);
+  pointer-events: none !important;
+  transition: opacity 220ms ease, transform 240ms cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-anchor: none;
+}
+
+html.sidebar-folded #sidebar-edge-tab {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto !important;
+}
+
+html.sidebar-folded #main-content-wrapper {
+  padding-left: clamp(2.5rem, 5vw, 4rem);
+}
+
+/* Dynamic width adaptation for center theory content */
+#theory-reading-container {
+  width: 100%;
+  transition: max-width 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              width 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theory-content-container {
+  max-width: min(var(--obs-reading-width), 100%);
+}
+
+html.sidebar-folded .theory-content-container {
+  max-width: min(var(--obs-reading-width-folded), 100%) !important;
+}
+
+html[data-theory-width='wide'] .theory-content-container {
+  max-width: min(var(--obs-reading-width-wide), 100%) !important;
+}
+
+html.sidebar-folded[data-theory-width='wide'] .theory-content-container {
+  max-width: min(var(--obs-reading-width-folded-wide), 100%) !important;
+}
+
+/* Header theory width toggle active styling */
+html[data-theory-width='wide'] #reading-width-btn {
+  border-color: color-mix(in srgb, var(--obs-accent) 45%, var(--obs-border));
+  color: var(--obs-accent);
+  background: var(--obs-accent-subtle);
+}
+
+html[data-theory-width='wide'] .width-icon-normal {
+  display: none !important;
+}
+
+html[data-theory-width='wide'] .width-icon-wide {
+  display: inline-flex !important;
+}
+
+/* Wide pages dynamic adaptation */
+.page-wide-mode {
+  max-width: min(78rem, 100%);
+}
+
+html.sidebar-folded .page-wide-mode {
+  max-width: min(92rem, 100%) !important;
+}
+
+html[data-theory-width='wide'] .page-wide-mode {
+  max-width: min(88rem, 100%) !important;
+}
+
+html.sidebar-folded[data-theory-width='wide'] .page-wide-mode {
+  max-width: min(100rem, 100%) !important;
+}
+
+/* Sleek obsidian custom scrollbar */
+.obs-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--obs-border) transparent;
+}
+.obs-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.obs-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.obs-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--obs-border);
+  border-radius: 9999px;
+}
+.obs-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--obs-accent);
 }
 
 /* Native details animation */

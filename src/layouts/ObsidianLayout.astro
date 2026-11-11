@@ -26,6 +26,7 @@ import {
   FileText,
   Hash,
   ListTree,
+  PanelLeftOpen,
   Pin,
   Sparkles,
   X,
@@ -196,6 +197,19 @@ const jsonLd = {
             ? 'light'
             : 'dark');
         document.documentElement.setAttribute('data-theme', theme);
+
+        if (localStorage.getItem('obsidian-sidebar-folded') === 'true') {
+          document.documentElement.classList.add('sidebar-folded', 'no-transitions');
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              document.documentElement.classList.remove('no-transitions');
+            });
+          });
+        }
+        const widthMode = localStorage.getItem('obsidian-theory-width');
+        if (widthMode) {
+          document.documentElement.setAttribute('data-theory-width', widthMode);
+        }
       } catch (_) {
         document.documentElement.setAttribute('data-theme', 'dark');
       }
@@ -223,23 +237,59 @@ const jsonLd = {
       <Header breadcrumbs={breadcrumbs} />
     </div>
 
-    <div id="app-shell" class="mx-auto flex w-full max-w-[100rem]">
+    <!-- Docked Edge Pull Tab when sidebar is folded (desktop only, flush to edge) -->
+    <aside
+      id="sidebar-edge-tab"
+      data-pagefind-ignore
+      class="no-print fixed left-0 top-[calc(var(--obs-header-height)+1.25rem)] z-30 hidden md:block"
+      aria-label="Unfold sidebar navigation"
+    >
+      <button
+        id="sidebar-edge-unfold-btn"
+        type="button"
+        class="group relative flex h-9 w-9 items-center justify-center rounded-r-xl border border-l-0 border-obs-border/80 bg-obs-surface/95 text-obs-text-secondary shadow-obs-md backdrop-blur-md transition-all duration-200 hover:w-auto hover:px-3 hover:gap-2 hover:border-obs-accent/60 hover:bg-obs-surface-hover hover:text-obs-accent hover:shadow-obs-lg active:scale-95"
+        title="Unfold navigation sidebar ([ or Ctrl+B)"
+        aria-label="Unfold navigation sidebar"
+        aria-controls="left-sidebar"
+        aria-expanded="false"
+      >
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-obs-accent/15 text-obs-accent transition-colors group-hover:bg-obs-accent/25">
+          <PanelLeftOpen className="h-3.5 w-3.5" />
+        </span>
+        <span class="hidden whitespace-nowrap text-xs font-semibold tracking-wide group-hover:inline-block">
+          Explore
+        </span>
+        <kbd class="hidden items-center rounded border border-obs-border/60 bg-obs-canvas-soft px-1 text-[0.58rem] font-mono text-obs-text-muted group-hover:inline-flex">
+          [
+        </kbd>
+      </button>
+    </aside>
+
+    <div id="app-shell" class="mx-auto flex w-full max-w-[112rem]">
       <aside
         id="left-sidebar"
         data-pagefind-ignore
-        class="sticky top-[var(--obs-header-height)] hidden h-[calc(100vh-var(--obs-header-height))] w-[var(--obs-sidebar-width)] shrink-0 overflow-hidden border-r border-obs-border bg-obs-sidebar/45 md:block"
+        class="sticky top-[var(--obs-header-height)] hidden h-[calc(100vh-var(--obs-header-height))] w-[var(--obs-sidebar-width)] shrink-0 overflow-hidden border-r border-obs-border bg-obs-sidebar/70 backdrop-blur-md md:block z-20"
         aria-label="Knowledge base navigation"
       >
-        <SidebarTree client:idle navigation={navigation} currentSlug={pathname} />
+        <div class="h-full w-[var(--obs-sidebar-width)] min-w-[19rem] overflow-hidden">
+          <SidebarTree client:load navigation={navigation} currentSlug={pathname} />
+        </div>
       </aside>
 
-      <div id="content-grid" class="flex min-w-0 flex-1 flex-col xl:flex-row">
+      <div id="content-grid" class="flex min-w-0 flex-1 flex-col xl:flex-row transition-all duration-300">
         <main
           id="main-content-wrapper"
           tabindex="-1"
-          class="min-w-0 flex-1 px-4 pb-20 pt-7 focus:outline-none sm:px-6 lg:px-10"
+          class="min-w-0 flex-1 px-4 pb-20 pt-7 focus:outline-none sm:px-6 lg:px-10 transition-all duration-300"
         >
-          <div class:list={['mx-auto w-full', wide ? 'max-w-[72rem]' : 'max-w-[var(--obs-reading-width)]']}>
+          <div
+            id="theory-reading-container"
+            class:list={[
+              'mx-auto w-full transition-[max-width,width] duration-300 ease-in-out',
+              wide ? 'page-wide-mode' : 'theory-content-container'
+            ]}
+          >
             {headings.length > 0 && (
               <details
                 class="no-print mb-5 rounded-xl border border-obs-border bg-obs-surface/70 px-3 py-2 xl:hidden"
@@ -323,7 +373,7 @@ const jsonLd = {
                       {doc.title}
                     </h1>
                     {doc.summary && (
-                      <p class="max-w-[42rem] text-pretty text-[0.9rem] leading-relaxed text-obs-text-muted">
+                      <p class="max-w-[48rem] text-pretty text-[0.92rem] leading-relaxed text-obs-text-muted">
                         {doc.summary}
                       </p>
                     )}
@@ -618,6 +668,116 @@ const jsonLd = {
         });
       }
 
+      /* -------------------------------------------------------- sidebar toggle */
+      function toggleSidebar(forceState?: boolean) {
+        const next =
+          typeof forceState === 'boolean'
+            ? forceState
+            : !root.classList.contains('sidebar-folded');
+        root.classList.toggle('sidebar-folded', next);
+        try {
+          localStorage.setItem('obsidian-sidebar-folded', String(next));
+        } catch {
+          /* ignore */
+        }
+        updateSidebarButtons();
+      }
+
+      function updateSidebarButtons() {
+        const isFolded = root.classList.contains('sidebar-folded');
+        const desktopBtn = document.getElementById('desktop-sidebar-toggle-btn');
+        if (desktopBtn) {
+          desktopBtn.setAttribute('aria-expanded', String(!isFolded));
+          desktopBtn.title = isFolded
+            ? 'Expand navigation sidebar ([ or Ctrl+B)'
+            : 'Collapse navigation sidebar ([ or Ctrl+B)';
+          desktopBtn.setAttribute(
+            'aria-label',
+            isFolded ? 'Expand navigation sidebar' : 'Collapse navigation sidebar'
+          );
+        }
+        const edgeBtn = document.getElementById('sidebar-edge-unfold-btn');
+        if (edgeBtn) {
+          edgeBtn.setAttribute('aria-expanded', String(!isFolded));
+        }
+        window.dispatchEvent(
+          new CustomEvent('obsidian:sidebar-toggled', { detail: { folded: isFolded } })
+        );
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+        }, 310);
+      }
+
+      function setupSidebar() {
+        const desktopBtn = document.getElementById('desktop-sidebar-toggle-btn');
+        if (desktopBtn && desktopBtn.dataset.bound !== 'true') {
+          desktopBtn.dataset.bound = 'true';
+          desktopBtn.addEventListener('click', () => toggleSidebar());
+        }
+
+        const edgeBtn = document.getElementById('sidebar-edge-unfold-btn');
+        if (edgeBtn && edgeBtn.dataset.bound !== 'true') {
+          edgeBtn.dataset.bound = 'true';
+          edgeBtn.addEventListener('click', () => toggleSidebar(false));
+        }
+
+        document.querySelectorAll<HTMLElement>('.sidebar-fold-btn').forEach((btn) => {
+          if (btn.dataset.bound !== 'true') {
+            btn.dataset.bound = 'true';
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              toggleSidebar(true);
+            });
+          }
+        });
+
+        if (!root.dataset.sidebarListenerBound) {
+          root.dataset.sidebarListenerBound = 'true';
+          window.addEventListener('obsidian:toggle-sidebar', (e: any) => {
+            if (e?.detail && typeof e.detail.folded === 'boolean') {
+              toggleSidebar(e.detail.folded);
+            } else {
+              toggleSidebar();
+            }
+          });
+        }
+
+        updateSidebarButtons();
+      }
+
+      /* ---------------------------------------------------- theory width mode */
+      function setupTheoryWidth() {
+        const button = document.getElementById('reading-width-btn');
+        if (!button || button.dataset.bound === 'true') return;
+        button.dataset.bound = 'true';
+
+        const syncWidth = () => {
+          const isWide = root.getAttribute('data-theory-width') === 'wide';
+          button.setAttribute('aria-pressed', String(isWide));
+          button.title = isWide
+            ? 'Reset balanced reading width (W)'
+            : 'Expand to dynamic wide reading width (W)';
+          button.querySelector('.width-icon-normal')?.classList.toggle('hidden', isWide);
+          button.querySelector('.width-icon-wide')?.classList.toggle('hidden', !isWide);
+        };
+
+        syncWidth();
+
+        button.addEventListener('click', () => {
+          const next = root.getAttribute('data-theory-width') === 'wide' ? 'normal' : 'wide';
+          root.setAttribute('data-theory-width', next);
+          try {
+            localStorage.setItem('obsidian-theory-width', next);
+          } catch {
+            /* ignore */
+          }
+          syncWidth();
+          setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+          }, 310);
+        });
+      }
+
       /* ---------------------------------------------------------- progress bar */
       function updateProgress() {
         const bar = document.getElementById('reading-progress');
@@ -856,10 +1016,31 @@ const jsonLd = {
             window.dispatchEvent(new CustomEvent('obsidian:open-search'));
             return;
           }
+          if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'b') {
+            if (!typing) {
+              event.preventDefault();
+              toggleSidebar();
+            }
+            return;
+          }
           if (typing || event.metaKey || event.ctrlKey || event.altKey) return;
           if (event.key === '/') {
             event.preventDefault();
-            window.dispatchEvent(new CustomEvent('obsidian:open-search'));
+            const filterInput = document.querySelector<HTMLInputElement>(
+              '#left-sidebar input[data-sidebar-filter="true"]'
+            );
+            const isFolded = root.classList.contains('sidebar-folded');
+            if (filterInput && !isFolded && window.innerWidth >= 768) {
+              filterInput.focus();
+              filterInput.select();
+            } else {
+              window.dispatchEvent(new CustomEvent('obsidian:open-search'));
+            }
+          } else if (event.key === '[' || event.key === '\\') {
+            event.preventDefault();
+            toggleSidebar();
+          } else if (event.key.toLowerCase() === 'w') {
+            document.getElementById('reading-width-btn')?.click();
           } else if (event.key.toLowerCase() === 'z') {
             document.getElementById('reading-mode-btn')?.click();
           } else if (event.key.toLowerCase() === 'g') {
@@ -870,6 +1051,8 @@ const jsonLd = {
 
       function init() {
         setupTheme();
+        setupSidebar();
+        setupTheoryWidth();
         setupReadingMode();
         setupDrawer();
         setupPinsAndRecents();
