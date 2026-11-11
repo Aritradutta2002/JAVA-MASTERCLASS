@@ -586,24 +586,27 @@ const jsonLd = {
 
     <div
       id="diagram-lightbox"
-      class="fixed inset-0 z-[70] hidden flex-col bg-black/90 p-4 backdrop-blur-md"
+      class="fixed inset-0 z-[70] hidden flex-col bg-black/80 p-4 md:p-8 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
       aria-label="Expanded diagram"
     >
-      <div class="mx-auto flex w-full max-w-6xl items-center justify-between py-2 text-white">
-        <span class="text-[0.68rem] font-medium uppercase tracking-[0.14em] text-white/60">
+      <div class="mx-auto flex w-full max-w-6xl items-center justify-between pb-3 text-white">
+        <span class="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-white/70">
           Diagram view
         </span>
         <button
           id="close-lightbox-btn"
           type="button"
-          class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-xs font-semibold text-white hover:bg-white/20"
+          class="rounded-md border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/20 transition-colors"
         >
-          Close
+          Close (Esc)
         </button>
       </div>
-      <div id="lightbox-content" class="mx-auto flex w-full max-w-6xl flex-1 items-center justify-center overflow-auto p-2"></div>
+      <div
+        id="lightbox-content"
+        class="obsidian-prose mx-auto flex w-full max-w-6xl flex-1 items-center justify-center overflow-auto rounded-xl border border-obs-border bg-obs-base p-6 text-obs-text-primary shadow-2xl"
+      ></div>
     </div>
 
     <script>
@@ -911,14 +914,16 @@ const jsonLd = {
         const currentBatch = mermaidRenderBatch;
 
         for (let i = 0; i < elements.length; i++) {
+          if (currentBatch !== mermaidRenderBatch) return;
           const element = elements[i];
           const figure = element.closest('.mermaid-figure');
           const source = element.dataset.mermaidSource;
           if (!source) continue;
 
+          const id = `mermaid-svg-${currentBatch}-${i}`;
           try {
-            const id = `mermaid-svg-${currentBatch}-${i}`;
             const { svg, bindFunctions } = await mermaid.render(id, source);
+            if (currentBatch !== mermaidRenderBatch) return;
             element.innerHTML = svg;
             if (typeof bindFunctions === 'function') {
               bindFunctions(element);
@@ -926,7 +931,10 @@ const jsonLd = {
             figure?.classList.add('is-rendered');
             figure?.classList.remove('has-error');
           } catch (renderError) {
+            if (currentBatch !== mermaidRenderBatch) return;
             console.warn(`Mermaid render failed for diagram ${i}:`, renderError);
+            const stray = document.getElementById(id) || document.getElementById(`d${id}`);
+            if (stray) stray.remove();
             element.innerHTML = `<div class="mermaid-error"><p class="font-medium text-xs">Diagram render notice</p><p class="text-[0.7rem] text-obs-text-muted mt-0.5">Could not render diagram preview.</p></div>`;
             figure?.classList.remove('is-rendered');
             figure?.classList.add('has-error');
@@ -945,18 +953,20 @@ const jsonLd = {
           const hide = () => {
             lightbox.classList.add('hidden');
             lightbox.classList.remove('flex');
+            content.innerHTML = '';
           };
           close.addEventListener('click', hide);
           lightbox.addEventListener('click', (event) => {
             if (event.target === lightbox) hide();
           });
           document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') hide();
+            if (event.key === 'Escape' && !lightbox.classList.contains('hidden')) hide();
           });
         }
 
         document.querySelectorAll('.mermaid-container').forEach((container) => {
-          if (container.querySelector('.diagram-expand-btn')) return;
+          const figure = container.closest('.mermaid-figure');
+          if (!figure || figure.querySelector('.diagram-expand-btn')) return;
           const button = document.createElement('button');
           button.type = 'button';
           button.className = 'diagram-expand-btn';
@@ -967,7 +977,7 @@ const jsonLd = {
             lightbox.classList.remove('hidden');
             lightbox.classList.add('flex');
           });
-          container.parentElement?.appendChild(button);
+          figure.appendChild(button);
         });
       }
 
@@ -1130,9 +1140,13 @@ const jsonLd = {
         rerenderMermaid();
         updateProgress();
         scrollToHash();
-        document.getElementById('back-to-top')?.addEventListener('click', () => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+        const backToTop = document.getElementById('back-to-top');
+        if (backToTop && backToTop.dataset.bound !== 'true') {
+          backToTop.dataset.bound = 'true';
+          backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
       }
 
       window.addEventListener('scroll', updateProgress, { passive: true });

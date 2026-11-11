@@ -409,6 +409,10 @@ html[data-theme='light'] .shiki {
   border-color: color-mix(in srgb, var(--obs-accent) 40%, var(--obs-border));
 }
 
+.mermaid-figure:not(.is-rendered) .diagram-expand-btn {
+  display: none !important;
+}
+
 /* Reading / zen mode */
 body.zen-mode #left-sidebar,
 body.zen-mode #right-sidebar,

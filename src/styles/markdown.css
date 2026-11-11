@@ -628,6 +628,20 @@
   overflow: visible;
 }
 
+#lightbox-content .mermaid {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#lightbox-content .mermaid svg {
+  max-width: 100% !important;
+  max-height: 75vh;
+  width: auto;
+  height: auto;
+}
+
 /* Mermaid theme & contrast enhancements */
 .obsidian-prose .mermaid svg text {
   font-family: 'Inter Variable', 'Inter', sans-serif !important;
