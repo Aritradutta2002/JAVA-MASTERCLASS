@@ -86,6 +86,20 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+    /* Exclude SVG and Mermaid diagram elements from animation/transition overrides so layouts and measurements remain stable */
+    svg,
+    svg *,
+    .mermaid,
+    .mermaid *,
+    [id^="dmermaid"],
+    [id^="dmermaid"] *,
+    [id^="mermaid-svg"],
+    [id^="mermaid-svg"] * {
+      animation: none !important;
+      animation-duration: 0s !important;
+      transition: none !important;
+      transition-duration: 0s !important;
+    }
   }
 
   body {

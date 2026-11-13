@@ -600,6 +600,33 @@
 }
 
 /* Mermaid ------------------------------------------------------------------ */
+/* Ensure diagram elements never inherit accidental transitions during measurement or rendering */
+.obsidian-prose .mermaid-figure,
+.obsidian-prose .mermaid-container,
+.obsidian-prose .mermaid,
+.obsidian-prose .mermaid *,
+[id^="dmermaid"],
+[id^="dmermaid"] *,
+[id^="mermaid-svg"],
+[id^="mermaid-svg"] * {
+  transition: none !important;
+  transition-duration: 0s !important;
+}
+
+[id^="dmermaid"] {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  pointer-events: none !important;
+}
+
+.obsidian-prose .mermaid p,
+.obsidian-prose .mermaid svg p,
+#lightbox-content .mermaid p {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 .obsidian-prose .mermaid-figure {
   margin: 1.8rem 0;
   border: 1px solid var(--obs-border);
