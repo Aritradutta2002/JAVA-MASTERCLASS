@@ -8,13 +8,23 @@ import {
   Database,
   Layers,
 } from 'lucide-react';
+import { DOMAIN_COLORS } from '../lib/constants';
 
 interface Props {
   domain: string;
   class?: string;
+  container?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  glow?: boolean;
 }
 
-const { domain, class: className = 'h-4 w-4' } = Astro.props;
+const {
+  domain,
+  class: className = 'h-4 w-4',
+  container = false,
+  size = 'md',
+  glow = true,
+} = Astro.props;
 
 const icons: Record<string, any> = {
   'core-java': Cpu,
@@ -28,6 +38,45 @@ const icons: Record<string, any> = {
 };
 
 const Icon = icons[domain] ?? BookOpen;
+const color = DOMAIN_COLORS[domain] ?? DOMAIN_COLORS.root ?? {
+  bg: 'rgba(167, 139, 250, 0.12)',
+  text: '#c4b5fd',
+  border: 'rgba(167, 139, 250, 0.28)',
+  hex: '#a78bfa',
+};
+
+const sizeStyles = {
+  sm: 'h-7 w-7 rounded-lg text-xs',
+  md: 'h-9 w-9 rounded-xl text-sm',
+  lg: 'h-11 w-11 rounded-2xl text-base',
+};
 ---
 
-<Icon className={className} />
+{container ? (
+  <span
+    class:list={[
+      'inline-flex items-center justify-center border transition-all duration-300 relative group/icon overflow-hidden shrink-0',
+      sizeStyles[size],
+      className
+    ]}
+    style={{
+      backgroundColor: color.bg,
+      color: color.text,
+      borderColor: color.border,
+      boxShadow: glow ? `0 0 20px -5px ${color.hex}44, 0 2px 4px -1px rgba(0,0,0,0.1)` : undefined,
+    }}
+  >
+    <span
+      class="absolute inset-0 opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none"
+      style={{
+        background: `radial-gradient(circle at center, ${color.hex}26 0%, transparent 70%)`,
+      }}
+    />
+    <Icon className="h-4 w-4 relative z-10 transition-transform duration-300 group-hover/icon:scale-110" />
+  </span>
+) : (
+  <Icon
+    className={className}
+    style={glow ? { filter: `drop-shadow(0 0 6px ${color.hex}40)` } : undefined}
+  />
+)}

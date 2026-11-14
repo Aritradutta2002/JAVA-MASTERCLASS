@@ -13,14 +13,19 @@ import {
   ArrowRight,
   BookOpen,
   CheckSquare,
+  ChevronRight,
+  Clock,
   Compass,
   FileText,
   GitBranch,
+  GraduationCap,
   Library,
   Network,
   Search,
   Sparkles,
+  Terminal,
   Waypoints,
+  Zap,
 } from 'lucide-react';
 
 const allDocs = getAllDocs();
@@ -28,7 +33,6 @@ const navigation = buildNavigationTree(allDocs);
 const stats = getStats(allDocs);
 const graph = buildKnowledgeGraph(allDocs);
 const landings = getLandingPages(allDocs);
-
 
 const domainCards = DOMAIN_ORDER.filter(
   (domain) => domain !== 'root' && allDocs.some((doc) => doc.domain === domain)
@@ -38,7 +42,7 @@ const domainCards = DOMAIN_ORDER.filter(
   for (const doc of docs) categories.set(doc.categoryTitle, (categories.get(doc.categoryTitle) || 0) + 1);
   const topCategories = [...categories.entries()]
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
+    .slice(0, 4)
     .map(([title]) => title);
   return {
     id: domain,
@@ -63,45 +67,60 @@ const featured = [
 const mostConnected = [...graph.nodes]
   .sort((a, b) => b.degree - a.degree || a.title.localeCompare(b.title))
   .slice(0, 6)
-  .map((node) => allDocs.find((doc) => doc.slug === node.slug))
+  .map((node) => {
+    const doc = allDocs.find((d) => d.slug === node.slug);
+    return doc ? { ...doc, degree: node.degree } : null;
+  })
   .filter((doc): doc is NonNullable<typeof doc> => Boolean(doc));
 
 const paths = [
   {
+    id: 'java-backend-foundations',
     title: 'Java backend foundations',
-    description: 'Language, JVM, collections, generics, streams, and concurrency. Build the base every interview assumes.',
+    description: 'Language, JVM, memory model, collections, generics, modern features, and concurrency. Build the base every interview assumes.',
     href: '/paths#java-backend-foundations',
     domain: 'Core Java',
-    color: 'amber',
+    level: 'Beginner → Advanced',
     weeks: '4 weeks',
+    hours: '~38 hrs',
     docs: allDocs.filter((doc) => doc.domain === 'core-java').length,
+    highlight: 'JVM Internals & Concurrency',
   },
   {
+    id: 'spring-boot-in-production',
     title: 'Spring Boot in production',
-    description: 'Auto-configuration, MVC, JPA, security, messaging, caching, and deployment for real services.',
+    description: 'Auto-configuration, Spring MVC, JPA/Hibernate, Security, messaging, caching, microservices, and containerised deployments.',
     href: '/paths#spring-boot-in-production',
     domain: 'Spring Boot',
-    color: 'emerald',
+    level: 'Intermediate → Advanced',
     weeks: '6 weeks',
+    hours: '~52 hrs',
     docs: allDocs.filter((doc) => doc.domain === 'spring-boot').length,
+    highlight: 'Cloud-Ready Microservices',
   },
   {
-    title: 'Distributed systems and HLD',
-    description: 'Fundamentals, CAP, storage, caching, messaging, observability, and end-to-end case studies.',
+    id: 'distributed-systems-and-hld',
+    title: 'Distributed systems & HLD',
+    description: 'CAP, PACELC, storage engines, sharding, consensus, distributed caching, event messaging, and 12 end-to-end case studies.',
     href: '/paths#distributed-systems-and-hld',
     domain: 'System Design',
-    color: 'sky',
+    level: 'Intermediate → Expert',
     weeks: '5 weeks',
+    hours: '~45 hrs',
     docs: allDocs.filter((doc) => doc.domain === 'system-design').length,
+    highlight: 'HLD Architecture & Case Studies',
   },
   {
-    title: 'Interview algorithms',
-    description: 'Patterns, data structures, graph masterclass, dynamic programming, and runnable Java solutions.',
+    id: 'interview-algorithms',
+    title: 'Interview algorithms & DSA',
+    description: 'Algorithmic patterns, data structures, graph masterclass, dynamic programming, and production Java solutions.',
     href: '/paths#interview-algorithms',
     domain: 'DSA',
-    color: 'rose',
+    level: 'Beginner → Advanced',
     weeks: '8 weeks',
+    hours: '~60 hrs',
     docs: allDocs.filter((doc) => doc.domain === 'java-dsa').length,
+    highlight: 'Pattern-Driven Problem Solving',
   },
 ];
 
@@ -114,288 +133,466 @@ const fmt = new Intl.NumberFormat('en-US');
   navigation={navigation}
   wide
 >
-  <div class="not-prose space-y-14">
-    <!-- Hero -->
-    <section class="relative overflow-hidden rounded-3xl border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/70 to-obs-canvas-soft shadow-obs-lg">
-      <div class="pointer-events-none absolute -right-24 -top-28 h-80 w-80 rounded-full bg-obs-accent/15 blur-3xl"></div>
-      <div class="pointer-events-none absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-obs-gold/10 blur-3xl"></div>
-      <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(167,139,250,0.08),transparent_55%)]"></div>
+  <div class="not-prose space-y-16">
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden rounded-3xl border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/85 to-obs-canvas shadow-obs-lg">
+      <!-- Glow & Mesh Background -->
+      <div class="pointer-events-none absolute -right-20 -top-24 h-96 w-96 rounded-full bg-obs-accent/15 blur-3xl" aria-hidden="true"></div>
+      <div class="pointer-events-none absolute -bottom-28 -left-20 h-80 w-80 rounded-full bg-obs-gold/10 blur-3xl" aria-hidden="true"></div>
+      <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(167,139,250,0.09),transparent_60%)]" aria-hidden="true"></div>
+      <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]" aria-hidden="true"></div>
 
-      <div class="relative z-10 grid gap-10 p-6 sm:p-10 lg:grid-cols-[1.35fr_0.65fr] lg:p-12">
+      <div class="relative z-10 grid gap-10 p-6 sm:p-10 lg:grid-cols-[1.3fr_0.7fr] lg:p-12">
         <div class="space-y-6">
-          <p class="inline-flex items-center gap-2 rounded-full border border-obs-accent/30 bg-obs-accent/10 px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-obs-accent">
-            <Sparkles className="h-3.5 w-3.5" />
-            A connected Java knowledge base
-          </p>
+          <!-- Top Badge -->
+          <div class="inline-flex items-center gap-2.5 rounded-full border border-obs-accent/30 bg-obs-accent/10 px-3.5 py-1.5 text-xs font-semibold text-obs-accent backdrop-blur-sm">
+            <span class="relative flex h-2 w-2">
+              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-obs-accent opacity-75"></span>
+              <span class="relative inline-flex h-2 w-2 rounded-full bg-obs-accent"></span>
+            </span>
+            <span>Enterprise Java Knowledge Engine</span>
+            <span class="text-obs-text-muted" aria-hidden="true">/</span>
+            <span class="text-obs-text-secondary font-medium">Production Architecture</span>
+          </div>
 
-          <h1 class="max-w-3xl text-balance font-serif text-4xl font-bold leading-[1.08] tracking-tight text-obs-text-primary sm:text-5xl lg:text-[3.4rem]">
+          <!-- Hero Headline -->
+          <h1 class="max-w-3xl text-balance font-serif text-4xl font-extrabold leading-[1.08] tracking-tight text-obs-text-primary sm:text-5xl lg:text-[3.5rem]">
             Read deeply.
-            <span class="gradient-text"> Connect everything.</span>
+            <span class="bg-gradient-to-r from-obs-accent via-purple-300 to-obs-gold bg-clip-text text-transparent"> Connect everything.</span>
           </h1>
 
-          <p class="max-w-2xl text-pretty text-[0.98rem] leading-relaxed text-obs-text-secondary sm:text-[1.05rem]">
-            {SITE.description} Every chapter is written as a complete lesson — theory, production
-            examples, tables, diagrams, and interview framing — and linked into one navigable graph.
+          <!-- Hero Description -->
+          <p class="max-w-2xl text-pretty text-[1rem] leading-relaxed text-obs-text-secondary sm:text-[1.06rem]">
+            {SITE.description} Every chapter is engineered as a complete technical guide — deep runtime theory, production-tested architectures, benchmarks, diagrams, and interview questions — unified into one navigable relational graph.
           </p>
 
+          <!-- Search Input -->
           <form action="/search" method="get" class="max-w-xl" role="search">
             <label for="home-search" class="sr-only">Search the knowledge base</label>
-            <div class="flex items-center gap-2 rounded-xl border border-obs-border bg-obs-canvas/80 p-1.5 shadow-obs focus-within:border-obs-accent/50">
-              <Search className="ml-2 h-4 w-4 shrink-0 text-obs-accent" />
+            <div class="group relative flex items-center gap-2 rounded-2xl border border-obs-border bg-obs-canvas/80 p-1.5 shadow-obs backdrop-blur-md transition-all duration-200 focus-within:border-obs-accent/60 focus-within:ring-2 focus-within:ring-obs-accent/20">
+              <Search className="ml-2.5 h-4 w-4 shrink-0 text-obs-accent transition-transform group-focus-within:scale-110" />
               <input
                 id="home-search"
                 name="q"
                 type="search"
-                placeholder="Search JVM memory, Kafka, CAP, dynamic programming…"
-                class="min-w-0 flex-1 bg-transparent py-1.5 text-sm text-obs-text-primary placeholder:text-obs-text-muted focus:outline-none"
+                placeholder="Search JVM memory, Kafka, CAP theorem, sliding window…"
+                class="min-w-0 flex-1 bg-transparent py-2 text-sm text-obs-text-primary placeholder:text-obs-text-muted focus:outline-none"
+                autocomplete="off"
               />
-              <button type="submit" class="btn btn-primary">Search</button>
+              <kbd class="hidden items-center gap-0.5 rounded-lg border border-obs-border bg-obs-surface px-2 py-1 text-[0.68rem] font-mono text-obs-text-muted sm:inline-flex">
+                ⌘K
+              </kbd>
+              <button type="submit" class="btn btn-primary px-4 py-2">
+                Search
+              </button>
             </div>
           </form>
 
-          <div class="flex flex-wrap items-center gap-2.5">
-            <a href="/overview" class="btn btn-primary">
-              <BookOpen className="h-4 w-4" /> Start here
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap items-center gap-3 pt-1">
+            <a href="/overview" class="btn btn-primary shadow-lg shadow-obs-accent/20">
+              <BookOpen className="h-4 w-4" /> Start reading
+              <ArrowRight className="h-3.5 w-3.5" />
             </a>
             <a href="/paths" class="btn btn-secondary">
               <Waypoints className="h-4 w-4 text-obs-accent" /> Learning paths
             </a>
             <a href="/graph" class="btn btn-secondary">
-              <Network className="h-4 w-4 text-obs-accent" /> Explore the graph
+              <Network className="h-4 w-4 text-obs-accent" /> Knowledge graph
             </a>
           </div>
         </div>
 
+        <!-- Telemetry Card (Linear Style) -->
         <div class="relative hidden lg:block">
-          <div class="absolute inset-0 rounded-2xl border border-obs-border bg-obs-canvas/45 p-5 shadow-obs">
-            <div class="flex items-center justify-between border-b border-obs-border-subtle pb-3">
-              <span class="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-obs-text-muted">
-                Knowledge base
-              </span>
-              <span class="flex items-center gap-1 text-[0.62rem] font-semibold text-obs-emerald">
-                <span class="h-1.5 w-1.5 rounded-full bg-obs-emerald"></span> Live index
-              </span>
+          <div class="flex h-full flex-col justify-between rounded-2xl border border-obs-border bg-obs-canvas/60 p-6 shadow-obs backdrop-blur-sm">
+            <div>
+              <div class="flex items-center justify-between border-b border-obs-border-subtle pb-3.5">
+                <span class="flex items-center gap-2 text-[0.66rem] font-bold uppercase tracking-[0.15em] text-obs-text-muted">
+                  <Terminal className="h-3.5 w-3.5 text-obs-accent" />
+                  Curriculum Telemetry
+                </span>
+                <span class="flex items-center gap-1.5 rounded-full border border-obs-emerald/30 bg-obs-emerald/10 px-2 py-0.5 text-[0.62rem] font-semibold text-obs-emerald">
+                  <span class="h-1.5 w-1.5 rounded-full bg-obs-emerald"></span>
+                  Verified Live
+                </span>
+              </div>
+
+              <dl class="mt-5 grid grid-cols-2 gap-4">
+                <div class="rounded-xl border border-obs-border/50 bg-obs-surface/40 p-3">
+                  <dt class="text-[0.64rem] font-medium uppercase tracking-wider text-obs-text-muted">Chapters</dt>
+                  <dd class="mt-1 font-mono text-2xl font-bold tracking-tight text-obs-text-primary">{fmt.format(stats.documents)}</dd>
+                </div>
+                <div class="rounded-xl border border-obs-border/50 bg-obs-surface/40 p-3">
+                  <dt class="text-[0.64rem] font-medium uppercase tracking-wider text-obs-text-muted">Total Words</dt>
+                  <dd class="mt-1 font-mono text-2xl font-bold tracking-tight text-obs-text-primary">{(stats.words / 1_000_000).toFixed(2)}M</dd>
+                </div>
+                <div class="rounded-xl border border-obs-border/50 bg-obs-surface/40 p-3">
+                  <dt class="text-[0.64rem] font-medium uppercase tracking-wider text-obs-text-muted">Code Blocks</dt>
+                  <dd class="mt-1 font-mono text-2xl font-bold tracking-tight text-obs-text-primary">{fmt.format(stats.codeBlocks)}</dd>
+                </div>
+                <div class="rounded-xl border border-obs-border/50 bg-obs-surface/40 p-3">
+                  <dt class="text-[0.64rem] font-medium uppercase tracking-wider text-obs-text-muted">Java Sources</dt>
+                  <dd class="mt-1 font-mono text-2xl font-bold tracking-tight text-obs-text-primary">{fmt.format(stats.javaFiles)}</dd>
+                </div>
+              </dl>
+
+              <div class="mt-4 rounded-xl border border-obs-border/50 bg-obs-surface/40 p-3">
+                <div class="flex items-center justify-between text-[0.66rem]">
+                  <span class="font-medium text-obs-text-muted">Module Overviews</span>
+                  <span class="font-mono font-bold text-obs-gold">{landings.length} Modules</span>
+                </div>
+                <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-obs-surface">
+                  <div class="h-full rounded-full bg-gradient-to-r from-obs-accent via-purple-400 to-obs-emerald" style="width: 100%"></div>
+                </div>
+              </div>
             </div>
-            <dl class="mt-4 grid grid-cols-2 gap-4">
-              <div>
-                <dt class="text-[0.62rem] font-medium uppercase tracking-wider text-obs-text-muted">Chapters</dt>
-                <dd class="mt-0.5 font-mono text-2xl font-bold text-obs-text-primary">{fmt.format(stats.documents)}</dd>
-              </div>
-              <div>
-                <dt class="text-[0.62rem] font-medium uppercase tracking-wider text-obs-text-muted">Words</dt>
-                <dd class="mt-0.5 font-mono text-2xl font-bold text-obs-text-primary">{(stats.words / 1_000_000).toFixed(2)}M</dd>
-              </div>
-              <div>
-                <dt class="text-[0.62rem] font-medium uppercase tracking-wider text-obs-text-muted">Code blocks</dt>
-                <dd class="mt-0.5 font-mono text-2xl font-bold text-obs-text-primary">{fmt.format(stats.codeBlocks)}</dd>
-              </div>
-              <div>
-                <dt class="text-[0.62rem] font-medium uppercase tracking-wider text-obs-text-muted">Java files</dt>
-                <dd class="mt-0.5 font-mono text-2xl font-bold text-obs-text-primary">{fmt.format(stats.javaFiles)}</dd>
-              </div>
-            </dl>
-            <div class="mt-5 border-t border-obs-border-subtle pt-3">
-              <p class="text-[0.62rem] font-medium uppercase tracking-wider text-obs-text-muted">Modules with generated overviews</p>
-              <p class="mt-1 font-mono text-lg font-semibold text-obs-gold">{landings.length}</p>
-            </div>
-            <a href="/library" class="mt-4 flex items-center justify-between rounded-lg border border-obs-border bg-obs-surface px-3 py-2 text-[0.72rem] font-semibold text-obs-text-secondary hover:border-obs-accent/40 hover:text-obs-accent">
-              Open complete library <ArrowRight className="h-3.5 w-3.5" />
+
+            <a
+              href="/library"
+              class="mt-5 flex items-center justify-between rounded-xl border border-obs-border bg-obs-surface px-4 py-2.5 text-[0.76rem] font-semibold text-obs-text-secondary transition-all hover:border-obs-accent/50 hover:bg-obs-surface-hover hover:text-obs-accent"
+            >
+              <span>Explore full catalog</span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </a>
           </div>
         </div>
       </div>
 
-      <div class="relative z-10 grid grid-cols-2 border-t border-obs-border-subtle bg-obs-canvas/40 sm:grid-cols-4">
+      <!-- Bottom KPI Strip -->
+      <div class="relative z-10 grid grid-cols-2 border-t border-obs-border-subtle bg-obs-canvas/50 backdrop-blur-sm sm:grid-cols-4">
         {[
-          { label: 'Domains', value: fmt.format(stats.domains) },
-          { label: 'Reading time', value: `${fmt.format(Math.round(stats.readingMinutes / 60))} h` },
-          { label: 'Diagrams', value: fmt.format(stats.mermaidDiagrams) },
-          { label: 'Connections', value: fmt.format(graph.edges.length) },
+          { label: 'Technical Domains', value: fmt.format(stats.domains), hint: 'Complete stack' },
+          { label: 'Estimated Reading', value: `${fmt.format(Math.round(stats.readingMinutes / 60))} hours`, hint: 'Deep coverage' },
+          { label: 'System Diagrams', value: fmt.format(stats.mermaidDiagrams), hint: 'Architecture visuals' },
+          { label: 'Relational Links', value: fmt.format(graph.edges.length), hint: 'Interconnected notes' },
         ].map((item) => (
-          <div class="border-b border-obs-border-subtle px-5 py-3 text-center sm:border-b-0 sm:border-r sm:last:border-r-0">
-            <div class="font-mono text-sm font-bold text-obs-text-primary">{item.value}</div>
-            <div class="text-[0.6rem] font-medium uppercase tracking-[0.14em] text-obs-text-muted">{item.label}</div>
+          <div class="border-b border-obs-border-subtle p-4 text-center sm:border-b-0 sm:border-r sm:last:border-r-0">
+            <div class="font-mono text-base font-bold text-obs-text-primary sm:text-lg">{item.value}</div>
+            <div class="text-[0.62rem] font-medium uppercase tracking-[0.14em] text-obs-text-muted">{item.label}</div>
           </div>
         ))}
       </div>
     </section>
 
-    <!-- Learning paths -->
-    <section aria-labelledby="paths-heading" class="space-y-4">
-      <div class="flex flex-wrap items-end justify-between gap-2">
+    <!-- Quick Jump Links Bar -->
+    <nav aria-label="Curriculum sections" class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-obs-border bg-obs-surface/60 p-3 shadow-obs">
+      <div class="flex items-center gap-2 px-2 text-xs font-semibold text-obs-text-muted">
+        <Sparkles className="h-3.5 w-3.5 text-obs-accent" />
+        <span>Curriculum Navigation:</span>
+      </div>
+      <div class="flex flex-wrap gap-1.5">
+        <a href="#paths" class="rounded-lg border border-obs-border-subtle bg-obs-surface px-3 py-1.5 text-xs font-medium text-obs-text-secondary transition-colors hover:border-obs-accent/40 hover:text-obs-accent">
+          Learning Paths
+        </a>
+        <a href="#domains" class="rounded-lg border border-obs-border-subtle bg-obs-surface px-3 py-1.5 text-xs font-medium text-obs-text-secondary transition-colors hover:border-obs-accent/40 hover:text-obs-accent">
+          Domains ({domainCards.length})
+        </a>
+        <a href="#start-here" class="rounded-lg border border-obs-border-subtle bg-obs-surface px-3 py-1.5 text-xs font-medium text-obs-text-secondary transition-colors hover:border-obs-accent/40 hover:text-obs-accent">
+          Orientation
+        </a>
+        <a href="#connected" class="rounded-lg border border-obs-border-subtle bg-obs-surface px-3 py-1.5 text-xs font-medium text-obs-text-secondary transition-colors hover:border-obs-accent/40 hover:text-obs-accent">
+          High-Value Hubs
+        </a>
+        <a href="/checklist" class="rounded-lg border border-obs-border-subtle bg-obs-surface px-3 py-1.5 text-xs font-medium text-obs-emerald transition-colors hover:border-obs-emerald/40">
+          Checklist
+        </a>
+      </div>
+    </nav>
+
+    <!-- Learning Paths Section -->
+    <section id="paths" class="scroll-mt-24 space-y-6" aria-labelledby="paths-heading">
+      <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p class="eyebrow"><Waypoints className="h-3.5 w-3.5" /> Structured study</p>
-          <h2 id="paths-heading" class="mt-1 font-serif text-2xl font-bold text-obs-text-primary">Pick a path, not a pile of tabs</h2>
-        </div>
-        <a href="/paths" class="text-xs font-semibold text-obs-accent hover:underline">All learning paths →</a>
-      </div>
-
-      <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {paths.map((path) => (
-          <a href={path.href} class="surface-card surface-card-hover group flex flex-col p-4">
-            <div class="flex items-center justify-between">
-              <span class="text-[0.6rem] font-bold uppercase tracking-[0.12em] text-obs-accent">{path.domain}</span>
-              <span class="badge">{path.weeks}</span>
-            </div>
-            <h3 class="mt-2 font-serif text-[1.05rem] font-semibold leading-snug text-obs-text-primary group-hover:text-obs-accent">
-              {path.title}
-            </h3>
-            <p class="mt-1.5 line-clamp-3 text-[0.76rem] leading-relaxed text-obs-text-muted">{path.description}</p>
-            <div class="mt-auto flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-[0.64rem] text-obs-text-muted">
-              <span>{path.docs} chapters</span>
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-            </div>
-          </a>
-        ))}
-      </div>
-    </section>
-
-    <!-- Domains -->
-    <section aria-labelledby="domains-heading" class="space-y-4">
-      <div class="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <p class="eyebrow"><Library className="h-3.5 w-3.5" /> The library</p>
-          <h2 id="domains-heading" class="mt-1 font-serif text-2xl font-bold text-obs-text-primary">{domainCards.length} domains, one coherent curriculum</h2>
-        </div>
-        <a href="/library" class="text-xs font-semibold text-obs-accent hover:underline">Browse all {fmt.format(stats.documents)} chapters →</a>
-      </div>
-
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {domainCards.map((domain) => (
-          <a href={domain.href} class="surface-card surface-card-hover group flex flex-col overflow-hidden p-5">
-            <div class="flex items-start justify-between gap-3">
-              <span
-                class="flex h-10 w-10 items-center justify-center rounded-xl border"
-                style={{ backgroundColor: domain.color?.bg, color: domain.color?.text, borderColor: domain.color?.border }}
-              >
-                <DomainIcon domain={domain.id} class="h-5 w-5" />
-              </span>
-              <div class="text-right">
-                <div class="font-mono text-sm font-bold text-obs-text-primary">{domain.count}</div>
-                <div class="text-[0.58rem] uppercase tracking-[0.12em] text-obs-text-muted">chapters</div>
-              </div>
-            </div>
-            <h3 class="mt-3 font-serif text-lg font-bold text-obs-text-primary group-hover:text-obs-accent">{domain.title}</h3>
-            <p class="mt-1.5 line-clamp-3 text-[0.78rem] leading-relaxed text-obs-text-muted">{domain.description}</p>
-            <div class="mt-3 flex flex-wrap gap-1">
-              {domain.topCategories.map((category) => (
-                <span class="rounded border border-obs-border-subtle bg-obs-canvas-soft px-1.5 py-0.5 text-[0.58rem] font-medium text-obs-text-muted">{category}</span>
-              ))}
-            </div>
-            <div class="mt-4 flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-[0.64rem] text-obs-text-muted">
-              <span>{fmt.format(domain.words)} words</span>
-              <span class="inline-flex items-center gap-1 font-semibold text-obs-accent">Explore <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" /></span>
-            </div>
-          </a>
-        ))}
-      </div>
-    </section>
-
-    <!-- Start here + most connected -->
-    <section class="grid gap-6 lg:grid-cols-2" aria-label="Start here and popular topics">
-      <div class="surface-card p-5">
-        <div class="flex items-center justify-between border-b border-obs-border-subtle pb-3">
-          <div>
-            <p class="eyebrow"><BookOpen className="h-3.5 w-3.5" /> Orientation</p>
-            <h2 class="mt-1 font-serif text-xl font-bold text-obs-text-primary">Start here</h2>
-          </div>
-          <a href="/overview" class="text-[0.68rem] font-semibold text-obs-accent hover:underline">Overview →</a>
-        </div>
-        <ul class="mt-2 divide-y divide-obs-border-subtle">
-          {featured.map((doc) => (
-            <li>
-              <a href={doc.slug} class="group flex items-center gap-3 py-2.5">
-                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-obs-border bg-obs-canvas-soft text-obs-text-muted group-hover:text-obs-accent">
-                  <FileText className="h-3.5 w-3.5" />
-                </span>
-                <span class="min-w-0 flex-1">
-                  <span class="block truncate text-[0.82rem] font-semibold text-obs-text-primary group-hover:text-obs-accent">{doc.title}</span>
-                  <span class="block text-[0.62rem] text-obs-text-muted">{doc.domainTitle} · {doc.readingTimeMinutes} min</span>
-                </span>
-                <ArrowRight className="h-3 w-3 shrink-0 text-obs-text-muted opacity-0 transition-opacity group-hover:opacity-100" />
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div class="surface-card p-5">
-        <div class="flex items-center justify-between border-b border-obs-border-subtle pb-3">
-          <div>
-            <p class="eyebrow"><GitBranch className="h-3.5 w-3.5" /> Highly connected</p>
-            <h2 class="mt-1 font-serif text-xl font-bold text-obs-text-primary">Concepts that unlock the rest</h2>
-          </div>
-          <a href="/graph" class="text-[0.68rem] font-semibold text-obs-accent hover:underline">Graph →</a>
-        </div>
-        <ul class="mt-2 divide-y divide-obs-border-subtle">
-          {mostConnected.map((doc) => (
-            <li>
-              <a href={doc.slug} class="group flex items-center gap-3 py-2.5">
-                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-obs-border bg-obs-canvas-soft text-obs-text-muted group-hover:text-obs-accent">
-                  <Network className="h-3.5 w-3.5" />
-                </span>
-                <span class="min-w-0 flex-1">
-                  <span class="block truncate text-[0.82rem] font-semibold text-obs-text-primary group-hover:text-obs-accent">{doc.title}</span>
-                  <span class="block text-[0.62rem] text-obs-text-muted">{doc.domainTitle} · {doc.categoryTitle}</span>
-                </span>
-                <ArrowRight className="h-3 w-3 shrink-0 text-obs-text-muted opacity-0 transition-opacity group-hover:opacity-100" />
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-
-    <!-- Graph banner -->
-    <section class="relative overflow-hidden rounded-2xl border border-obs-border bg-gradient-to-r from-obs-surface via-obs-surface/80 to-obs-canvas-soft p-6 sm:p-8">
-      <div class="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-obs-accent/10 blur-3xl"></div>
-      <div class="relative flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">
-        <div class="max-w-2xl space-y-2">
-          <p class="eyebrow"><Compass className="h-3.5 w-3.5" /> Relationship engine</p>
-          <h2 class="font-serif text-2xl font-bold text-obs-text-primary">
-            {fmt.format(graph.nodes.length)} notes · {fmt.format(graph.edges.length)} connections
+          <p class="eyebrow"><Waypoints className="h-3.5 w-3.5" /> Structured progression</p>
+          <h2 id="paths-heading" class="mt-1 font-serif text-2xl font-bold tracking-tight text-obs-text-primary sm:text-3xl">
+            Career learning paths
           </h2>
-          <p class="text-sm leading-relaxed text-obs-text-muted">
-            Follow the links between JVM internals, concurrency, Spring security, database indexes,
-            caching, and distributed systems. Filter by domain, search a concept, or open the
-            accessible list view.
+          <p class="mt-1 max-w-2xl text-sm leading-relaxed text-obs-text-muted">
+            Move from fundamentals to staff-level production trade-offs with structured milestones.
           </p>
         </div>
-        <div class="flex flex-wrap gap-2.5">
-          <a href="/graph" class="btn btn-primary"><Network className="h-4 w-4" /> Open graph</a>
-          <a href="/tags" class="btn btn-secondary"><Sparkles className="h-4 w-4 text-obs-accent" /> Browse tags</a>
+        <a href="/paths" class="inline-flex items-center gap-1.5 text-xs font-semibold text-obs-accent hover:underline">
+          <span>Explore all paths</span>
+          <ArrowRight className="h-3.5 w-3.5" />
+        </a>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {paths.map((path) => (
+          <a
+            href={path.href}
+            class="surface-card surface-card-hover group flex flex-col justify-between overflow-hidden p-5 transition-all duration-200"
+          >
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="rounded-md border border-obs-accent/30 bg-obs-accent/10 px-2 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-obs-accent">
+                  {path.domain}
+                </span>
+                <span class="badge font-mono text-[0.62rem]">{path.weeks}</span>
+              </div>
+
+              <h3 class="mt-3.5 font-serif text-lg font-bold leading-snug text-obs-text-primary group-hover:text-obs-accent transition-colors">
+                {path.title}
+              </h3>
+
+              <p class="mt-2 line-clamp-3 text-xs leading-relaxed text-obs-text-muted">
+                {path.description}
+              </p>
+            </div>
+
+            <div class="mt-5 border-t border-obs-border-subtle pt-3">
+              <div class="flex items-center justify-between text-[0.66rem] text-obs-text-muted">
+                <span class="inline-flex items-center gap-1">
+                  <FileText className="h-3 w-3 text-obs-accent" />
+                  {path.docs} chapters
+                </span>
+                <span class="inline-flex items-center gap-1">
+                  <Clock className="h-3 w-3 text-obs-accent" />
+                  {path.hours}
+                </span>
+                <span class="inline-flex items-center gap-0.5 font-semibold text-obs-accent group-hover:translate-x-0.5 transition-transform">
+                  View <ChevronRight className="h-3 w-3" />
+                </span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Domains Section -->
+    <section id="domains" class="scroll-mt-24 space-y-6" aria-labelledby="domains-heading">
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p class="eyebrow"><Library className="h-3.5 w-3.5" /> Core Curriculum</p>
+          <h2 id="domains-heading" class="mt-1 font-serif text-2xl font-bold tracking-tight text-obs-text-primary sm:text-3xl">
+            {domainCards.length} technical domains
+          </h2>
+          <p class="mt-1 max-w-2xl text-sm leading-relaxed text-obs-text-muted">
+            Exhaustive, reference-level documentation covering the entire modern enterprise Java stack.
+          </p>
+        </div>
+        <a href="/library" class="inline-flex items-center gap-1.5 text-xs font-semibold text-obs-accent hover:underline">
+          <span>Browse {fmt.format(stats.documents)} chapters in library</span>
+          <ArrowRight className="h-3.5 w-3.5" />
+        </a>
+      </div>
+
+      <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {domainCards.map((domain) => (
+          <a
+            href={domain.href}
+            class="surface-card surface-card-hover group flex flex-col justify-between overflow-hidden p-6 transition-all duration-200"
+          >
+            <div>
+              <div class="flex items-start justify-between gap-3">
+                <span
+                  class="flex h-11 w-11 items-center justify-center rounded-xl border shadow-sm transition-transform duration-200 group-hover:scale-105"
+                  style={{ backgroundColor: domain.color?.bg, color: domain.color?.text, borderColor: domain.color?.border }}
+                >
+                  <DomainIcon domain={domain.id} class="h-5 w-5" />
+                </span>
+                <div class="rounded-lg border border-obs-border-subtle bg-obs-surface/80 px-2.5 py-1 text-right">
+                  <div class="font-mono text-xs font-bold text-obs-text-primary">{domain.count}</div>
+                  <div class="text-[0.56rem] font-medium uppercase tracking-wider text-obs-text-muted">chapters</div>
+                </div>
+              </div>
+
+              <h3 class="mt-4 font-serif text-xl font-bold tracking-tight text-obs-text-primary group-hover:text-obs-accent transition-colors">
+                {domain.title}
+              </h3>
+
+              <p class="mt-2 line-clamp-3 text-xs leading-relaxed text-obs-text-muted">
+                {domain.description}
+              </p>
+
+              <div class="mt-4 flex flex-wrap gap-1.5">
+                {domain.topCategories.map((category) => (
+                  <span class="rounded-md border border-obs-border-subtle bg-obs-canvas-soft px-2 py-0.5 text-[0.62rem] font-medium text-obs-text-secondary">
+                    {category}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-between border-t border-obs-border-subtle pt-3.5 text-xs text-obs-text-muted">
+              <span class="font-mono text-[0.68rem]">{fmt.format(domain.words)} words</span>
+              <span class="inline-flex items-center gap-1 font-semibold text-obs-accent transition-transform group-hover:translate-x-1">
+                Explore Domain <ArrowRight className="h-3.5 w-3.5" />
+              </span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Start Here & High-Value Hubs Split -->
+    <section class="grid gap-6 lg:grid-cols-2" aria-label="Essential guides and knowledge hubs">
+      <!-- Start Here -->
+      <div id="start-here" class="surface-card flex flex-col justify-between scroll-mt-24 p-6">
+        <div>
+          <div class="flex items-center justify-between border-b border-obs-border-subtle pb-4">
+            <div>
+              <p class="eyebrow"><BookOpen className="h-3.5 w-3.5" /> Orientation</p>
+              <h2 class="mt-1 font-serif text-xl font-bold text-obs-text-primary">Curriculum foundations</h2>
+            </div>
+            <a href="/overview" class="text-xs font-semibold text-obs-accent hover:underline">
+              Read overview →
+            </a>
+          </div>
+
+          <ul class="mt-3 divide-y divide-obs-border-subtle">
+            {featured.map((doc, idx) => (
+              <li>
+                <a href={doc.slug} class="group flex items-center gap-3 py-3 transition-colors">
+                  <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-obs-border bg-obs-canvas-soft font-mono text-[0.68rem] font-bold text-obs-text-muted group-hover:border-obs-accent/40 group-hover:text-obs-accent">
+                    {String(idx + 1).padStart(2, '0')}
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent">
+                      {doc.title}
+                    </span>
+                    <span class="block text-[0.66rem] text-obs-text-muted">
+                      {doc.domainTitle} · {doc.readingTimeMinutes} min read
+                    </span>
+                  </span>
+                  <ArrowRight className="h-3.5 w-3.5 shrink-0 text-obs-text-muted opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div class="mt-4 border-t border-obs-border-subtle pt-3">
+          <a href="/overview" class="flex items-center justify-between text-xs font-semibold text-obs-accent hover:underline">
+            <span>Start with the foundational architectural overview</span>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </a>
+        </div>
+      </div>
+
+      <!-- Most Connected Concepts -->
+      <div id="connected" class="surface-card flex flex-col justify-between scroll-mt-24 p-6">
+        <div>
+          <div class="flex items-center justify-between border-b border-obs-border-subtle pb-4">
+            <div>
+              <p class="eyebrow"><GitBranch className="h-3.5 w-3.5" /> Relational Hubs</p>
+              <h2 class="mt-1 font-serif text-xl font-bold text-obs-text-primary">High-connectivity concepts</h2>
+            </div>
+            <a href="/graph" class="text-xs font-semibold text-obs-accent hover:underline">
+              Full graph →
+            </a>
+          </div>
+
+          <ul class="mt-3 divide-y divide-obs-border-subtle">
+            {mostConnected.map((doc) => (
+              <li>
+                <a href={doc.slug} class="group flex items-center gap-3 py-3 transition-colors">
+                  <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-obs-border bg-obs-canvas-soft text-obs-text-muted group-hover:border-obs-accent/40 group-hover:text-obs-accent">
+                    <Network className="h-3.5 w-3.5" />
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent">
+                      {doc.title}
+                    </span>
+                    <span class="block text-[0.66rem] text-obs-text-muted">
+                      {doc.domainTitle} · {doc.categoryTitle}
+                    </span>
+                  </span>
+                  <span class="rounded-full border border-obs-accent/30 bg-obs-accent/10 px-2 py-0.5 font-mono text-[0.62rem] font-semibold text-obs-accent">
+                    {doc.degree} links
+                  </span>
+                  <ArrowRight className="h-3.5 w-3.5 shrink-0 text-obs-text-muted opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div class="mt-4 border-t border-obs-border-subtle pt-3">
+          <a href="/graph" class="flex items-center justify-between text-xs font-semibold text-obs-accent hover:underline">
+            <span>Explore all {fmt.format(graph.edges.length)} bidirectional knowledge relationships</span>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </a>
         </div>
       </div>
     </section>
 
-    <!-- Closing grid -->
-    <section class="grid gap-3 sm:grid-cols-3" aria-label="More ways to use the knowledge base">
-      <a href="/checklist" class="surface-card surface-card-hover flex items-start gap-3 p-4">
-        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obs-emerald/30 bg-obs-emerald/10 text-obs-emerald">
-          <CheckSquare className="h-4 w-4" />
+    <!-- Graph Callout Banner (Linear Aesthetic) -->
+    <section class="relative overflow-hidden rounded-3xl border border-obs-border bg-gradient-to-r from-obs-surface via-obs-surface/80 to-obs-canvas-soft p-8 shadow-obs sm:p-10">
+      <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-obs-accent/15 blur-3xl" aria-hidden="true"></div>
+      <div class="pointer-events-none absolute bottom-0 right-1/4 h-48 w-48 rounded-full bg-obs-gold/10 blur-2xl" aria-hidden="true"></div>
+
+      <div class="relative z-10 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+        <div class="max-w-2xl space-y-3">
+          <p class="eyebrow"><Compass className="h-3.5 w-3.5" /> Knowledge Graph Engine</p>
+          <h2 class="font-serif text-2xl font-bold tracking-tight text-obs-text-primary sm:text-3xl">
+            {fmt.format(graph.nodes.length)} notes · {fmt.format(graph.edges.length)} resolved relationships
+          </h2>
+          <p class="text-sm leading-relaxed text-obs-text-muted">
+            Visualize how JVM memory models connect to Spring singleton lifecycles, database transactions, Kafka partitions, and algorithmic trade-offs. Navigate visually or jump instantly by concept.
+          </p>
+          <div class="flex flex-wrap gap-2 pt-1 text-[0.7rem]">
+            <span class="badge"><Network className="h-3 w-3 text-obs-accent" /> 2D/3D Canvas</span>
+            <span class="badge"><Sparkles className="h-3 w-3 text-obs-gold" /> Filter by Domain</span>
+            <span class="badge"><Zap className="h-3 w-3 text-obs-emerald" /> Instant Note Preview</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+          <a href="/graph" class="btn btn-primary shadow-lg shadow-obs-accent/20">
+            <Network className="h-4 w-4" /> Open interactive graph
+          </a>
+          <a href="/tags" class="btn btn-secondary">
+            <Sparkles className="h-4 w-4 text-obs-accent" /> Browse tags
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Secondary Navigation & Toolkit Grid -->
+    <section class="grid gap-4 sm:grid-cols-3" aria-label="Productivity tools">
+      <a href="/checklist" class="surface-card surface-card-hover group flex items-start gap-4 p-5 transition-all">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-obs-emerald/30 bg-obs-emerald/10 text-obs-emerald shadow-sm transition-transform group-hover:scale-105">
+          <CheckSquare className="h-5 w-5" />
         </span>
-        <span>
-          <span class="block text-sm font-semibold text-obs-text-primary">Track study progress</span>
-          <span class="mt-0.5 block text-xs leading-relaxed text-obs-text-muted">A persistent checklist across every domain, stored locally.</span>
-        </span>
+        <div class="min-w-0">
+          <span class="block text-sm font-bold text-obs-text-primary group-hover:text-obs-emerald transition-colors">
+            Study Checklist Tracker
+          </span>
+          <span class="mt-1 block text-xs leading-relaxed text-obs-text-muted">
+            Interactive self-assessment tracking completed chapters and readiness for interviews.
+          </span>
+        </div>
       </a>
-      <a href="/index-all" class="surface-card surface-card-hover flex items-start gap-3 p-4">
-        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obs-accent/30 bg-obs-accent/10 text-obs-accent">
-          <Library className="h-4 w-4" />
+
+      <a href="/glossary" class="surface-card surface-card-hover group flex items-start gap-4 p-5 transition-all">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-obs-accent/30 bg-obs-accent/10 text-obs-accent shadow-sm transition-transform group-hover:scale-105">
+          <Library className="h-5 w-5" />
         </span>
-        <span>
-          <span class="block text-sm font-semibold text-obs-text-primary">Complete A–Z index</span>
-          <span class="mt-0.5 block text-xs leading-relaxed text-obs-text-muted">Every chapter, case study, and reference note in one place.</span>
-        </span>
+        <div class="min-w-0">
+          <span class="block text-sm font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors">
+            A–Z Concept Glossary
+          </span>
+          <span class="mt-1 block text-xs leading-relaxed text-obs-text-muted">
+            Direct anchors to every technical term, mechanism, and algorithm across the masterclass.
+          </span>
+        </div>
       </a>
-      <a href="/docs/authoring" class="surface-card surface-card-hover flex items-start gap-3 p-4">
-        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obs-gold/30 bg-obs-gold/10 text-obs-gold">
-          <FileText className="h-4 w-4" />
+
+      <a href="/docs/authoring" class="surface-card surface-card-hover group flex items-start gap-4 p-5 transition-all">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-obs-gold/30 bg-obs-gold/10 text-obs-gold shadow-sm transition-transform group-hover:scale-105">
+          <GraduationCap className="h-5 w-5" />
         </span>
-        <span>
-          <span class="block text-sm font-semibold text-obs-text-primary">Write a new chapter</span>
-          <span class="mt-0.5 block text-xs leading-relaxed text-obs-text-muted">Frontmatter, callouts, wiki links, math, and diagram conventions.</span>
-        </span>
+        <div class="min-w-0">
+          <span class="block text-sm font-bold text-obs-text-primary group-hover:text-obs-gold transition-colors">
+            Authoring Standards
+          </span>
+          <span class="mt-1 block text-xs leading-relaxed text-obs-text-muted">
+            Guidelines for frontmatter, callouts, diagrams, wiki-links, and production code samples.
+          </span>
+        </div>
       </a>
     </section>
   </div>

@@ -1,10 +1,19 @@
 ---
 import ObsidianLayout from '../layouts/ObsidianLayout.astro';
-import { buildNavigationTree, getAllDocs } from '../lib/content';
-import { Search, Sparkles } from 'lucide-react';
+import { buildNavigationTree, getAllDocs, getStats } from '../lib/content';
+import {
+  Hash,
+  Library,
+  Network,
+  Search,
+  Sparkles,
+  Terminal,
+} from 'lucide-react';
 
 const allDocs = getAllDocs();
 const navigation = buildNavigationTree(allDocs);
+const stats = getStats(allDocs);
+const fmt = new Intl.NumberFormat('en-US');
 ---
 
 <ObsidianLayout
@@ -14,58 +23,189 @@ const navigation = buildNavigationTree(allDocs);
   noIndex
   wide
 >
-  <div class="not-prose mx-auto max-w-4xl space-y-6">
-    <header class="space-y-3 border-b border-obs-border pb-6">
-      <p class="eyebrow"><Search className="h-3.5 w-3.5" /> Full-text search</p>
-      <h1 class="font-serif text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
-        Find the exact paragraph
-      </h1>
-      <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
-        The static index searches the full text of every chapter — including headings, tables, and
-        prose. Use quotes for exact phrases or a few distinctive keywords.
-      </p>
+  <div class="not-prose mx-auto max-w-4xl space-y-8">
+    <!-- Header -->
+    <header class="space-y-4 border-b border-obs-border pb-8">
+      <div class="inline-flex items-center gap-2 rounded-full border border-obs-accent/30 bg-obs-accent/10 px-3 py-1 text-xs font-semibold text-obs-accent">
+        <Search className="h-3.5 w-3.5" />
+        <span>Full-Text Static Search</span>
+      </div>
+
+      <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <h1 class="font-serif text-3xl font-extrabold tracking-tight text-obs-text-primary sm:text-4xl lg:text-5xl">
+            Search the Curriculum
+          </h1>
+          <p class="mt-2 max-w-2xl text-sm leading-relaxed text-obs-text-muted sm:text-base">
+            Search across {fmt.format(stats.documents)} chapters, {fmt.format(stats.codeBlocks)} code examples, tables, and interview counter-questions. Instant client-side indexing with zero trackers.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="rounded-xl border border-obs-border bg-obs-surface/80 px-3.5 py-2 font-mono text-xs text-obs-text-muted shadow-sm">
+            Press <kbd class="font-bold text-obs-accent">⌘K</kbd> anywhere
+          </span>
+        </div>
+      </div>
+
+      <!-- Quick query hints -->
+      <div class="flex flex-wrap items-center gap-2 pt-1 text-xs text-obs-text-muted">
+        <span class="font-semibold text-obs-text-secondary">Popular queries:</span>
+        <button
+          type="button"
+          data-query="JVM memory"
+          class="query-chip rounded-md border border-obs-border bg-obs-surface px-2 py-0.5 transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
+        >
+          JVM memory
+        </button>
+        <button
+          type="button"
+          data-query="Kafka partitioning"
+          class="query-chip rounded-md border border-obs-border bg-obs-surface px-2 py-0.5 transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
+        >
+          Kafka partitioning
+        </button>
+        <button
+          type="button"
+          data-query="CAP theorem"
+          class="query-chip rounded-md border border-obs-border bg-obs-surface px-2 py-0.5 transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
+        >
+          CAP theorem
+        </button>
+        <button
+          type="button"
+          data-query="dynamic programming"
+          class="query-chip rounded-md border border-obs-border bg-obs-surface px-2 py-0.5 transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
+        >
+          dynamic programming
+        </button>
+        <button
+          type="button"
+          data-query="Spring Security"
+          class="query-chip rounded-md border border-obs-border bg-obs-surface px-2 py-0.5 transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
+        >
+          Spring Security
+        </button>
+      </div>
     </header>
 
-    <form action="/search" method="get" role="search" class="flex items-center gap-2 rounded-xl border border-obs-border bg-obs-surface p-2 shadow-obs focus-within:border-obs-accent/50">
+    <!-- Search Input Form -->
+    <form
+      action="/search"
+      method="get"
+      role="search"
+      class="group relative flex items-center gap-3 rounded-2xl border border-obs-border bg-obs-surface/90 p-2 shadow-obs-lg backdrop-blur-md transition-all duration-200 focus-within:border-obs-accent/70 focus-within:ring-2 focus-within:ring-obs-accent/20"
+    >
       <label for="page-search-input" class="sr-only">Search all chapters</label>
-      <Search className="ml-2 h-4 w-4 shrink-0 text-obs-accent" />
+      <Search className="ml-3 h-5 w-5 shrink-0 text-obs-accent transition-transform group-focus-within:scale-110" />
       <input
         id="page-search-input"
         name="q"
         type="search"
-        placeholder="Search JVM, Kafka, CAP theorem, sliding window…"
-        class="min-w-0 flex-1 bg-transparent py-2 text-sm text-obs-text-primary placeholder:text-obs-text-muted focus:outline-none"
+        placeholder="Type a concept, class name, algorithmic pattern, or system design trade-off…"
+        class="min-w-0 flex-1 bg-transparent py-2.5 text-base text-obs-text-primary placeholder:text-obs-text-muted focus:outline-none"
         autocomplete="off"
       />
-      <button type="submit" class="btn btn-primary">Search</button>
+      <button type="submit" class="btn btn-primary px-5 py-2.5 text-sm font-semibold shadow-md shadow-obs-accent/20">
+        Search
+      </button>
     </form>
 
-    <div id="pagefind-search" class="min-h-[12rem]"></div>
+    <!-- Pagefind Container -->
+    <div id="pagefind-search" class="min-h-[14rem]"></div>
 
-    <div id="search-fallback" class="hidden rounded-xl border border-obs-border bg-obs-surface p-8 text-center">
-      <Sparkles className="mx-auto h-5 w-5 text-obs-accent" />
-      <p class="mt-2 text-sm font-semibold text-obs-text-primary">The full-text index is built at deploy time</p>
-      <p class="mx-auto mt-1 max-w-md text-xs leading-relaxed text-obs-text-muted">
-        Run <code class="rounded bg-obs-tag px-1 py-0.5 font-mono text-[0.7rem]">npm run build</code> to
-        generate the Pagefind index, or use the instant command palette now.
+    <!-- Fallback / Pre-build Empty State (Linear Style) -->
+    <div
+      id="search-fallback"
+      class="hidden rounded-3xl border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/80 to-obs-canvas p-10 text-center shadow-obs-lg sm:p-12"
+    >
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-obs-accent/30 bg-obs-accent/10 text-obs-accent shadow-sm">
+        <Sparkles className="h-7 w-7" />
+      </div>
+      <h3 class="mt-4 font-serif text-xl font-bold tracking-tight text-obs-text-primary sm:text-2xl">
+        Instant Full-Text Search
+      </h3>
+      <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-obs-text-muted">
+        The static full-text index is generated at build time. For instant live search right now, trigger the interactive command palette.
       </p>
-      <button id="fallback-open-palette" type="button" class="btn btn-primary mt-4">
-        Open command palette
-      </button>
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <button
+          id="fallback-open-palette"
+          type="button"
+          class="btn btn-primary shadow-md shadow-obs-accent/20"
+        >
+          <Terminal className="h-4 w-4" />
+          Open Command Palette (⌘K)
+        </button>
+        <a href="/library" class="btn btn-secondary">
+          Browse Complete Library
+        </a>
+      </div>
     </div>
 
-    <div class="grid gap-3 sm:grid-cols-3">
-      <a href="/library" class="surface-card surface-card-hover p-4">
-        <span class="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-obs-accent">Library</span>
-        <span class="mt-1 block text-sm font-semibold text-obs-text-primary">Browse by domain</span>
+    <!-- Quick Navigation Cards Grid -->
+    <div class="grid gap-4 sm:grid-cols-3 pt-4">
+      <a
+        href="/library"
+        class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
+      >
+        <div>
+          <span class="inline-flex items-center gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-obs-accent">
+            <Library className="h-3.5 w-3.5" />
+            <span>Library</span>
+          </span>
+          <h4 class="mt-2 font-serif text-base font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors">
+            Browse by Domain
+          </h4>
+          <p class="mt-1 text-xs leading-relaxed text-obs-text-muted">
+            Explore structured modules organized by Core Java, Spring Boot, DSA, and System Design.
+          </p>
+        </div>
+        <div class="mt-4 flex items-center text-xs font-semibold text-obs-accent group-hover:translate-x-0.5 transition-transform">
+          <span>Open Library →</span>
+        </div>
       </a>
-      <a href="/tags" class="surface-card surface-card-hover p-4">
-        <span class="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-obs-accent">Tags</span>
-        <span class="mt-1 block text-sm font-semibold text-obs-text-primary">Browse by concept</span>
+
+      <a
+        href="/tags"
+        class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
+      >
+        <div>
+          <span class="inline-flex items-center gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-obs-gold">
+            <Hash className="h-3.5 w-3.5" />
+            <span>Concepts</span>
+          </span>
+          <h4 class="mt-2 font-serif text-base font-bold text-obs-text-primary group-hover:text-obs-gold transition-colors">
+            Browse by Tag
+          </h4>
+          <p class="mt-1 text-xs leading-relaxed text-obs-text-muted">
+            Find topics grouped by cross-cutting concerns like concurrency, memory, scalability, and security.
+          </p>
+        </div>
+        <div class="mt-4 flex items-center text-xs font-semibold text-obs-gold group-hover:translate-x-0.5 transition-transform">
+          <span>Explore Tags →</span>
+        </div>
       </a>
-      <a href="/graph" class="surface-card surface-card-hover p-4">
-        <span class="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-obs-accent">Graph</span>
-        <span class="mt-1 block text-sm font-semibold text-obs-text-primary">Follow connections</span>
+
+      <a
+        href="/graph"
+        class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
+      >
+        <div>
+          <span class="inline-flex items-center gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-obs-emerald">
+            <Network className="h-3.5 w-3.5" />
+            <span>Graph</span>
+          </span>
+          <h4 class="mt-2 font-serif text-base font-bold text-obs-text-primary group-hover:text-obs-emerald transition-colors">
+            Knowledge Graph
+          </h4>
+          <p class="mt-1 text-xs leading-relaxed text-obs-text-muted">
+            Visually trace how low-level JVM primitives link to distributed system architecture.
+          </p>
+        </div>
+        <div class="mt-4 flex items-center text-xs font-semibold text-obs-emerald group-hover:translate-x-0.5 transition-transform">
+          <span>View Graph →</span>
+        </div>
       </a>
     </div>
   </div>
@@ -82,6 +222,21 @@ const navigation = buildNavigationTree(allDocs);
       if (input && initialQuery) input.value = initialQuery;
       fallbackButton?.addEventListener('click', function () {
         window.dispatchEvent(new CustomEvent('obsidian:open-search'));
+      });
+
+      document.querySelectorAll('.query-chip').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          const q = btn.getAttribute('data-query') || '';
+          if (input) input.value = q;
+          const pagefindInput = mount ? mount.querySelector('.pagefind-ui__search-input') : null;
+          if (pagefindInput) {
+            pagefindInput.value = q;
+            pagefindInput.dispatchEvent(new Event('input', { bubbles: true }));
+          } else {
+            const form = input ? input.closest('form') : null;
+            form?.submit();
+          }
+        });
       });
 
       function showFallback() {
@@ -103,7 +258,7 @@ const navigation = buildNavigationTree(allDocs);
             bundlePath: '/pagefind/',
             translations: {
               placeholder: 'Search every chapter…',
-              zero_results: 'No results for [SEARCH_TERM]',
+              zero_results: 'No results found for "[SEARCH_TERM]". Try another technical term.',
             },
           });
           const pagefindInput = mount.querySelector('.pagefind-ui__search-input');

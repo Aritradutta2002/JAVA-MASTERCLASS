@@ -3,6 +3,7 @@ import type { NavigationNode } from '../lib/types';
 import {
   BookMarked,
   BookOpen,
+  CheckSquare,
   ChevronRight,
   ChevronsDownUp,
   ChevronsUpDown,
@@ -24,7 +25,6 @@ import {
   Pin,
   Search,
   Star,
-  Tag,
   Trash2,
   Waypoints,
   X,
@@ -61,8 +61,8 @@ const DOMAIN_ICONS: Record<string, React.ComponentType<{ className?: string }>> 
 const QUICK_LINKS = [
   { label: 'Library', href: '/library', icon: Library },
   { label: 'Paths', href: '/paths', icon: Waypoints },
+  { label: 'Checklist', href: '/checklist', icon: CheckSquare },
   { label: 'Reference', href: '/reference/quick-references', icon: BookMarked },
-  { label: 'Tags', href: '/tags', icon: Tag },
 ];
 
 function normalizeSlug(value: string) {
@@ -103,7 +103,10 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
   const [recents, setRecents] = useState<RecentPage[]>([]);
   const [showPinned, setShowPinned] = useState(true);
   const [showRecent, setShowRecent] = useState(true);
+
   const activeRef = useRef<HTMLAnchorElement>(null);
+  const filterInputRef = useRef<HTMLInputElement>(null);
+  const navRef = useRef<HTMLElement>(null);
   const filterId = useId();
   const target = normalizeSlug(currentSlug);
 
@@ -211,10 +214,11 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
     setExpanded(seed);
   }, [navigation, target]);
 
+  // Smooth scroll active tree item into view without layout jumping
   useEffect(() => {
     const timer = window.setTimeout(() => {
       activeRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }, 80);
+    }, 100);
     return () => window.clearTimeout(timer);
   }, [target]);
 
@@ -226,7 +230,7 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
       try {
         localStorage.setItem('obsidian-sidebar-expanded', JSON.stringify(next));
       } catch {
-        /* ignore quota errors */
+        /* ignore */
       }
       return next;
     });
@@ -262,10 +266,30 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
     [navigation, filter]
   );
 
+  // Keyboard navigation for sidebar tree
+  const handleNavKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (!navRef.current) return;
+    const focusable = Array.from(
+      navRef.current.querySelectorAll<HTMLElement>('a[href], button[data-tree-toggle]')
+    );
+    const currentIndex = focusable.indexOf(document.activeElement as HTMLElement);
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIndex = currentIndex + 1 < focusable.length ? currentIndex + 1 : 0;
+      focusable[nextIndex]?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prevIndex = currentIndex - 1 >= 0 ? currentIndex - 1 : focusable.length - 1;
+      focusable[prevIndex]?.focus();
+    }
+  };
+
   const renderNode = (node: NavigationNode, depth: number): React.ReactNode => {
     const isOpen = filter.trim() ? true : expanded[node.id] === true;
     const hasChildren = Boolean(node.children && node.children.length > 0);
     const isActive = node.slug ? normalizeSlug(node.slug) === target : false;
+
     const isContainsActive = (() => {
       if (isActive) return true;
       let found = false;
@@ -281,19 +305,21 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
       return found;
     })();
 
+    // Domain header at top level (depth 0)
     if (depth === 0) {
       const DomainIcon = DOMAIN_ICONS[node.domain || 'root'] || BookOpen;
       const domainMeta = DOMAIN_COLORS[node.domain || 'root'];
 
       return (
         <div key={node.id} className="mt-3.5 first:mt-1">
-          <div className="group flex items-center gap-1.5 rounded-lg px-1.5 py-1.5 transition-all hover:bg-obs-surface/80">
+          <div className="group flex items-center gap-2 rounded-xl px-2 py-1.5 transition-all duration-150 hover:bg-obs-surface/80">
             <button
               type="button"
+              data-tree-toggle="true"
               onClick={(event) => toggle(node.id, event)}
               aria-expanded={isOpen}
               aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${node.title}`}
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-obs-text-muted hover:bg-obs-canvas-soft hover:text-obs-text-primary transition-colors"
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-obs-text-muted hover:bg-obs-canvas-soft hover:text-obs-text-primary transition-colors focus-visible:ring-1 focus-visible:ring-obs-accent"
             >
               {hasChildren ? (
                 <ChevronRight
@@ -305,39 +331,43 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
                 <span className="h-1.5 w-1.5 rounded-full bg-obs-border" />
               )}
             </button>
+
             <div
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border"
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border shadow-xs transition-transform duration-200 group-hover:scale-105"
               style={{
                 backgroundColor: domainMeta?.bg || 'rgba(167, 139, 250, 0.1)',
                 borderColor: domainMeta?.border || 'rgba(167, 139, 250, 0.25)',
                 color: domainMeta?.text || '#a78bfa',
               }}
             >
-              <DomainIcon className="h-3 w-3" />
+              <DomainIcon className="h-3.5 w-3.5" />
             </div>
+
             {node.slug ? (
               <a
                 href={node.slug}
-                className={`min-w-0 flex-1 truncate text-[0.72rem] font-bold uppercase tracking-[0.12em] transition-colors ${
-                  isContainsActive ? 'text-obs-accent' : 'text-obs-text-muted hover:text-obs-text-primary'
+                className={`min-w-0 flex-1 truncate text-[0.73rem] font-bold uppercase tracking-[0.12em] transition-colors ${
+                  isContainsActive ? 'text-obs-accent font-extrabold' : 'text-obs-text-muted hover:text-obs-text-primary'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
               >
                 {node.title}
               </a>
             ) : (
-              <span className="min-w-0 flex-1 truncate text-[0.72rem] font-bold uppercase tracking-[0.12em] text-obs-text-muted">
+              <span className="min-w-0 flex-1 truncate text-[0.73rem] font-bold uppercase tracking-[0.12em] text-obs-text-muted">
                 {node.title}
               </span>
             )}
+
             {node.count !== undefined && (
-              <span className="shrink-0 rounded-full border border-obs-border/70 bg-obs-canvas px-1.5 py-px font-mono text-[0.58rem] font-medium text-obs-text-muted">
+              <span className="shrink-0 rounded-full border border-obs-border/70 bg-obs-canvas px-1.5 py-0.2 font-mono text-[0.58rem] font-medium text-obs-text-muted">
                 {node.count}
               </span>
             )}
           </div>
-          {isOpen && hasChildren && (
-            <div className="relative ml-3.5 mt-1 space-y-0.5 border-l border-obs-border/60 pl-2">
+
+            {isOpen && hasChildren && (
+            <div className="relative ml-4 mt-1 space-y-0.5 border-l border-obs-border/60 pl-2">
               {node.children!.map((child) => renderNode(child, depth + 1))}
             </div>
           )}
@@ -350,19 +380,19 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
 
     const row = (
       <div
-        className={`group relative flex items-center gap-1 rounded-lg px-1.5 py-1 text-xs transition-all ${
+        className={`group relative flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs transition-all duration-150 ${
           isActive
-            ? 'bg-gradient-to-r from-obs-accent/20 to-obs-accent/5 font-medium text-obs-accent shadow-sm'
+            ? 'bg-gradient-to-r from-obs-accent/20 via-obs-accent/10 to-obs-accent/5 font-medium text-obs-accent border border-obs-accent/30 shadow-xs'
             : isContainsActive
-              ? 'text-obs-text-primary hover:bg-obs-surface/70'
+              ? 'text-obs-text-primary hover:bg-obs-surface/80'
               : 'text-obs-text-secondary hover:bg-obs-surface/60 hover:text-obs-text-primary'
         }`}
         style={{ paddingLeft: `${Math.min(depth - 1, 6) * 0.4 + 0.35}rem` }}
       >
-        {/* Active Left Indicator Bar */}
+        {/* Active Left Indicator Bar with subtle neon glow */}
         {isActive && (
           <span
-            className="absolute left-0 top-1 bottom-1 w-1 rounded-r-full bg-obs-accent shadow-[0_0_8px_var(--obs-accent)]"
+            className="absolute left-0 top-1 bottom-1 w-1 rounded-r-full bg-obs-accent shadow-[0_0_10px_var(--obs-accent)]"
             aria-hidden="true"
           />
         )}
@@ -370,10 +400,11 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
         {hasChildren ? (
           <button
             type="button"
+            data-tree-toggle="true"
             onClick={(event) => toggle(node.id, event)}
             aria-expanded={isOpen}
             aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${node.title}`}
-            className="flex h-5 w-4 shrink-0 items-center justify-center text-obs-text-muted hover:text-obs-text-primary transition-colors"
+            className="flex h-5 w-4 shrink-0 items-center justify-center text-obs-text-muted hover:text-obs-text-primary transition-colors focus-visible:ring-1 focus-visible:ring-obs-accent rounded"
           >
             <ChevronRight
               className={`h-3 w-3 transition-transform duration-200 ${
@@ -384,9 +415,9 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
         ) : (
           <span className="flex h-5 w-4 shrink-0 items-center justify-center">
             <span
-              className={`h-1.5 w-1.5 rounded-full transition-colors ${
+              className={`h-1.5 w-1.5 rounded-full transition-all duration-150 ${
                 isActive
-                  ? 'bg-obs-accent shadow-[0_0_6px_var(--obs-accent)]'
+                  ? 'bg-obs-accent shadow-[0_0_8px_var(--obs-accent)] scale-110'
                   : 'bg-obs-border group-hover:bg-obs-text-muted'
               }`}
             />
@@ -398,7 +429,7 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
             ref={isActive ? activeRef : undefined}
             href={node.slug}
             aria-current={isActive ? 'page' : undefined}
-            className="flex min-w-0 flex-1 items-center gap-1.5 py-0.5 leading-snug"
+            className="flex min-w-0 flex-1 items-center gap-2 py-0.5 leading-snug outline-none focus-visible:ring-1 focus-visible:ring-obs-accent rounded"
             title={node.title}
           >
             {isFolder ? (
@@ -415,7 +446,7 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
             </span>
           </a>
         ) : (
-          <span className="flex min-w-0 flex-1 items-center gap-1.5 py-0.5 font-semibold text-obs-text-primary">
+          <span className="flex min-w-0 flex-1 items-center gap-2 py-0.5 font-semibold text-obs-text-primary">
             {isOpen ? (
               <FolderOpen className="h-3.5 w-3.5 shrink-0 text-obs-text-muted" />
             ) : (
@@ -427,8 +458,8 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
 
         {node.count !== undefined && node.count > 0 && depth === 1 && (
           <span
-            className={`shrink-0 font-mono text-[0.6rem] ${
-              isActive ? 'text-obs-accent' : 'text-obs-text-muted'
+            className={`shrink-0 font-mono text-[0.6rem] px-1 rounded ${
+              isActive ? 'text-obs-accent font-semibold' : 'text-obs-text-muted/80'
             }`}
           >
             {node.count}
@@ -451,16 +482,16 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
 
   return (
     <div className="flex h-full flex-col text-sm bg-obs-sidebar/75 backdrop-blur-md select-none">
-      {/* Top Header & Toolbar */}
+      {/* Top Header & Toolbar with Linear aesthetics */}
       <div className="flex items-center justify-between border-b border-obs-border/70 bg-obs-sidebar/70 px-3 py-2.5 backdrop-blur-sm">
         <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-obs-accent/15 text-obs-accent shadow-sm">
+          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-obs-accent/15 text-obs-accent shadow-xs">
             <FolderTree className="h-3 w-3" />
           </span>
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-obs-text-muted">
             Explorer
           </span>
-          <span className="rounded-full border border-obs-border/60 bg-obs-surface px-1.5 py-px font-mono text-[0.58rem] font-medium text-obs-text-muted">
+          <span className="rounded-full border border-obs-border/60 bg-obs-surface px-1.5 py-0.2 font-mono text-[0.58rem] font-medium text-obs-text-muted">
             {totalTopics}
           </span>
         </div>
@@ -499,11 +530,18 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
         <div className="relative flex items-center">
           <Search className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-obs-accent/70" />
           <input
+            ref={filterInputRef}
             id={filterId}
             data-sidebar-filter="true"
             type="search"
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                setFilter('');
+                filterInputRef.current?.blur();
+              }
+            }}
             placeholder="Filter topics… (Press /)"
             className="w-full rounded-lg border border-obs-border/80 bg-obs-canvas/80 py-1.5 pl-8 pr-12 text-xs text-obs-text-primary placeholder:text-obs-text-muted shadow-inner transition-all focus:border-obs-accent/60 focus:bg-obs-surface focus:outline-none focus:ring-2 focus:ring-obs-accent/20"
           />
@@ -533,12 +571,12 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
                   href={link.href}
                   className={`flex items-center justify-center gap-1 rounded-md border px-1.5 py-1 text-[0.65rem] font-semibold transition-all ${
                     isLinkActive
-                      ? 'border-obs-accent/50 bg-obs-accent/15 text-obs-accent shadow-sm'
+                      ? 'border-obs-accent/50 bg-obs-accent/15 text-obs-accent shadow-xs'
                       : 'border-obs-border/70 bg-obs-surface/60 text-obs-text-muted hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary'
                   }`}
                 >
                   <link.icon className={`h-3 w-3 shrink-0 ${isLinkActive ? 'text-obs-accent' : 'text-obs-text-muted'}`} />
-                  <span>{link.label}</span>
+                  <span className="truncate">{link.label}</span>
                 </a>
               );
             })}
@@ -547,9 +585,15 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
       </div>
 
       {/* Main Navigation Tree */}
-      <nav aria-label="Documentation" className="obs-scrollbar flex-1 overflow-y-auto overscroll-contain px-2 py-3">
+      <nav
+        ref={navRef}
+        aria-label="Documentation"
+        onKeyDown={handleNavKeyDown}
+        className="obs-scrollbar flex-1 overflow-y-auto overscroll-contain px-2 py-3"
+      >
+        {/* Pinned Pages Section */}
         {pinned.length > 0 && !filter && (
-          <section className="mb-3 rounded-xl border border-obs-gold/25 bg-obs-gold/5 p-2 shadow-sm" aria-label="Pinned pages">
+          <section className="mb-3 rounded-xl border border-obs-gold/25 bg-obs-gold/5 p-2 shadow-xs" aria-label="Pinned pages">
             <button
               type="button"
               onClick={() => setShowPinned((value) => !value)}
@@ -561,7 +605,7 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
                 <Star className="h-3 w-3 fill-current" />
                 Pinned Topics
               </span>
-              <span className="font-mono text-[0.6rem] px-1.5 py-0.5 rounded-full bg-obs-gold/15 text-obs-gold">{pinned.length}</span>
+              <span className="font-mono text-[0.6rem] px-1.5 py-0.2 rounded-full bg-obs-gold/15 text-obs-gold">{pinned.length}</span>
             </button>
             {showPinned && (
               <div className="mt-1 space-y-0.5 pt-1 border-t border-obs-gold/15">
@@ -593,8 +637,9 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
           </section>
         )}
 
+        {/* Recent Pages Section */}
         {recents.length > 0 && !filter && (
-          <section className="mb-3 rounded-xl border border-obs-border/70 bg-obs-surface/40 p-2 shadow-sm" aria-label="Recently viewed pages">
+          <section className="mb-3 rounded-xl border border-obs-border/70 bg-obs-surface/40 p-2 shadow-xs" aria-label="Recently viewed pages">
             <div className="flex w-full items-center justify-between rounded-lg px-1.5 py-1">
               <button
                 type="button"

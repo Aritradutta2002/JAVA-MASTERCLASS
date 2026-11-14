@@ -1,7 +1,45 @@
-import { useState, useEffect } from 'react';
-import { RotateCcw, Sparkles, BookOpen } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  RotateCcw,
+  Sparkles,
+  BookOpen,
+  Check,
+  CheckCircle2,
+  Clock,
+  Layers,
+  Cpu,
+  Compass,
+  Database,
+  Code2,
+  Search,
+  Filter,
+  ArrowRight,
+  TrendingUp,
+  AlertCircle,
+  X,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
+import { DOMAIN_COLORS } from '../lib/constants';
 
-const CHECKLIST_DATA: { domain: string; title: string; groups: { name: string; items: { id: string; title: string; slug: string }[] }[] }[] = [
+interface ChecklistItem {
+  id: string;
+  title: string;
+  slug: string;
+}
+
+interface ChecklistGroup {
+  name: string;
+  items: ChecklistItem[];
+}
+
+interface ChecklistDomain {
+  domain: string;
+  title: string;
+  groups: ChecklistGroup[];
+}
+
+const CHECKLIST_DATA: ChecklistDomain[] = [
   {
     domain: 'core-java',
     title: 'Core Java (18 Chapters)',
@@ -132,8 +170,22 @@ const CHECKLIST_DATA: { domain: string; title: string; groups: { name: string; i
   },
 ];
 
+const DOMAIN_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  'core-java': Cpu,
+  'spring-boot': Layers,
+  'system-design': Compass,
+  'database-caching': Database,
+  'java-dsa': Code2,
+};
+
 export default function ChecklistTracker() {
   const [checkedState, setCheckedState] = useState<Record<string, boolean>>({});
+  const [selectedDomain, setSelectedDomain] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'incomplete' | 'completed'>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
+  const [collapsedDomains, setCollapsedDomains] = useState<Record<string, boolean>>({});
+  const [lastToggledId, setLastToggledId] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -150,153 +202,581 @@ export default function ChecklistTracker() {
       } catch {}
       return next;
     });
+    setLastToggledId(id);
+    setTimeout(() => {
+      setLastToggledId(null);
+    }, 1200);
   };
 
-  const resetAll = () => {
-    if (confirm('Are you sure you want to reset all preparation progress?')) {
-      setCheckedState({});
-      localStorage.removeItem('obsidian-checklist-progress');
-    }
-  };
-
-  // Compute total progress
-  let totalItems = 0;
-  let totalChecked = 0;
-
-  CHECKLIST_DATA.forEach((dom) => {
-    dom.groups.forEach((g) => {
-      g.items.forEach((item) => {
-        totalItems++;
-        if (checkedState[item.id]) totalChecked++;
+  const markDomainAll = (domainObj: ChecklistDomain, checked: boolean) => {
+    setCheckedState((prev) => {
+      const next = { ...prev };
+      domainObj.groups.forEach((g) => {
+        g.items.forEach((item) => {
+          next[item.id] = checked;
+        });
       });
+      try {
+        localStorage.setItem('obsidian-checklist-progress', JSON.stringify(next));
+      } catch {}
+      return next;
     });
-  });
+  };
+
+  const handleResetConfirm = () => {
+    setCheckedState({});
+    try {
+      localStorage.removeItem('obsidian-checklist-progress');
+    } catch {}
+    setShowResetConfirm(false);
+  };
+
+  const toggleDomainCollapse = (domain: string) => {
+    setCollapsedDomains((prev) => ({ ...prev, [domain]: !prev[domain] }));
+  };
+
+  // Compute total stats
+  const { totalItems, totalChecked, domainStats } = useMemo(() => {
+    let total = 0;
+    let checked = 0;
+    const domStats: Record<string, { total: number; checked: number; percent: number }> = {};
+
+    CHECKLIST_DATA.forEach((dom) => {
+      let dTotal = 0;
+      let dChecked = 0;
+      dom.groups.forEach((g) => {
+        g.items.forEach((item) => {
+          total++;
+          dTotal++;
+          if (checkedState[item.id]) {
+            checked++;
+            dChecked++;
+          }
+        });
+      });
+      domStats[dom.domain] = {
+        total: dTotal,
+        checked: dChecked,
+        percent: dTotal > 0 ? Math.round((dChecked / dTotal) * 100) : 0,
+      };
+    });
+
+    return { totalItems: total, totalChecked: checked, domainStats: domStats };
+  }, [checkedState]);
 
   const overallPercent = totalItems > 0 ? Math.round((totalChecked / totalItems) * 100) : 0;
+  const remainingItems = totalItems - totalChecked;
+  const estRemainingHours = Math.ceil((remainingItems * 35) / 60);
+
+  // Readiness tier badge
+  const readinessTier = useMemo(() => {
+    if (overallPercent === 100) return { label: 'Complete Mastery', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' };
+    if (overallPercent >= 75) return { label: 'Staff / Principal Ready', color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/30' };
+    if (overallPercent >= 50) return { label: 'Senior Candidate', color: 'text-sky-400 bg-sky-500/10 border-sky-500/30' };
+    if (overallPercent >= 25) return { label: 'Mid-Level Foundation', color: 'text-amber-400 bg-amber-500/10 border-amber-500/30' };
+    return { label: 'Early Revision Phase', color: 'text-purple-400 bg-purple-500/10 border-purple-500/30' };
+  }, [overallPercent]);
+
+  // Filtered dataset
+  const filteredData = useMemo(() => {
+    return CHECKLIST_DATA.filter((dom) => {
+      if (selectedDomain !== 'all' && dom.domain !== selectedDomain) return false;
+      return true;
+    }).map((dom) => {
+      const filteredGroups = dom.groups.map((group) => {
+        const filteredItems = group.items.filter((item) => {
+          const isDone = !!checkedState[item.id];
+          if (statusFilter === 'incomplete' && isDone) return false;
+          if (statusFilter === 'completed' && !isDone) return false;
+          if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            return item.title.toLowerCase().includes(q) || item.slug.toLowerCase().includes(q);
+          }
+          return true;
+        });
+        return { ...group, items: filteredItems };
+      }).filter((group) => group.items.length > 0);
+
+      return { ...dom, groups: filteredGroups };
+    }).filter((dom) => dom.groups.length > 0);
+  }, [selectedDomain, statusFilter, searchQuery, checkedState]);
+
+  // SVG progress ring calculation
+  const ringRadius = 40;
+  const circumference = 2 * Math.PI * ringRadius;
+  const strokeDashoffset = circumference - (overallPercent / 100) * circumference;
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto py-4">
-      {/* Overview Banner */}
-      <div className="rounded-xl border border-obs-border bg-obs-sidebar p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-obs-accent font-semibold text-xs uppercase tracking-wider">
-              <Sparkles className="h-4 w-4" />
-              <span>Full-Stack Preparation Roadmap</span>
+    <div className="space-y-8 max-w-5xl mx-auto py-6 px-2 sm:px-4">
+      {/* Stripe-Grade Overview Hero Dashboard */}
+      <div className="relative rounded-2xl border border-obs-border/90 bg-obs-surface/60 backdrop-blur-md p-6 sm:p-8 shadow-obs-lg overflow-hidden">
+        {/* Ambient subtle glow background */}
+        <div
+          className="absolute -right-20 -top-20 w-80 h-80 rounded-full opacity-20 pointer-events-none blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, var(--obs-accent) 0%, transparent 70%)',
+          }}
+        />
+
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-2 max-w-2xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-obs-accent/15 border border-obs-accent/30 text-obs-accent">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Executive Preparation Syllabus</span>
+              </span>
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${readinessTier.color}`}>
+                {readinessTier.label}
+              </span>
             </div>
-            <h1 className="text-2xl font-bold text-obs-text-primary mt-1">
-              Java Backend Interview Master Checklist
+
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-obs-text-primary">
+              Java Backend Mastery Tracker
             </h1>
-            <p className="text-sm text-obs-text-muted mt-1 max-w-2xl">
-              Track your mastery across the core technical domains. Check off topics as you revise,
-              and watch your readiness meter advance towards 100%.
+
+            <p className="text-sm text-obs-text-muted leading-relaxed">
+              Systematic revision checklist spanning 5 core technical pillars. Track your progress across
+              distributed concurrency, high-performance database design, modern Spring architectures, and LLD.
             </p>
           </div>
 
-          <button
-            onClick={resetAll}
-            className="flex items-center gap-1.5 rounded-md border border-obs-border bg-obs-surface px-3 py-1.5 text-xs text-obs-text-muted hover:text-rose-400 hover:border-rose-500/50 transition-colors"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            <span>Reset Progress</span>
-          </button>
+          {/* Linear Progress Ring & Quick Stats */}
+          <div className="flex items-center gap-6 bg-obs-canvas/80 border border-obs-border/80 p-4 rounded-xl shadow-xs self-stretch lg:self-auto justify-around sm:justify-start">
+            <div className="relative flex items-center justify-center shrink-0">
+              <svg className="h-24 w-24 transform -rotate-90">
+                <circle
+                  cx="48"
+                  cy="48"
+                  r={ringRadius}
+                  stroke="currentColor"
+                  strokeWidth="7"
+                  className="text-obs-surface-hover"
+                  fill="transparent"
+                />
+                <circle
+                  cx="48"
+                  cy="48"
+                  r={ringRadius}
+                  stroke="currentColor"
+                  strokeWidth="7"
+                  className="text-obs-accent transition-all duration-700 ease-out"
+                  fill="transparent"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span className="text-xl font-bold font-mono text-obs-text-primary">
+                  {overallPercent}%
+                </span>
+                <span className="text-[9px] uppercase tracking-wider text-obs-text-muted">
+                  Readiness
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 text-xs">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                <span className="text-obs-text-secondary">Completed:</span>
+                <span className="font-mono font-bold text-obs-text-primary">{totalChecked}/{totalItems}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-3.5 w-3.5 text-amber-400" />
+                <span className="text-obs-text-secondary">Est. Remaining:</span>
+                <span className="font-mono font-semibold text-obs-text-primary">~{estRemainingHours} hrs</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-3.5 w-3.5 text-sky-400" />
+                <span className="text-obs-text-secondary">Velocity:</span>
+                <span className="font-mono font-medium text-obs-text-muted">
+                  {totalChecked > 0 ? `${totalChecked} topics done` : 'Start below'}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Global Progress Bar */}
-        <div className="mt-6 space-y-2">
-          <div className="flex justify-between text-xs font-medium text-obs-text-primary">
-            <span>Overall Readiness</span>
-            <span>{totalChecked} of {totalItems} Topics Completed ({overallPercent}%)</span>
+        {/* Global Multi-Segment Progress Bar */}
+        <div className="mt-6 pt-5 border-t border-obs-border/70 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-medium text-obs-text-secondary">Overall Mastery Progress</span>
+            <span className="font-mono font-semibold text-obs-text-primary">
+              {totalChecked} of {totalItems} completed ({overallPercent}%)
+            </span>
           </div>
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-obs-surface border border-obs-border">
-            <div
-              className="h-full bg-gradient-to-r from-obs-accent to-emerald-400 transition-all duration-500 ease-out"
-              style={{ width: `${overallPercent}%` }}
-            />
+
+          <div className="h-2.5 w-full overflow-hidden rounded-full bg-obs-canvas border border-obs-border/70 flex">
+            {CHECKLIST_DATA.map((dom) => {
+              const dStat = domainStats[dom.domain] || { total: 0, checked: 0 };
+              const widthPct = totalItems > 0 ? (dStat.checked / totalItems) * 100 : 0;
+              const color = DOMAIN_COLORS[dom.domain]?.hex || '#a78bfa';
+              if (widthPct === 0) return null;
+              return (
+                <div
+                  key={dom.domain}
+                  style={{ width: `${widthPct}%`, backgroundColor: color }}
+                  className="h-full transition-all duration-500 ease-out"
+                  title={`${dom.title}: ${dStat.checked} completed`}
+                />
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Domain Sections */}
-      <div className="space-y-6">
-        {CHECKLIST_DATA.map((dom) => {
-          let domTotal = 0;
-          let domChecked = 0;
-          dom.groups.forEach((g) => {
-            g.items.forEach((it) => {
-              domTotal++;
-              if (checkedState[it.id]) domChecked++;
-            });
-          });
-          const domPercent = domTotal > 0 ? Math.round((domChecked / domTotal) * 100) : 0;
+      {/* Control Filter Bar */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-obs-sidebar/70 backdrop-blur-sm p-3 rounded-xl border border-obs-border/80">
+        {/* Domain Filter Pills */}
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setSelectedDomain('all')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 ${
+              selectedDomain === 'all'
+                ? 'bg-obs-accent text-white shadow-xs font-semibold'
+                : 'text-obs-text-secondary hover:bg-obs-surface hover:text-obs-text-primary'
+            }`}
+          >
+            All Domains ({totalItems})
+          </button>
+          {CHECKLIST_DATA.map((dom) => {
+            const isSel = selectedDomain === dom.domain;
+            const stat = domainStats[dom.domain];
+            const color = DOMAIN_COLORS[dom.domain] || DOMAIN_COLORS.root;
+            return (
+              <button
+                key={dom.domain}
+                type="button"
+                onClick={() => setSelectedDomain(dom.domain)}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 flex items-center gap-1.5 border ${
+                  isSel
+                    ? 'bg-obs-surface text-obs-text-primary border-obs-accent shadow-xs font-semibold'
+                    : 'border-transparent text-obs-text-secondary hover:bg-obs-surface/60 hover:text-obs-text-primary'
+                }`}
+              >
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color.hex }} />
+                <span>{dom.title.split(' ')[0]}</span>
+                <span className="text-[10px] font-mono text-obs-text-muted">
+                  {stat?.checked}/{stat?.total}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-          return (
-            <div key={dom.domain} className="rounded-xl border border-obs-border bg-obs-surface overflow-hidden shadow-sm">
-              {/* Domain Header */}
-              <div className="p-4 border-b border-obs-border bg-obs-sidebar/50 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-obs-accent" />
-                  <h2 className="font-bold text-sm text-obs-text-primary">{dom.title}</h2>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-obs-text-muted">
-                    {domChecked}/{domTotal} ({domPercent}%)
-                  </span>
-                  <div className="w-24 h-2 rounded-full bg-obs-canvas border border-obs-border overflow-hidden">
-                    <div
-                      className="h-full bg-obs-accent transition-all duration-300"
-                      style={{ width: `${domPercent}%` }}
-                    />
-                  </div>
-                </div>
+        {/* Status Filter & Search */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="relative flex-1 sm:w-48">
+            <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-obs-text-muted pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search chapters..."
+              className="w-full rounded-lg border border-obs-border/80 bg-obs-surface/80 py-1.5 pl-8 pr-2.5 text-xs text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:bg-obs-surface focus:outline-none transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-2 text-obs-text-muted hover:text-obs-text-primary"
+                aria-label="Clear search query"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center border border-obs-border/80 rounded-lg p-0.5 bg-obs-canvas text-xs">
+            <button
+              type="button"
+              onClick={() => setStatusFilter('all')}
+              className={`px-2 py-1 rounded-md text-[11px] font-medium transition-all ${
+                statusFilter === 'all'
+                  ? 'bg-obs-surface text-obs-text-primary shadow-xs font-semibold'
+                  : 'text-obs-text-muted hover:text-obs-text-secondary'
+              }`}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter('incomplete')}
+              className={`px-2 py-1 rounded-md text-[11px] font-medium transition-all ${
+                statusFilter === 'incomplete'
+                  ? 'bg-obs-surface text-obs-text-primary shadow-xs font-semibold'
+                  : 'text-obs-text-muted hover:text-obs-text-secondary'
+              }`}
+            >
+              Remaining
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter('completed')}
+              className={`px-2 py-1 rounded-md text-[11px] font-medium transition-all ${
+                statusFilter === 'completed'
+                  ? 'bg-obs-surface text-obs-text-primary shadow-xs font-semibold'
+                  : 'text-obs-text-muted hover:text-obs-text-secondary'
+              }`}
+            >
+              Done
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowResetConfirm(true)}
+            className="p-1.5 rounded-lg border border-obs-border/80 bg-obs-surface text-obs-text-muted hover:text-rose-400 hover:border-rose-500/40 transition-colors"
+            title="Reset All Progress"
+            aria-label="Reset All Progress"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Reset Confirmation Modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-sm rounded-2xl border border-obs-border bg-obs-surface p-6 shadow-2xl space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                <AlertCircle className="h-5 w-5" />
               </div>
-
-              {/* Groups & Items */}
-              <div className="p-4 space-y-4">
-                {dom.groups.map((group) => (
-                  <div key={group.name} className="space-y-2">
-                    <div className="text-xs font-semibold text-obs-text-muted uppercase tracking-wider pl-1">
-                      {group.name}
-                    </div>
-                    <div className="grid gap-1.5 sm:grid-cols-1">
-                      {group.items.map((item) => {
-                        const isDone = !!checkedState[item.id];
-                        return (
-                          <div
-                            key={item.id}
-                            className={`flex items-center justify-between p-2 rounded-lg border transition-colors ${
-                              isDone
-                                ? 'bg-obs-accent/10 border-obs-accent/30 text-obs-text-primary'
-                                : 'bg-obs-sidebar/40 border-obs-border text-obs-text-secondary hover:border-obs-border-subtle'
-                            }`}
-                          >
-                            <label className="flex items-center gap-3 cursor-pointer flex-1 mr-2 select-none">
-                              <input
-                                type="checkbox"
-                                checked={isDone}
-                                onChange={() => toggleItem(item.id)}
-                                className="h-4 w-4 rounded accent-obs-accent cursor-pointer"
-                              />
-                              <span className={`text-xs ${isDone ? 'line-through text-obs-text-muted' : 'text-obs-text-primary font-medium'}`}>
-                                {item.title}
-                              </span>
-                            </label>
-                            <a
-                              href={item.slug}
-                              className="text-[11px] text-obs-accent hover:underline shrink-0 pl-2 font-mono"
-                            >
-                              Read Chapter →
-                            </a>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+              <div>
+                <h3 className="font-bold text-sm text-obs-text-primary">Reset All Study Progress?</h3>
+                <p className="text-xs text-obs-text-muted mt-1 leading-relaxed">
+                  This will uncheck all {totalChecked} marked topics and clear your local saved state. This action cannot be undone.
+                </p>
               </div>
             </div>
-          );
-        })}
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowResetConfirm(false)}
+                className="px-3 py-1.5 rounded-lg border border-obs-border text-xs font-medium text-obs-text-secondary hover:bg-obs-hover transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleResetConfirm}
+                className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition-colors shadow-sm"
+              >
+                Yes, Reset All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Domain Sections */}
+      <div className="space-y-6">
+        {filteredData.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-obs-border p-12 text-center space-y-3">
+            <Filter className="mx-auto h-8 w-8 text-obs-text-muted/60" />
+            <h3 className="text-sm font-semibold text-obs-text-primary">No Matching Topics Found</h3>
+            <p className="text-xs text-obs-text-muted max-w-sm mx-auto">
+              No checklist items matched your search query or filter selection. Try clearing your filters.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedDomain('all');
+                setStatusFilter('all');
+                setSearchQuery('');
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-obs-border bg-obs-surface text-xs font-medium text-obs-accent hover:bg-obs-hover"
+            >
+              Reset Filters
+            </button>
+          </div>
+        ) : (
+          filteredData.map((dom) => {
+            const stat = domainStats[dom.domain] || { total: 0, checked: 0, percent: 0 };
+            const isCollapsed = !!collapsedDomains[dom.domain];
+            const IconComponent = DOMAIN_ICON_MAP[dom.domain] || BookOpen;
+            const domainColor = DOMAIN_COLORS[dom.domain] || DOMAIN_COLORS.root;
+
+            return (
+              <div
+                key={dom.domain}
+                className="rounded-2xl border border-obs-border/80 bg-obs-surface/40 overflow-hidden shadow-sm transition-all duration-200 hover:border-obs-border"
+              >
+                {/* Domain Header */}
+                <div className="p-4 sm:p-5 border-b border-obs-border/80 bg-obs-sidebar/70 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => toggleDomainCollapse(dom.domain)}
+                      className="flex items-center gap-2.5 text-left group"
+                    >
+                      <div
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border transition-transform duration-200 group-hover:scale-105"
+                        style={{
+                          backgroundColor: domainColor.bg,
+                          color: domainColor.text,
+                          borderColor: domainColor.border,
+                        }}
+                      >
+                        <IconComponent className="h-4.5 w-4.5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="font-bold text-sm text-obs-text-primary group-hover:text-obs-accent transition-colors">
+                            {dom.title}
+                          </h2>
+                          {isCollapsed ? (
+                            <ChevronDown className="h-4 w-4 text-obs-text-muted" />
+                          ) : (
+                            <ChevronUp className="h-4 w-4 text-obs-text-muted" />
+                          )}
+                        </div>
+                        <p className="text-[11px] text-obs-text-muted">
+                          {stat.checked} of {stat.total} topics mastered
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Domain Quick Actions & Progress Pill */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 bg-obs-canvas/80 px-2.5 py-1 rounded-lg border border-obs-border/70">
+                      <span className="font-mono text-xs font-semibold text-obs-text-primary">
+                        {stat.percent}%
+                      </span>
+                      <div className="w-20 h-2 rounded-full bg-obs-surface overflow-hidden border border-obs-border/40">
+                        <div
+                          className="h-full transition-all duration-500 ease-out"
+                          style={{
+                            width: `${stat.percent}%`,
+                            backgroundColor: domainColor.hex,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => markDomainAll(dom, true)}
+                        className="px-2 py-1 text-[10px] font-medium rounded border border-obs-border/60 bg-obs-surface hover:bg-obs-hover text-obs-text-secondary transition-colors"
+                        title="Mark all items in this domain as completed"
+                      >
+                        All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => markDomainAll(dom, false)}
+                        className="px-2 py-1 text-[10px] font-medium rounded border border-obs-border/60 bg-obs-surface hover:bg-obs-hover text-obs-text-muted hover:text-rose-400 transition-colors"
+                        title="Clear all completed items in this domain"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Groups & Items */}
+                {!isCollapsed && (
+                  <div className="p-4 sm:p-5 space-y-6">
+                    {dom.groups.map((group) => (
+                      <div key={group.name} className="space-y-2.5">
+                        <div className="flex items-center justify-between text-[11px] font-semibold text-obs-text-muted uppercase tracking-wider pl-1">
+                          <span>{group.name}</span>
+                          <span className="text-[10px] font-mono text-obs-text-muted/70">
+                            {group.items.filter((it) => checkedState[it.id]).length}/{group.items.length} done
+                          </span>
+                        </div>
+
+                        <div className="grid gap-2">
+                          {group.items.map((item) => {
+                            const isDone = !!checkedState[item.id];
+                            const isJustToggled = lastToggledId === item.id;
+
+                            return (
+                              <div
+                                key={item.id}
+                                className={`group relative flex items-center justify-between p-3 rounded-xl border transition-all duration-200 select-none ${
+                                  isDone
+                                    ? 'bg-obs-accent/5 border-obs-accent/30 text-obs-text-primary'
+                                    : 'bg-obs-surface/60 border-obs-border/70 hover:border-obs-border hover:bg-obs-surface text-obs-text-secondary'
+                                } ${isJustToggled ? 'scale-[1.008] ring-1 ring-obs-accent' : ''}`}
+                              >
+                                {/* Linear-style Left Accent Bar for checked items */}
+                                {isDone && (
+                                  <div className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-obs-accent" />
+                                )}
+
+                                <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-3">
+                                  {/* Custom Checkbox Button with micro-feedback */}
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleItem(item.id)}
+                                    aria-label={`Mark ${item.title} as ${isDone ? 'incomplete' : 'completed'}`}
+                                    className={`relative flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-obs-accent/50 ${
+                                      isDone
+                                        ? 'bg-obs-accent border-obs-accent text-white shadow-xs'
+                                        : 'border-obs-border/90 bg-obs-canvas hover:border-obs-accent hover:bg-obs-surface'
+                                    }`}
+                                  >
+                                    {isDone && <Check className="h-3.5 w-3.5 stroke-[3] animate-fade-in" />}
+                                  </button>
+
+                                  <div
+                                    onClick={() => toggleItem(item.id)}
+                                    className="cursor-pointer flex-1 min-w-0"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span
+                                        className={`text-xs font-medium leading-relaxed transition-all ${
+                                          isDone
+                                            ? 'line-through text-obs-text-muted opacity-80'
+                                            : 'text-obs-text-primary font-medium'
+                                        }`}
+                                      >
+                                        {item.title}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-3 shrink-0">
+                                  {/* Status badge */}
+                                  <span
+                                    className={`hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-colors ${
+                                      isDone
+                                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                        : 'bg-obs-canvas text-obs-text-muted border border-obs-border/50'
+                                    }`}
+                                  >
+                                    {isDone ? 'Mastered' : 'To Revise'}
+                                  </span>
+
+                                  {/* Read link */}
+                                  <a
+                                    href={item.slug}
+                                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-obs-accent hover:underline group/link font-mono"
+                                  >
+                                    <span>Read</span>
+                                    <ArrowRight className="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
+                                  </a>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

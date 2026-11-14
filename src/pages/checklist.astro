@@ -1,18 +1,83 @@
 ---
 import ObsidianLayout from '../layouts/ObsidianLayout.astro';
 import ChecklistTracker from '../components/ChecklistTracker';
-import { buildNavigationTree, getAllDocs } from '../lib/content';
+import { buildNavigationTree, getAllDocs, getStats } from '../lib/content';
+import {
+  CheckSquare,
+  ShieldCheck,
+  Sparkles,
+  Zap,
+} from 'lucide-react';
 
 const allDocs = getAllDocs();
 const navigation = buildNavigationTree(allDocs);
+const stats = getStats(allDocs);
+const fmt = new Intl.NumberFormat('en-US');
 ---
 
 <ObsidianLayout
   title="Master study checklist"
   description="Self-assessment and progress tracking across the core technical domains for Java technical interviews."
   navigation={navigation}
-  eyebrow="Progress tracker"
   wide
 >
-  <ChecklistTracker client:load />
+  <div class="not-prose space-y-8">
+    <!-- Header Banner -->
+    <header class="space-y-4 border-b border-obs-border pb-8">
+      <div class="inline-flex items-center gap-2 rounded-full border border-obs-emerald/30 bg-obs-emerald/10 px-3 py-1 text-xs font-semibold text-obs-emerald">
+        <CheckSquare className="h-3.5 w-3.5" />
+        <span>Self-Assessment Matrix</span>
+      </div>
+
+      <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+        <div>
+          <h1 class="font-serif text-3xl font-extrabold tracking-tight text-obs-text-primary sm:text-4xl lg:text-5xl">
+            Interview Readiness Checklist
+          </h1>
+          <p class="mt-2 max-w-2xl text-sm leading-relaxed text-obs-text-muted sm:text-base">
+            Systematically verify your readiness for senior and staff-level backend engineering interviews. Track progress across language mechanics, concurrency, architecture, and coding drills.
+          </p>
+        </div>
+
+        <!-- Telemetry Badges -->
+        <div class="flex flex-wrap items-center gap-2.5 text-xs">
+          <div class="rounded-xl border border-obs-border bg-obs-surface/80 px-3.5 py-2 text-center shadow-sm">
+            <div class="font-mono text-base font-bold text-obs-text-primary">{fmt.format(stats.documents)}</div>
+            <div class="text-[0.6rem] font-medium uppercase tracking-wider text-obs-text-muted">Total Topics</div>
+          </div>
+          <div class="rounded-xl border border-obs-border bg-obs-surface/80 px-3.5 py-2 text-center shadow-sm">
+            <div class="font-mono text-base font-bold text-obs-text-primary">{stats.domains}</div>
+            <div class="text-[0.6rem] font-medium uppercase tracking-wider text-obs-text-muted">Domains</div>
+          </div>
+          <div class="rounded-xl border border-obs-border bg-obs-surface/80 px-3.5 py-2 text-center shadow-sm">
+            <div class="flex items-center justify-center gap-1 font-mono text-base font-bold text-obs-emerald">
+              <ShieldCheck className="h-4 w-4" />
+              <span>Offline</span>
+            </div>
+            <div class="text-[0.6rem] font-medium uppercase tracking-wider text-obs-text-muted">Local Storage</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Strip -->
+      <div class="flex flex-wrap items-center gap-4 text-xs text-obs-text-muted pt-1">
+        <span class="inline-flex items-center gap-1.5">
+          <Sparkles className="h-3.5 w-3.5 text-obs-accent" />
+          <span>Instant Category Filtering</span>
+        </span>
+        <span class="text-obs-border">•</span>
+        <span class="inline-flex items-center gap-1.5">
+          <Zap className="h-3.5 w-3.5 text-obs-emerald" />
+          <span>Real-time completion telemetry</span>
+        </span>
+        <span class="text-obs-border">•</span>
+        <span>Persisted across sessions in your browser</span>
+      </div>
+    </header>
+
+    <!-- Interactive Tracker Component -->
+    <div class="min-h-[30rem]">
+      <ChecklistTracker client:load />
+    </div>
+  </div>
 </ObsidianLayout>

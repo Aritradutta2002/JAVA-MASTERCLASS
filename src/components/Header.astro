@@ -1,6 +1,8 @@
 ---
 import {
   BookOpen,
+  CheckSquare,
+  ChevronRight,
   Command,
   Eye,
   GitBranch,
@@ -12,26 +14,33 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Search,
+  Sparkles,
   Sun,
   Waypoints,
 } from 'lucide-react';
+import type { DocMetadata } from '../lib/types';
+import { DOMAIN_COLORS } from '../lib/constants';
 
 interface Props {
   breadcrumbs?: { title: string; slug: string }[];
+  doc?: DocMetadata;
 }
 
-const { breadcrumbs = [] } = Astro.props;
+const { breadcrumbs = [], doc } = Astro.props;
 const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
 ---
 
 <header
-  class="sticky top-0 z-40 flex h-[var(--obs-header-height)] w-full items-center justify-between gap-3 border-b border-obs-border bg-obs-canvas/85 px-3 backdrop-blur-xl md:px-4"
+  class="sticky top-0 z-40 flex h-[var(--obs-header-height)] w-full items-center justify-between gap-3 border-b border-obs-border/70 bg-obs-canvas/80 px-3 backdrop-blur-xl backdrop-saturate-150 transition-colors md:px-4"
 >
-  <div class="flex min-w-0 items-center gap-2.5">
+  <!-- Left section: Drawer trigger, sidebar toggle, logo & breadcrumbs -->
+  <div class="flex min-w-0 items-center gap-2 sm:gap-2.5">
+    <!-- Mobile hamburger menu button -->
     <button
       id="mobile-menu-btn"
       type="button"
-      class="icon-btn md:hidden"
+      class="icon-btn flex h-8 w-8 items-center justify-center rounded-lg border border-obs-border/60 bg-obs-surface/40 text-obs-text-muted transition-all hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary active:scale-95 md:hidden"
       aria-label="Open navigation menu"
       aria-controls="mobile-drawer"
       aria-expanded="false"
@@ -39,109 +48,181 @@ const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
       <Menu className="h-4 w-4" />
     </button>
 
+    <!-- Desktop sidebar collapse/expand toggle -->
     <button
       id="desktop-sidebar-toggle-btn"
       type="button"
-      class="icon-btn hidden md:inline-flex"
-      title="Collapse sidebar ([ or Ctrl+B)"
-      aria-label="Collapse navigation sidebar"
+      class="icon-btn hidden h-8 w-8 items-center justify-center rounded-lg border border-obs-border/60 bg-obs-surface/40 text-obs-text-muted transition-all hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary active:scale-95 md:inline-flex"
+      title="Toggle sidebar ([ or Ctrl+B)"
+      aria-label="Toggle navigation sidebar"
       aria-controls="left-sidebar"
       aria-expanded="true"
     >
-      <span class="sidebar-icon-close inline-flex">
+      <span class="sidebar-icon-close inline-flex transition-transform duration-200">
         <PanelLeftClose className="h-4 w-4" />
       </span>
-      <span class="sidebar-icon-open hidden">
+      <span class="sidebar-icon-open hidden transition-transform duration-200">
         <PanelLeftOpen className="h-4 w-4" />
       </span>
     </button>
 
+    <!-- App Brand & Logo -->
     <a
       href="/"
-      class="group flex shrink-0 items-center gap-2 font-semibold text-obs-text-primary"
+      class="group flex shrink-0 items-center gap-2.5 rounded-lg py-1 pr-1 font-semibold text-obs-text-primary transition-opacity hover:opacity-95"
       aria-label="Java Masterclass home"
     >
       <span
-        class="relative flex h-8 w-8 items-center justify-center rounded-lg border border-obs-accent/35 bg-obs-accent/10 text-obs-accent shadow-sm transition-colors group-hover:border-obs-accent/60"
+        class="relative flex h-8 w-8 items-center justify-center rounded-lg border border-obs-accent/30 bg-gradient-to-br from-obs-accent/20 to-obs-accent/5 text-obs-accent shadow-sm transition-all duration-200 group-hover:border-obs-accent/60 group-hover:shadow-[0_0_12px_rgba(167,139,250,0.35)]"
       >
-        <BookOpen className="h-4 w-4" />
-        <span class="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-obs-emerald ring-2 ring-obs-canvas"></span>
+        <BookOpen className="h-4 w-4 transition-transform duration-200 group-hover:scale-105" />
+        <span class="absolute -right-0.5 -top-0.5 flex h-2 w-2">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-obs-canvas"></span>
+        </span>
       </span>
       <span class="hidden flex-col leading-none sm:flex">
-        <span class="text-[0.82rem] font-bold tracking-tight">Java Masterclass</span>
-        <span class="mt-0.5 text-[0.58rem] font-medium uppercase tracking-[0.18em] text-obs-text-muted">
-          Knowledge base
+        <span class="flex items-center gap-1.5 text-[0.82rem] font-bold tracking-tight text-obs-text-primary">
+          Java Masterclass
+          <span class="rounded bg-obs-accent/15 px-1 py-0.2 font-mono text-[0.55rem] font-semibold text-obs-accent">v2</span>
+        </span>
+        <span class="mt-0.5 text-[0.58rem] font-medium uppercase tracking-[0.16em] text-obs-text-muted">
+          Enterprise Knowledge Base
         </span>
       </span>
     </a>
 
+    <!-- Breadcrumb trail -->
     {breadcrumbs.length > 0 && (
       <nav
         aria-label="Breadcrumb"
         class="hidden min-w-0 items-center gap-1 text-[0.72rem] text-obs-text-muted lg:flex"
       >
-        <span aria-hidden="true" class="text-obs-border">/</span>
-        {breadcrumbs.map((crumb, index) => (
-          <span class="flex min-w-0 items-center gap-1">
-            {index > 0 && <span aria-hidden="true" class="text-obs-border">/</span>}
-            <a
-              href={crumb.slug}
-              class="max-w-[13rem] truncate rounded px-0.5 transition-colors hover:text-obs-accent"
-              aria-current={crumb.slug === pathname ? 'page' : undefined}
-            >
-              {crumb.title}
-            </a>
-          </span>
-        ))}
+        <ChevronRight className="h-3 w-3 shrink-0 text-obs-border/80" aria-hidden="true" />
+        {breadcrumbs.map((crumb, index) => {
+          const isLast = index === breadcrumbs.length - 1;
+          const isDomainCrumb = index === 0 && domainMeta;
+          return (
+            <span class="flex min-w-0 items-center gap-1">
+              {index > 0 && (
+                <ChevronRight className="h-3 w-3 shrink-0 text-obs-border/80" aria-hidden="true" />
+              )}
+              {isDomainCrumb ? (
+                <a
+                  href={crumb.slug}
+                  class="flex items-center gap-1 rounded-md border px-2 py-0.5 font-semibold text-[0.68rem] tracking-wide transition-all hover:opacity-85"
+                  style={{
+                    backgroundColor: domainMeta?.bg || 'rgba(167, 139, 250, 0.1)',
+                    borderColor: domainMeta?.border || 'rgba(167, 139, 250, 0.3)',
+                    color: domainMeta?.text || '#a78bfa',
+                  }}
+                  aria-current={crumb.slug === pathname ? 'page' : undefined}
+                >
+                  <Sparkles className="h-2.5 w-2.5" />
+                  <span class="max-w-[10rem] truncate">{crumb.title}</span>
+                </a>
+              ) : (
+                <a
+                  href={crumb.slug}
+                  class:list={[
+                    'max-w-[14rem] truncate rounded px-1.5 py-0.5 transition-colors',
+                    isLast
+                      ? 'font-medium text-obs-text-primary hover:text-obs-accent'
+                      : 'text-obs-text-muted hover:text-obs-text-primary hover:bg-obs-surface/60'
+                  ]}
+                  aria-current={crumb.slug === pathname ? 'page' : undefined}
+                >
+                  {crumb.title}
+                </a>
+              )}
+            </span>
+          );
+        })}
       </nav>
     )}
   </div>
 
-  <div class="flex shrink-0 items-center gap-1.5">
+  <!-- Right section: Search bar trigger, Quick links, Mode toggles, Theme switcher -->
+  <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
+    <!-- Raycast-inspired Quick Search button -->
     <button
       id="open-command-palette-btn"
       type="button"
-      class="flex h-[2.15rem] items-center gap-2 rounded-lg border border-obs-border bg-obs-surface px-2.5 text-xs text-obs-text-muted transition-colors hover:border-obs-accent/40 hover:text-obs-text-primary"
+      class="group flex h-8 items-center gap-2 rounded-lg border border-obs-border/80 bg-obs-surface/60 px-2.5 text-xs text-obs-text-muted shadow-xs backdrop-blur-sm transition-all hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary hover:shadow-[0_0_12px_rgba(167,139,250,0.15)] active:scale-98"
       aria-label="Search the knowledge base"
     >
-      <Search className="h-3.5 w-3.5 text-obs-accent" />
-      <span class="hidden sm:inline">Search</span>
-      <kbd class="ml-1 hidden items-center gap-0.5 text-[0.62rem] md:inline-flex">
+      <Search className="h-3.5 w-3.5 text-obs-accent transition-transform duration-200 group-hover:scale-110" />
+      <span class="hidden sm:inline font-medium">Search knowledge...</span>
+      <span class="sm:hidden font-medium">Search</span>
+      <kbd class="ml-1 inline-flex items-center gap-0.5 rounded border border-obs-border/70 bg-obs-canvas-soft px-1.5 py-0.5 font-mono text-[0.62rem] text-obs-text-muted/90 shadow-2xs">
         <Command className="h-2.5 w-2.5" />K
       </kbd>
     </button>
 
+    <!-- Quick Navigation Links (Linear style pills) -->
     <a
       href="/library"
-      class="hidden h-[2.15rem] items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-obs-text-muted transition-colors hover:bg-obs-surface hover:text-obs-text-primary lg:flex"
+      class:list={[
+        'hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium transition-all lg:flex',
+        pathname.startsWith('/library')
+          ? 'border border-obs-accent/40 bg-obs-accent/15 text-obs-accent font-semibold shadow-xs'
+          : 'text-obs-text-muted hover:bg-obs-surface/80 hover:text-obs-text-primary'
+      ]}
       aria-label="Browse the complete library"
     >
       <Library className="h-3.5 w-3.5" />
-      Library
+      <span>Library</span>
     </a>
+
     <a
       href="/paths"
-      class="hidden h-[2.15rem] items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-obs-text-muted transition-colors hover:bg-obs-surface hover:text-obs-text-primary lg:flex"
+      class:list={[
+        'hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium transition-all lg:flex',
+        pathname.startsWith('/paths')
+          ? 'border border-obs-accent/40 bg-obs-accent/15 text-obs-accent font-semibold shadow-xs'
+          : 'text-obs-text-muted hover:bg-obs-surface/80 hover:text-obs-text-primary'
+      ]}
       aria-label="View learning paths"
     >
       <Waypoints className="h-3.5 w-3.5" />
-      Paths
+      <span>Paths</span>
     </a>
+
     <a
       href="/graph"
-      class="hidden h-[2.15rem] items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-obs-text-muted transition-colors hover:bg-obs-surface hover:text-obs-text-primary xl:flex"
+      class:list={[
+        'hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium transition-all xl:flex',
+        pathname.startsWith('/graph')
+          ? 'border border-obs-accent/40 bg-obs-accent/15 text-obs-accent font-semibold shadow-xs'
+          : 'text-obs-text-muted hover:bg-obs-surface/80 hover:text-obs-text-primary'
+      ]}
       aria-label="Open the knowledge graph"
     >
       <GitBranch className="h-3.5 w-3.5" />
-      Graph
+      <span>Graph</span>
     </a>
 
-    <span class="mx-0.5 hidden h-5 w-px bg-obs-border sm:block" aria-hidden="true"></span>
+    <a
+      href="/checklist"
+      class:list={[
+        'hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium transition-all 2xl:flex',
+        pathname.startsWith('/checklist')
+          ? 'border border-obs-accent/40 bg-obs-accent/15 text-obs-accent font-semibold shadow-xs'
+          : 'text-obs-text-muted hover:bg-obs-surface/80 hover:text-obs-text-primary'
+      ]}
+      aria-label="Study checklist tracker"
+    >
+      <CheckSquare className="h-3.5 w-3.5" />
+      <span>Checklist</span>
+    </a>
 
+    <span class="mx-0.5 hidden h-4 w-px bg-obs-border/70 sm:block" aria-hidden="true"></span>
+
+    <!-- Reading Width Mode (Normal / Wide theory container) -->
     <button
       id="reading-width-btn"
       type="button"
-      class="icon-btn hidden sm:inline-flex"
+      class="icon-btn hidden h-8 w-8 items-center justify-center rounded-lg border border-transparent text-obs-text-muted transition-all hover:border-obs-border/60 hover:bg-obs-surface hover:text-obs-text-primary active:scale-95 sm:inline-flex"
       title="Toggle dynamic wider theory view (W)"
       aria-label="Toggle dynamic wider theory view"
       aria-pressed="false"
@@ -154,25 +235,28 @@ const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
       </span>
     </button>
 
+    <!-- Focus / Zen Reading Mode -->
     <button
       id="reading-mode-btn"
       type="button"
-      class="icon-btn hidden sm:inline-flex"
+      class="icon-btn hidden h-8 w-8 items-center justify-center rounded-lg border border-transparent text-obs-text-muted transition-all hover:border-obs-border/60 hover:bg-obs-surface hover:text-obs-text-primary active:scale-95 sm:inline-flex"
       title="Toggle focus reading mode (Z)"
       aria-label="Toggle focus reading mode"
       aria-pressed="false"
     >
       <Eye className="h-4 w-4" />
     </button>
+
+    <!-- Theme Switcher (Dark / Light) -->
     <button
       id="theme-toggle-btn"
       type="button"
-      class="icon-btn"
+      class="icon-btn flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-obs-text-muted transition-all hover:border-obs-border/60 hover:bg-obs-surface hover:text-obs-accent active:scale-95"
       title="Toggle dark and light theme"
       aria-label="Toggle color theme"
     >
-      <Sun className="theme-icon theme-icon-light h-4 w-4" />
-      <Moon className="theme-icon theme-icon-dark h-4 w-4" />
+      <Sun className="theme-icon theme-icon-light h-4 w-4 transition-transform duration-300 hover:rotate-45" />
+      <Moon className="theme-icon theme-icon-dark h-4 w-4 transition-transform duration-300 hover:-rotate-12" />
     </button>
   </div>
 </header>

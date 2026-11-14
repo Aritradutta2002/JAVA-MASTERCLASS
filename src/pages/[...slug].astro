@@ -19,7 +19,23 @@ import type {
   OutgoingLinkItem,
 } from '../lib/types';
 import { DOMAIN_COLORS } from '../lib/constants';
-import { ArrowRight, BookOpen, FileText, Layers } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Clock,
+  FileCode,
+  FileText,
+  Layers,
+  Sparkles,
+} from 'lucide-react';
+
+interface NavDocItem {
+  title: string;
+  slug: string;
+  domainTitle?: string;
+  readingTime?: number;
+}
 
 interface LandingProps {
   kind: 'landing';
@@ -33,8 +49,8 @@ interface DocProps {
   navigation: NavigationNode[];
   backlinks: BacklinkItem[];
   outgoing: OutgoingLinkItem[];
-  prevDoc: { title: string; slug: string } | null;
-  nextDoc: { title: string; slug: string } | null;
+  prevDoc: NavDocItem | null;
+  nextDoc: NavDocItem | null;
   related: { title: string; slug: string; domainTitle: string; summary: string }[];
   html: string;
 }
@@ -69,11 +85,21 @@ export async function getStaticPaths() {
       const index = orderedIndex.get(doc.slug);
       const prevDoc =
         index !== undefined && index > 0
-          ? { title: ordered[index - 1].title, slug: ordered[index - 1].slug }
+          ? {
+              title: ordered[index - 1].title,
+              slug: ordered[index - 1].slug,
+              domainTitle: ordered[index - 1].domainTitle,
+              readingTime: ordered[index - 1].readingTimeMinutes,
+            }
           : null;
       const nextDoc =
         index !== undefined && index < ordered.length - 1
-          ? { title: ordered[index + 1].title, slug: ordered[index + 1].slug }
+          ? {
+              title: ordered[index + 1].title,
+              slug: ordered[index + 1].slug,
+              domainTitle: ordered[index + 1].domainTitle,
+              readingTime: ordered[index + 1].readingTimeMinutes,
+            }
           : null;
       const related = getRelatedDocs(doc, allDocs, 4).map((item) => ({
         title: item.title,
@@ -115,101 +141,244 @@ export async function getStaticPaths() {
 }
 
 const props = Astro.props as Props;
-const navigation = props.navigation;
+const isDoc = props.kind === 'doc';
+const docProps = isDoc ? (props as DocProps) : null;
+const landingProps = !isDoc ? (props as LandingProps) : null;
+
+const fmt = new Intl.NumberFormat('en-US');
 ---
 
-{props.kind === 'doc' ? (
+{docProps && (
   <ObsidianLayout
-    title={props.doc.title}
-    description={props.doc.summary || `Read ${props.doc.title} in the Java Masterclass knowledge base.`}
-    doc={props.doc}
-    headings={props.doc.headings}
-    backlinks={props.backlinks}
-    outgoing={props.outgoing}
-    navigation={navigation}
-    prevDoc={props.prevDoc}
-    nextDoc={props.nextDoc}
-    related={props.related}
+    title={docProps.doc.title}
+    description={docProps.doc.summary || `Read ${docProps.doc.title} in the Java Masterclass knowledge base.`}
+    doc={docProps.doc}
+    headings={docProps.doc.headings}
+    backlinks={docProps.backlinks}
+    outgoing={docProps.outgoing}
+    navigation={docProps.navigation}
+    related={docProps.related}
   >
-    {props.doc.isEmpty ? (
-      <div class="not-prose my-10 rounded-2xl border border-obs-border bg-obs-surface p-8 text-center">
-        <span class="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-obs-accent/30 bg-obs-accent/10 text-obs-accent">
-          <BookOpen className="h-5 w-5" />
+    <div class="not-prose mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-obs-border/70 bg-obs-surface/40 px-4 py-2.5 text-xs text-obs-text-muted backdrop-blur-sm shadow-sm">
+      <div class="flex items-center gap-2.5">
+        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-obs-accent/15 font-mono text-[0.66rem] font-bold text-obs-accent">
+          JM
         </span>
-        <h2 class="mt-3 font-serif text-xl font-bold text-obs-text-primary">Scaffold note</h2>
-        <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-obs-text-muted">
-          This topic is scaffolded in the curriculum. The detailed problem patterns and runnable
-          implementations live in the DSA track.
+        <span class="font-medium text-obs-text-secondary">Java Masterclass Staff</span>
+        <span class="text-obs-border">•</span>
+        <span class="text-[0.7rem] text-obs-text-muted">Technical Curriculum</span>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 text-[0.7rem]">
+        <span class="inline-flex items-center gap-1 text-obs-text-secondary">
+          <Clock className="h-3 w-3 text-obs-accent" />
+          {docProps.doc.readingTimeMinutes} min read
+        </span>
+        <span class="text-obs-border">•</span>
+        <span class="font-mono text-obs-text-secondary">
+          {fmt.format(docProps.doc.wordCount)} words
+        </span>
+        {docProps.doc.lastUpdated && (
+          <>
+            <span class="text-obs-border">•</span>
+            <span>Updated {docProps.doc.lastUpdated}</span>
+          </>
+        )}
+      </div>
+    </div>
+
+    {docProps.doc.isEmpty ? (
+      <div class="not-prose my-12 overflow-hidden rounded-3xl border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/90 to-obs-canvas p-8 text-center shadow-obs-lg sm:p-12">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-obs-accent/40 bg-obs-accent/10 text-obs-accent shadow-inner">
+          <BookOpen className="h-7 w-7" />
+        </div>
+        <div class="mt-4 inline-flex items-center gap-1.5 rounded-full border border-obs-accent/30 bg-obs-accent/10 px-3 py-1 text-xs font-semibold text-obs-accent">
+          <Sparkles className="h-3 w-3" />
+          Curriculum Topic Scaffold
+        </div>
+        <h2 class="mt-3 font-serif text-2xl font-bold tracking-tight text-obs-text-primary sm:text-3xl">
+          {docProps.doc.title}
+        </h2>
+        <p class="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-obs-text-muted">
+          This algorithmic concept or pattern is scaffolded into the curriculum outline. The detailed problem patterns, dry-runs, and runnable Java implementations live in the comprehensive DSA track.
         </p>
-        <a href="/java-dsa" class="btn btn-primary mt-4">
-          Browse the DSA directory <ArrowRight className="h-3.5 w-3.5" />
-        </a>
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <a href="/java-dsa" class="btn btn-primary shadow-md shadow-obs-accent/20">
+            Browse DSA Directory <ArrowRight className="h-3.5 w-3.5" />
+          </a>
+          <a href="/library" class="btn btn-secondary">
+            Search in Library
+          </a>
+        </div>
       </div>
     ) : (
-      <Fragment set:html={props.html} />
+      <div class="doc-markdown-content relative max-w-none">
+        <Fragment set:html={docProps.html} />
+      </div>
     )}
 
-    {props.doc.relatedJavaFiles && props.doc.relatedJavaFiles.length > 0 && (
-      <JavaCodeViewer filePaths={props.doc.relatedJavaFiles} />
+    {docProps.doc.relatedJavaFiles && docProps.doc.relatedJavaFiles.length > 0 && (
+      <div class="not-prose mt-12">
+        <div class="mb-3 flex items-center gap-2">
+          <FileCode className="h-4 w-4 text-obs-accent" />
+          <h3 class="text-sm font-bold uppercase tracking-wider text-obs-text-primary">
+            Accompanying Source Implementations ({docProps.doc.relatedJavaFiles.length})
+          </h3>
+        </div>
+        <JavaCodeViewer filePaths={docProps.doc.relatedJavaFiles} />
+      </div>
+    )}
+
+    {(docProps.prevDoc || docProps.nextDoc) && (
+      <nav
+        class="no-print mt-14 grid grid-cols-1 gap-4 border-t border-obs-border pt-8 sm:grid-cols-2"
+        aria-label="Previous and next chapter"
+      >
+        {docProps.prevDoc ? (
+          <a
+            href={docProps.prevDoc.slug}
+            class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
+          >
+            <div>
+              <span class="inline-flex items-center gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.14em] text-obs-text-muted group-hover:text-obs-accent transition-colors">
+                <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
+                <span>Previous Chapter</span>
+              </span>
+              <h4 class="mt-2 font-serif text-base font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors">
+                {docProps.prevDoc.title}
+              </h4>
+            </div>
+            {docProps.prevDoc.domainTitle && (
+              <div class="mt-4 flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-[0.66rem] text-obs-text-muted">
+                <span>{docProps.prevDoc.domainTitle}</span>
+                {docProps.prevDoc.readingTime && (
+                  <span>{docProps.prevDoc.readingTime} min read</span>
+                )}
+              </div>
+            )}
+          </a>
+        ) : (
+          <div class="hidden sm:block" />
+        )}
+
+        {docProps.nextDoc && (
+          <a
+            href={docProps.nextDoc.slug}
+            class="surface-card surface-card-hover group flex flex-col justify-between p-5 text-right transition-all duration-200 sm:col-start-2"
+          >
+            <div>
+              <span class="inline-flex items-center justify-end gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.14em] text-obs-text-muted group-hover:text-obs-accent transition-colors">
+                <span>Next Chapter</span>
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+              </span>
+              <h4 class="mt-2 font-serif text-base font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors">
+                {docProps.nextDoc.title}
+              </h4>
+            </div>
+            {docProps.nextDoc.domainTitle && (
+              <div class="mt-4 flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-[0.66rem] text-obs-text-muted">
+                {docProps.nextDoc.readingTime && (
+                  <span>{docProps.nextDoc.readingTime} min read</span>
+                )}
+                <span>{docProps.nextDoc.domainTitle}</span>
+              </div>
+            )}
+          </a>
+        )}
+      </nav>
     )}
   </ObsidianLayout>
-) : (
+)}
+
+{landingProps && (
   <ObsidianLayout
-    title={props.landing.title}
-    description={props.landing.summary}
-    navigation={navigation}
-    eyebrow={`${props.landing.domainTitle} · ${props.landing.docs.length} topics`}
+    title={landingProps.landing.title}
+    description={landingProps.landing.summary}
+    navigation={landingProps.navigation}
+    eyebrow={`${landingProps.landing.domainTitle} · ${landingProps.landing.docs.length} chapters`}
     wide
   >
-    <div class="not-prose space-y-8">
-      <header class="space-y-3 border-b border-obs-border pb-6">
-        <div class="flex items-center gap-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-obs-accent">
+    <div class="not-prose space-y-10">
+      <header class="space-y-4 border-b border-obs-border pb-8">
+        <div class="inline-flex items-center gap-2 rounded-full border border-obs-accent/30 bg-obs-accent/10 px-3 py-1 text-xs font-semibold text-obs-accent">
           <Layers className="h-3.5 w-3.5" />
-          {props.landing.domainTitle}
+          <span>{landingProps.landing.domainTitle} Module</span>
         </div>
-        <h1 class="font-serif text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
-          {props.landing.title}
-        </h1>
-        <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
-          This module groups {props.landing.docs.length} chapters. Open any topic below to read the
-          full text, examples, and interview notes.
-        </p>
+
+        <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+          <div>
+            <h1 class="font-serif text-3xl font-extrabold tracking-tight text-obs-text-primary sm:text-4xl lg:text-5xl">
+              {landingProps.landing.title}
+            </h1>
+            <p class="mt-3 max-w-2xl text-sm leading-relaxed text-obs-text-muted sm:text-base">
+              {landingProps.landing.summary || `This module groups ${landingProps.landing.docs.length} detailed chapters with theory, runnable code, and interview notes.`}
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="rounded-xl border border-obs-border bg-obs-surface/80 px-4 py-2.5 text-center shadow-sm">
+              <div class="font-mono text-lg font-bold text-obs-text-primary">{landingProps.landing.docs.length}</div>
+              <div class="text-[0.62rem] font-medium uppercase tracking-wider text-obs-text-muted">Topics</div>
+            </div>
+            <div class="rounded-xl border border-obs-border bg-obs-surface/80 px-4 py-2.5 text-center shadow-sm">
+              <div class="font-mono text-lg font-bold text-obs-accent">
+                {Math.round(landingProps.landing.docs.reduce((acc, d) => acc + d.readingTimeMinutes, 0))}m
+              </div>
+              <div class="text-[0.62rem] font-medium uppercase tracking-wider text-obs-text-muted">Total Time</div>
+            </div>
+          </div>
+        </div>
       </header>
 
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {props.landing.docs.map((doc) => {
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {landingProps.landing.docs.map((doc, idx) => {
           const color = DOMAIN_COLORS[doc.domain];
           return (
             <a
               href={doc.slug}
-              class="group flex flex-col rounded-xl border border-obs-border bg-obs-surface/70 p-4 transition-colors hover:border-obs-accent/40 hover:bg-obs-hover"
+              class="surface-card surface-card-hover group flex flex-col justify-between overflow-hidden p-5 transition-all duration-200"
             >
-              <div class="flex items-center justify-between gap-2">
-                <span
-                  class="rounded-full border px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wider"
-                  style={{
-                    backgroundColor: color?.bg,
-                    color: color?.text,
-                    borderColor: color?.border,
-                  }}
-                >
-                  {doc.categoryTitle}
-                </span>
-                {doc.level && <span class="badge">{doc.level}</span>}
+              <div>
+                <div class="flex items-center justify-between gap-2">
+                  <span
+                    class="rounded-md border px-2 py-0.5 text-[0.62rem] font-bold uppercase tracking-wider"
+                    style={{
+                      backgroundColor: color?.bg,
+                      color: color?.text,
+                      borderColor: color?.border,
+                    }}
+                  >
+                    {doc.categoryTitle}
+                  </span>
+                  <div class="flex items-center gap-1.5">
+                    {doc.level && <span class="badge text-[0.62rem]">{doc.level}</span>}
+                    <span class="font-mono text-[0.65rem] text-obs-text-muted">#{idx + 1}</span>
+                  </div>
+                </div>
+
+                <h2 class="mt-3 font-serif text-lg font-bold leading-snug text-obs-text-primary group-hover:text-obs-accent transition-colors">
+                  {doc.title}
+                </h2>
+
+                {doc.summary && (
+                  <p class="mt-2 line-clamp-3 text-xs leading-relaxed text-obs-text-muted">
+                    {doc.summary}
+                  </p>
+                )}
               </div>
-              <h2 class="mt-2 font-serif text-base font-semibold leading-snug text-obs-text-primary group-hover:text-obs-accent">
-                {doc.title}
-              </h2>
-              {doc.summary && (
-                <p class="mt-1.5 line-clamp-3 text-xs leading-relaxed text-obs-text-muted">
-                  {doc.summary}
-                </p>
-              )}
-              <div class="mt-3 flex items-center gap-3 border-t border-obs-border-subtle pt-2 text-[0.62rem] text-obs-text-muted">
-                <span class="inline-flex items-center gap-1">
-                  <FileText className="h-3 w-3" /> {doc.wordCount.toLocaleString('en-US')} words
+
+              <div class="mt-5 flex items-center justify-between border-t border-obs-border-subtle pt-3 text-xs text-obs-text-muted">
+                <span class="inline-flex items-center gap-1 font-mono text-[0.68rem]">
+                  <FileText className="h-3 w-3 text-obs-accent" />
+                  {fmt.format(doc.wordCount)} words
                 </span>
-                <span>{doc.readingTimeMinutes} min</span>
+                <span class="inline-flex items-center gap-1 text-[0.68rem]">
+                  <Clock className="h-3 w-3 text-obs-accent" />
+                  {doc.readingTimeMinutes} min
+                </span>
+                <span class="inline-flex items-center gap-1 font-semibold text-obs-accent group-hover:translate-x-0.5 transition-transform">
+                  Read <ArrowRight className="h-3 w-3" />
+                </span>
               </div>
             </a>
           );

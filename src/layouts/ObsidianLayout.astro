@@ -221,20 +221,20 @@ const jsonLd = {
   >
     <a
       href="#main-content-wrapper"
-      class="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-obs-accent focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-[#0b0714] focus:shadow-xl focus:outline-none"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:border focus:border-obs-accent/50 focus:bg-obs-surface focus:px-4 focus:py-2.5 focus:text-xs focus:font-semibold focus:text-obs-accent focus:shadow-2xl focus:ring-2 focus:ring-obs-accent/30 focus:outline-none"
     >
       Skip to content
     </a>
 
     <div
       id="reading-progress"
-      class="fixed left-0 top-0 z-[60] h-0.5 w-0 bg-gradient-to-r from-obs-accent to-obs-gold transition-[width] duration-75"
+      class="fixed left-0 top-0 z-[60] h-0.5 w-0 bg-gradient-to-r from-obs-accent via-obs-accent-strong to-obs-gold transition-[width] duration-75"
       role="presentation"
       aria-hidden="true"
     ></div>
 
     <div data-pagefind-ignore class="contents">
-      <Header breadcrumbs={breadcrumbs} />
+      <Header breadcrumbs={breadcrumbs} doc={doc} />
     </div>
 
     <!-- Docked Edge Pull Tab when sidebar is folded (desktop only, flush to edge) -->
@@ -547,25 +547,30 @@ const jsonLd = {
     <div
       id="mobile-drawer"
       data-pagefind-ignore
-      class="fixed inset-0 z-50 hidden md:hidden"
+      class="fixed inset-0 z-50 hidden md:hidden transition-all duration-300"
       role="dialog"
       aria-modal="true"
       aria-label="Navigation menu"
     >
-      <div id="mobile-drawer-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-      <div class="absolute inset-y-0 left-0 flex w-[min(21rem,90vw)] flex-col border-r border-obs-border bg-obs-sidebar shadow-2xl">
-        <div class="flex h-14 items-center justify-between border-b border-obs-border px-3">
-          <a href="/" class="flex items-center gap-2 text-sm font-bold text-obs-text-primary">
-            <span class="flex h-7 w-7 items-center justify-center rounded-md border border-obs-accent/35 bg-obs-accent/10 text-obs-accent">
-              <Sparkles className="h-3.5 w-3.5" />
+      <div id="mobile-drawer-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-md opacity-0 transition-opacity duration-300"></div>
+      <div id="mobile-drawer-panel" class="absolute inset-y-0 left-0 flex w-[min(22rem,90vw)] -translate-x-full flex-col border-r border-obs-border/80 bg-obs-sidebar shadow-2xl backdrop-blur-2xl transition-transform duration-300 ease-out">
+        <div class="flex h-14 items-center justify-between border-b border-obs-border/70 px-4">
+          <a href="/" class="flex items-center gap-2.5 text-sm font-bold text-obs-text-primary">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg border border-obs-accent/35 bg-obs-accent/15 text-obs-accent shadow-xs">
+              <Sparkles className="h-4 w-4" />
             </span>
-            Java Masterclass
+            <span class="tracking-tight">Java Masterclass</span>
           </a>
-          <button id="mobile-drawer-close" type="button" class="icon-btn" aria-label="Close navigation menu">
+          <button
+            id="mobile-drawer-close"
+            type="button"
+            class="flex h-8 w-8 items-center justify-center rounded-lg border border-obs-border/60 bg-obs-surface/40 text-obs-text-muted transition-all hover:bg-obs-surface hover:text-obs-text-primary"
+            aria-label="Close navigation menu"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div class="min-h-0 flex-1">
+        <div class="min-h-0 flex-1 overflow-hidden">
           <SidebarTree client:idle navigation={navigation} currentSlug={pathname} />
         </div>
       </div>
@@ -794,22 +799,36 @@ const jsonLd = {
       /* ---------------------------------------------------------- mobile menu */
       function setupDrawer() {
         const drawer = document.getElementById('mobile-drawer');
+        const panel = document.getElementById('mobile-drawer-panel');
+        const backdrop = document.getElementById('mobile-drawer-backdrop');
         const open = document.getElementById('mobile-menu-btn');
         const close = document.getElementById('mobile-drawer-close');
-        const backdrop = document.getElementById('mobile-drawer-backdrop');
         if (!drawer || !open) return;
 
         const show = () => {
           drawer.classList.remove('hidden');
           open.setAttribute('aria-expanded', 'true');
           document.body.style.overflow = 'hidden';
+          requestAnimationFrame(() => {
+            backdrop?.classList.remove('opacity-0');
+            backdrop?.classList.add('opacity-100');
+            panel?.classList.remove('-translate-x-full');
+            panel?.classList.add('translate-x-0');
+          });
           drawer.querySelector<HTMLElement>('a, button')?.focus();
         };
+
         const hide = () => {
-          drawer.classList.add('hidden');
+          backdrop?.classList.remove('opacity-100');
+          backdrop?.classList.add('opacity-0');
+          panel?.classList.remove('translate-x-0');
+          panel?.classList.add('-translate-x-full');
           open.setAttribute('aria-expanded', 'false');
           document.body.style.overflow = '';
-          open.focus();
+          setTimeout(() => {
+            drawer.classList.add('hidden');
+            open.focus();
+          }, 300);
         };
 
         if (open.dataset.bound !== 'true') {
