@@ -37,7 +37,7 @@ const fmt = new Intl.NumberFormat('en-US');
 
       <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
-          <h1 class="font-serif text-3xl font-extrabold tracking-tight text-obs-text-primary sm:text-4xl lg:text-5xl">
+          <h1 class="text-3xl font-extrabold tracking-tight text-obs-text-primary sm:text-4xl lg:text-5xl">
             The Knowledge Graph
           </h1>
           <p class="mt-2 max-w-2xl text-sm leading-relaxed text-obs-text-muted sm:text-base">
@@ -49,15 +49,15 @@ const fmt = new Intl.NumberFormat('en-US');
         <div class="flex flex-wrap items-center gap-2 text-xs">
           <div class="rounded-xl border border-obs-border bg-obs-surface/80 px-3.5 py-2 text-center shadow-sm">
             <div class="font-mono text-base font-bold text-obs-text-primary">{fmt.format(graph.nodes.length)}</div>
-            <div class="text-[0.6rem] font-medium uppercase tracking-wider text-obs-text-muted">Knowledge Nodes</div>
+            <div class="text-micro font-medium uppercase tracking-wider text-obs-text-muted">Knowledge Nodes</div>
           </div>
           <div class="rounded-xl border border-obs-border bg-obs-surface/80 px-3.5 py-2 text-center shadow-sm">
             <div class="font-mono text-base font-bold text-obs-accent">{fmt.format(graph.edges.length)}</div>
-            <div class="text-[0.6rem] font-medium uppercase tracking-wider text-obs-text-muted">Relationships</div>
+            <div class="text-micro font-medium uppercase tracking-wider text-obs-text-muted">Relationships</div>
           </div>
           <div class="rounded-xl border border-obs-border bg-obs-surface/80 px-3.5 py-2 text-center shadow-sm">
             <div class="font-mono text-base font-bold text-obs-emerald">{stats.domains}</div>
-            <div class="text-[0.6rem] font-medium uppercase tracking-wider text-obs-text-muted">Domains</div>
+            <div class="text-micro font-medium uppercase tracking-wider text-obs-text-muted">Domains</div>
           </div>
         </div>
       </div>
@@ -82,12 +82,39 @@ const fmt = new Intl.NumberFormat('en-US');
     </header>
 
     <!-- Graph Canvas Container with Skeleton Loader Fallback -->
-    <div class="relative h-[calc(100vh-16rem)] min-h-[32rem] w-full overflow-hidden rounded-3xl border border-obs-border bg-obs-canvas shadow-obs-lg">
+    <div class="relative h-[calc(100vh-16rem)] min-h-[32rem] w-full overflow-hidden rounded-hero border border-obs-border bg-obs-canvas shadow-obs-lg" style="contain: layout paint;">
       <ObsidianGraph client:only="react">
-        <div slot="fallback" class="flex h-full w-full flex-col items-center justify-center p-8 text-center">
-          <div class="h-10 w-10 animate-spin rounded-full border-2 border-obs-accent border-t-transparent"></div>
-          <p class="mt-4 text-sm font-semibold text-obs-text-primary">Loading Knowledge Graph Mesh…</p>
-          <p class="mt-1 text-xs text-obs-text-muted">Resolving {fmt.format(graph.nodes.length)} nodes and {fmt.format(graph.edges.length)} relationship edges</p>
+        <div slot="fallback" class="absolute inset-0 flex w-full flex-col" aria-busy="true" aria-label="Loading knowledge graph">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-obs-border/80 bg-obs-sidebar/85 p-4 lg:h-[156px] 2xl:h-[72px]">
+            <div class="flex items-center gap-3">
+              <div class="skeleton h-8 w-8 rounded-xl"></div>
+              <div class="space-y-2">
+                <div class="skeleton h-3 w-40"></div>
+                <div class="skeleton h-2.5 w-28"></div>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              {Array.from({ length: 6 }).map(() => (
+                <div class="skeleton h-7 w-20 rounded-lg"></div>
+              ))}
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="skeleton h-7 w-36 rounded-lg"></div>
+              <div class="skeleton h-7 w-24 rounded-lg"></div>
+            </div>
+          </div>
+          <div class="relative flex-1 p-6">
+            <div class="grid h-full grid-cols-6 gap-3 opacity-70">
+              {Array.from({ length: 24 }).map((_, index) => (
+                <div
+                  class="skeleton self-center rounded-full"
+                  style={`height:${12 + (index % 5) * 6}px;width:${12 + (index % 5) * 6}px`}
+                ></div>
+              ))}
+            </div>
+            <p class="mt-4 text-center text-sm font-semibold text-obs-text-primary">Loading Knowledge Graph Mesh…</p>
+            <p class="mt-1 text-center text-xs text-obs-text-muted">Resolving {fmt.format(graph.nodes.length)} nodes and {fmt.format(graph.edges.length)} relationship edges</p>
+          </div>
         </div>
       </ObsidianGraph>
     </div>
@@ -99,11 +126,11 @@ const fmt = new Intl.NumberFormat('en-US');
         class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
       >
         <div>
-          <span class="inline-flex items-center gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-obs-accent">
+          <span class="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-accent">
             <Compass className="h-3.5 w-3.5" />
             <span>Structured Directory</span>
           </span>
-          <h4 class="mt-2 font-serif text-base font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors">
+          <h4 class="mt-2 text-base font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors">
             Linear Chapter Catalog
           </h4>
           <p class="mt-1 text-xs leading-relaxed text-obs-text-muted">
@@ -120,11 +147,11 @@ const fmt = new Intl.NumberFormat('en-US');
         class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
       >
         <div>
-          <span class="inline-flex items-center gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-obs-gold">
+          <span class="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-gold">
             <GitBranch className="h-3.5 w-3.5" />
             <span>Curated Sequences</span>
           </span>
-          <h4 class="mt-2 font-serif text-base font-bold text-obs-text-primary group-hover:text-obs-gold transition-colors">
+          <h4 class="mt-2 text-base font-bold text-obs-text-primary group-hover:text-obs-gold transition-colors">
             Learning Paths & Milestones
           </h4>
           <p class="mt-1 text-xs leading-relaxed text-obs-text-muted">
@@ -141,11 +168,11 @@ const fmt = new Intl.NumberFormat('en-US');
         class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
       >
         <div>
-          <span class="inline-flex items-center gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-obs-emerald">
+          <span class="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-emerald">
             <Search className="h-3.5 w-3.5" />
             <span>Exact Concept Anchors</span>
           </span>
-          <h4 class="mt-2 font-serif text-base font-bold text-obs-text-primary group-hover:text-obs-emerald transition-colors">
+          <h4 class="mt-2 text-base font-bold text-obs-text-primary group-hover:text-obs-emerald transition-colors">
             A–Z Technical Glossary
           </h4>
           <p class="mt-1 text-xs leading-relaxed text-obs-text-muted">

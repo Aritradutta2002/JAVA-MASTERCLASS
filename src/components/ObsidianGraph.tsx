@@ -11,7 +11,6 @@ import {
   List,
   Search,
   ExternalLink,
-  Sparkles,
   ArrowUpRight,
   X,
 } from 'lucide-react';
@@ -35,6 +34,8 @@ export default function ObsidianGraph() {
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const [viewMode, setViewMode] = useState<'canvas' | 'list'>('canvas');
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadToken, setReloadToken] = useState(0);
 
   // Transform matrix for Pan & Zoom
   const transformRef = useRef({ x: 0, y: 0, k: 0.85 });
@@ -45,20 +46,39 @@ export default function ObsidianGraph() {
   const simNodesRef = useRef<SimNode[]>([]);
   const simEdgesRef = useRef<GraphEdge[]>([]);
   const animFrameIdRef = useRef<number | null>(null);
+  const hoveredNodeRef = useRef<SimNode | null>(null);
+  const redrawRef = useRef<() => void>(() => {});
 
   // Fetch graph data
   useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    setLoadError(false);
     fetch('/graph-data.json')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error(`Graph data returned ${res.status}`);
+        return res.json();
+      })
       .then((data: KnowledgeGraphData) => {
+        if (cancelled) return;
         setGraphData(data);
         setIsLoading(false);
       })
       .catch((err) => {
+        if (cancelled) return;
         console.error('Failed to load graph data:', err);
+        setLoadError(true);
         setIsLoading(false);
       });
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadToken]);
+
+  useEffect(() => {
+    hoveredNodeRef.current = hoveredNode;
+    redrawRef.current();
+  }, [hoveredNode]);
 
   // Filter nodes & edges
   const filteredData = useMemo(() => {
@@ -118,13 +138,20 @@ export default function ObsidianGraph() {
 
     // Simulation loop
     let iteration = 0;
-    const maxIterations = 320;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const maxIterations = reduceMotion ? 0 : window.innerWidth < 768 ? 80 : 160;
 
     function tick() {
       const simNodes = simNodesRef.current;
       const simEdges = simEdgesRef.current;
       const nodeMap = new Map<string, SimNode>();
       simNodes.forEach((n) => nodeMap.set(n.id, n));
+
+      if (iteration >= maxIterations) {
+        draw();
+        animFrameIdRef.current = null;
+        return;
+      }
 
       if (iteration < maxIterations) {
         // Repulsion between nodes
@@ -188,6 +215,7 @@ export default function ObsidianGraph() {
       const { x: tx, y: ty, k } = transformRef.current;
       const simNodes = simNodesRef.current;
       const simEdges = simEdgesRef.current;
+      const activeHoveredNode = hoveredNodeRef.current;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -216,11 +244,11 @@ export default function ObsidianGraph() {
 
       // 2. Connected nodes set for active hover
       const connectedNodeIds = new Set<string>();
-      if (hoveredNode) {
-        connectedNodeIds.add(hoveredNode.id);
+      if (activeHoveredNode) {
+        connectedNodeIds.add(activeHoveredNode.id);
         simEdges.forEach((e) => {
-          if (e.source === hoveredNode.id) connectedNodeIds.add(e.target);
-          if (e.target === hoveredNode.id) connectedNodeIds.add(e.source);
+          if (e.source === activeHoveredNode.id) connectedNodeIds.add(e.target);
+          if (e.target === activeHoveredNode.id) connectedNodeIds.add(e.source);
         });
       }
 
@@ -234,7 +262,7 @@ export default function ObsidianGraph() {
         const t = nodeMap.get(edge.target);
         if (!s || !t) continue;
 
-        const isEdgeActive = hoveredNode && (s.id === hoveredNode.id || t.id === hoveredNode.id);
+        const isEdgeActive = activeHoveredNode && (s.id === activeHoveredNode.id || t.id === activeHoveredNode.id);
         if (isEdgeActive) continue; // draw active in next pass
 
         ctx.beginPath();
@@ -242,19 +270,19 @@ export default function ObsidianGraph() {
         ctx.lineTo(t.x, t.y);
         ctx.strokeStyle = defaultEdgeColor;
         ctx.lineWidth = 0.8;
-        ctx.globalAlpha = hoveredNode ? 0.15 : 0.8;
+        ctx.globalAlpha = activeHoveredNode ? 0.15 : 0.8;
         ctx.stroke();
       }
 
       // Draw active glowing edges
-      if (hoveredNode) {
-        const hoverColor = DOMAIN_COLORS[hoveredNode.domain]?.hex || '#a78bfa';
+      if (activeHoveredNode) {
+        const hoverColor = DOMAIN_COLORS[activeHoveredNode.domain]?.hex || '#a78bfa';
         for (const edge of simEdges) {
           const s = nodeMap.get(edge.source);
           const t = nodeMap.get(edge.target);
           if (!s || !t) continue;
 
-          const isEdgeActive = s.id === hoveredNode.id || t.id === hoveredNode.id;
+          const isEdgeActive = s.id === activeHoveredNode.id || t.id === activeHoveredNode.id;
           if (!isEdgeActive) continue;
 
           ctx.save();
@@ -274,8 +302,8 @@ export default function ObsidianGraph() {
       // 4. Draw nodes
       for (const node of simNodes) {
         const domainColor = DOMAIN_COLORS[node.domain]?.hex || '#a78bfa';
-        const isHovered = hoveredNode?.id === node.id;
-        const isConnected = hoveredNode ? connectedNodeIds.has(node.id) : true;
+        const isHovered = activeHoveredNode?.id === node.id;
+        const isConnected = activeHoveredNode ? connectedNodeIds.has(node.id) : true;
         const currentRadius = isHovered ? node.radius * 1.35 : node.radius;
 
         ctx.save();
@@ -348,13 +376,14 @@ export default function ObsidianGraph() {
       ctx.restore();
     }
 
+    redrawRef.current = draw;
     if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
     animFrameIdRef.current = requestAnimationFrame(tick);
 
     return () => {
       if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
     };
-  }, [filteredData, hoveredNode]);
+  }, [filteredData]);
 
   // Resize canvas to parent container
   useEffect(() => {
@@ -362,6 +391,7 @@ export default function ObsidianGraph() {
       if (canvasRef.current && containerRef.current) {
         canvasRef.current.width = containerRef.current.clientWidth;
         canvasRef.current.height = containerRef.current.clientHeight;
+        redrawRef.current();
       }
     }
     handleResize();
@@ -385,6 +415,7 @@ export default function ObsidianGraph() {
       dragStartRef.current = { x: e.clientX, y: e.clientY };
       transformRef.current.x += dx;
       transformRef.current.y += dy;
+      redrawRef.current();
       return;
     }
 
@@ -426,6 +457,7 @@ export default function ObsidianGraph() {
     const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
     const newK = Math.max(0.15, Math.min(3.5, transformRef.current.k * zoomFactor));
     transformRef.current.k = newK;
+    redrawRef.current();
   };
 
   const handleClick = () => {
@@ -436,14 +468,17 @@ export default function ObsidianGraph() {
 
   const zoomIn = () => {
     transformRef.current.k = Math.min(3.5, transformRef.current.k * 1.3);
+    redrawRef.current();
   };
   const zoomOut = () => {
     transformRef.current.k = Math.max(0.15, transformRef.current.k * 0.75);
+    redrawRef.current();
   };
   const resetZoom = () => {
     const width = containerRef.current?.clientWidth || 900;
     const height = containerRef.current?.clientHeight || 600;
     transformRef.current = { x: width / 2, y: height / 2, k: 0.85 };
+    redrawRef.current();
   };
 
   const fitView = useCallback(() => {
@@ -472,26 +507,27 @@ export default function ObsidianGraph() {
       y: h / 2 - centerY * scale,
       k: scale,
     };
+    redrawRef.current();
   }, []);
 
   return (
-    <div className="relative flex flex-col h-full w-full overflow-hidden bg-obs-canvas select-none rounded-2xl border border-obs-border/90 shadow-obs-lg">
+    <div className="relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-obs-border/90 bg-obs-canvas shadow-obs-lg select-none">
       {/* Top Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-b border-obs-border/80 bg-obs-sidebar/85 backdrop-blur-md z-10">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-obs-border/80 bg-obs-sidebar/85 p-4 backdrop-blur-md z-10 lg:h-[156px] 2xl:h-[72px]">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-obs-accent/15 border border-obs-accent/30 text-obs-accent shadow-xs">
-            <Compass className="h-4.5 w-4.5" />
+            <Compass className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-sm font-bold text-obs-text-primary tracking-tight">
                 Knowledge Graph Explorer
               </h1>
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-obs-surface border border-obs-border text-obs-text-muted">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-micro font-mono font-medium bg-obs-surface border border-obs-border text-obs-text-muted">
                 Obsidian Engine
               </span>
             </div>
-            <p className="text-[11px] text-obs-text-muted">
+            <p className="text-caption text-obs-text-muted">
               {filteredData.nodes.length} Topics · {filteredData.edges.length} Cross-Document Relations
             </p>
           </div>
@@ -510,9 +546,10 @@ export default function ObsidianGraph() {
                 key={dom}
                 type="button"
                 onClick={() => setSelectedDomain(dom)}
+                aria-pressed={isSel}
                 className={`rounded-lg px-2.5 py-1 text-xs transition-all flex items-center gap-1.5 border ${
                   isSel
-                    ? 'bg-obs-accent text-white font-semibold border-obs-accent shadow-xs'
+                    ? 'bg-obs-accent-solid text-white font-semibold border-obs-accent-solid shadow-xs'
                     : 'border-obs-border/70 bg-obs-surface text-obs-text-secondary hover:bg-obs-hover hover:text-obs-text-primary'
                 }`}
               >
@@ -523,7 +560,7 @@ export default function ObsidianGraph() {
                   />
                 )}
                 <span>{label}</span>
-                <span className={`text-[10px] font-mono ${isSel ? 'text-white/80' : 'text-obs-text-muted'}`}>
+                <span className={`text-micro font-mono ${isSel ? 'text-white' : 'text-obs-text-muted'}`}>
                   {count}
                 </span>
               </button>
@@ -540,7 +577,8 @@ export default function ObsidianGraph() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter graph nodes..."
-              className="w-36 md:w-48 rounded-lg border border-obs-border/80 bg-obs-surface/80 py-1 pl-8 pr-7 text-xs text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:bg-obs-surface focus:outline-none transition-all"
+              aria-label="Filter graph nodes"
+              className="field w-36 md:w-48 rounded-lg border border-obs-border/80 bg-obs-surface/80 py-1 pl-8 pr-7 text-xs text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:bg-obs-surface focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
@@ -557,6 +595,7 @@ export default function ObsidianGraph() {
           <button
             type="button"
             onClick={() => setViewMode(viewMode === 'canvas' ? 'list' : 'canvas')}
+            aria-pressed={viewMode === 'list'}
             className="flex h-7 items-center gap-1.5 rounded-lg border border-obs-border/80 bg-obs-surface px-2.5 text-xs font-medium text-obs-text-secondary hover:bg-obs-hover transition-colors shadow-xs"
             title="Toggle Accessible List View"
           >
@@ -569,16 +608,61 @@ export default function ObsidianGraph() {
       {/* Main Canvas Area */}
       <div
         ref={containerRef}
-        className="relative flex-1 w-full h-[72vh] cursor-grab active:cursor-grabbing overflow-hidden bg-obs-canvas"
+        className="relative min-h-0 w-full flex-1 cursor-grab overflow-hidden bg-obs-canvas active:cursor-grabbing lg:h-[calc(100%-156px)] lg:flex-none 2xl:h-[calc(100%-72px)]"
       >
         {isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-xs text-obs-text-muted bg-obs-canvas/80 backdrop-blur-xs z-20">
-            <Sparkles className="h-5 w-5 animate-pulse text-obs-accent" />
-            <span>Constructing multi-domain graph matrix...</span>
+          <div className="absolute inset-0 z-20 bg-obs-canvas/90 p-6" aria-busy="true" aria-label="Loading knowledge graph">
+            <div className="grid h-full grid-cols-6 gap-3 opacity-70">
+              {Array.from({ length: 24 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="skeleton self-center rounded-full"
+                  style={{ height: `${12 + (index % 5) * 6}px`, width: `${12 + (index % 5) * 6}px` }}
+                />
+              ))}
+            </div>
+            <div className="absolute inset-x-0 bottom-6 text-center text-xs text-obs-text-muted">
+              Constructing multi-domain graph matrix…
+            </div>
           </div>
         )}
 
-        {viewMode === 'canvas' ? (
+        {!isLoading && loadError && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-obs-canvas p-6 text-center">
+            <p className="text-sm font-semibold text-obs-text-primary">Graph data could not load</p>
+            <p className="max-w-md text-xs leading-relaxed text-obs-text-muted">
+              The graph payload is unavailable. Retry the request or use the accessible list view after it loads.
+            </p>
+            <button
+              type="button"
+              onClick={() => setReloadToken((value) => value + 1)}
+              className="btn btn-primary px-4 py-2 text-xs"
+            >
+              Retry graph
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !loadError && filteredData.nodes.length === 0 && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-obs-canvas p-6 text-center">
+            <p className="text-sm font-semibold text-obs-text-primary">No graph nodes match those filters</p>
+            <p className="max-w-md text-xs leading-relaxed text-obs-text-muted">
+              Clear the search or select all domains to restore the full knowledge mesh.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedDomain('all');
+              }}
+              className="btn btn-secondary px-4 py-2 text-xs"
+            >
+              Reset graph filters
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !loadError && filteredData.nodes.length > 0 && (viewMode === 'canvas' ? (
           <canvas
             ref={canvasRef}
             onMouseDown={handleMouseDown}
@@ -586,6 +670,7 @@ export default function ObsidianGraph() {
             onMouseUp={handleMouseUp}
             onWheel={handleWheel}
             onClick={handleClick}
+            aria-label="Interactive knowledge graph canvas. Use the List View button for keyboard navigation."
             className="w-full h-full block"
           />
         ) : (
@@ -611,7 +696,7 @@ export default function ObsidianGraph() {
                       <div className="font-semibold text-xs sm:text-sm text-obs-text-primary group-hover:text-obs-accent transition-colors">
                         {node.title}
                       </div>
-                      <div className="text-[11px] text-obs-text-muted mt-0.5 flex items-center gap-2">
+                      <div className="text-caption text-obs-text-muted mt-0.5 flex items-center gap-2">
                         <span style={{ color: domainColor.text }}>{node.domainTitle}</span>
                         <span>·</span>
                         <span>{node.inDegree} incoming references</span>
@@ -625,7 +710,7 @@ export default function ObsidianGraph() {
               );
             })}
           </div>
-        )}
+        ))}
 
         {/* Zoom & Reset Floating Controls */}
         {viewMode === 'canvas' && (
@@ -671,7 +756,7 @@ export default function ObsidianGraph() {
 
         {/* Canvas Navigation Hint Pill */}
         {viewMode === 'canvas' && (
-          <div className="absolute bottom-5 left-5 hidden md:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-obs-surface/80 backdrop-blur-md border border-obs-border/70 text-[11px] text-obs-text-muted select-none pointer-events-none">
+          <div className="absolute bottom-5 left-5 hidden md:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-obs-surface/80 backdrop-blur-md border border-obs-border/70 text-caption text-obs-text-muted select-none pointer-events-none">
             <span>Drag to pan</span>
             <span>·</span>
             <span>Scroll to zoom</span>
@@ -699,7 +784,7 @@ export default function ObsidianGraph() {
                 }}
               />
               <span
-                className="text-[10px] font-semibold uppercase tracking-wider"
+                className="text-micro font-semibold uppercase tracking-wider"
                 style={{
                   color: DOMAIN_COLORS[hoveredNode.domain]?.text || '#a78bfa',
                 }}
@@ -712,7 +797,7 @@ export default function ObsidianGraph() {
               {hoveredNode.title}
             </div>
 
-            <div className="mt-2.5 grid grid-cols-2 gap-2 border-t border-obs-border/60 pt-2 text-[10px]">
+            <div className="mt-2.5 grid grid-cols-2 gap-2 border-t border-obs-border/60 pt-2 text-micro">
               <div className="bg-obs-canvas/80 p-1.5 rounded border border-obs-border/40">
                 <span className="text-obs-text-muted block">Backlinks</span>
                 <span className="font-mono font-bold text-obs-text-primary">{hoveredNode.inDegree} incoming</span>
@@ -723,7 +808,7 @@ export default function ObsidianGraph() {
               </div>
             </div>
 
-            <div className="mt-2 text-[10px] text-obs-accent font-mono flex items-center justify-between">
+            <div className="mt-2 text-micro text-obs-accent font-mono flex items-center justify-between">
               <span>Click to view chapter</span>
               <ArrowUpRight className="h-3 w-3" />
             </div>

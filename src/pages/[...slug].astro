@@ -1,4 +1,5 @@
 ---
+import '@fontsource-variable/literata';
 import fs from 'node:fs';
 import path from 'node:path';
 import ObsidianLayout from '../layouts/ObsidianLayout.astro';
@@ -161,15 +162,15 @@ const fmt = new Intl.NumberFormat('en-US');
   >
     <div class="not-prose mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-obs-border/70 bg-obs-surface/40 px-4 py-2.5 text-xs text-obs-text-muted backdrop-blur-sm shadow-sm">
       <div class="flex items-center gap-2.5">
-        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-obs-accent/15 font-mono text-[0.66rem] font-bold text-obs-accent">
+        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-obs-accent/15 font-mono text-caption font-bold text-obs-accent">
           JM
         </span>
         <span class="font-medium text-obs-text-secondary">Java Masterclass Staff</span>
         <span class="text-obs-border">•</span>
-        <span class="text-[0.7rem] text-obs-text-muted">Technical Curriculum</span>
+        <span class="text-caption text-obs-text-muted">Technical Curriculum</span>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3 text-[0.7rem]">
+      <div class="flex flex-wrap items-center gap-3 text-caption">
         <span class="inline-flex items-center gap-1 text-obs-text-secondary">
           <Clock className="h-3 w-3 text-obs-accent" />
           {docProps.doc.readingTimeMinutes} min read
@@ -188,7 +189,7 @@ const fmt = new Intl.NumberFormat('en-US');
     </div>
 
     {docProps.doc.isEmpty ? (
-      <div class="not-prose my-12 overflow-hidden rounded-3xl border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/90 to-obs-canvas p-8 text-center shadow-obs-lg sm:p-12">
+      <div class="not-prose my-12 overflow-hidden rounded-hero border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/90 to-obs-canvas p-8 text-center shadow-obs-lg sm:p-12">
         <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-obs-accent/40 bg-obs-accent/10 text-obs-accent shadow-inner">
           <BookOpen className="h-7 w-7" />
         </div>
@@ -196,14 +197,14 @@ const fmt = new Intl.NumberFormat('en-US');
           <Sparkles className="h-3 w-3" />
           Curriculum Topic Scaffold
         </div>
-        <h2 class="mt-3 font-serif text-2xl font-bold tracking-tight text-obs-text-primary sm:text-3xl">
+        <h2 class="mt-3 text-2xl font-bold tracking-tight text-obs-text-primary sm:text-3xl">
           {docProps.doc.title}
         </h2>
         <p class="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-obs-text-muted">
           This algorithmic concept or pattern is scaffolded into the curriculum outline. The detailed problem patterns, dry-runs, and runnable Java implementations live in the comprehensive DSA track.
         </p>
         <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <a href="/java-dsa" class="btn btn-primary shadow-md shadow-obs-accent/20">
+          <a href="/java-dsa" class="btn btn-primary shadow-md shadow-obs-glow">
             Browse DSA Directory <ArrowRight className="h-3.5 w-3.5" />
           </a>
           <a href="/library" class="btn btn-secondary">
@@ -240,16 +241,16 @@ const fmt = new Intl.NumberFormat('en-US');
             class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
           >
             <div>
-              <span class="inline-flex items-center gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.14em] text-obs-text-muted group-hover:text-obs-accent transition-colors">
+              <span class="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.14em] text-obs-text-muted group-hover:text-obs-accent transition-colors">
                 <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
                 <span>Previous Chapter</span>
               </span>
-              <h4 class="mt-2 font-serif text-base font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors">
+              <h4 class="mt-2 text-base font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors">
                 {docProps.prevDoc.title}
               </h4>
             </div>
             {docProps.prevDoc.domainTitle && (
-              <div class="mt-4 flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-[0.66rem] text-obs-text-muted">
+              <div class="mt-4 flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-caption text-obs-text-muted">
                 <span>{docProps.prevDoc.domainTitle}</span>
                 {docProps.prevDoc.readingTime && (
                   <span>{docProps.prevDoc.readingTime} min read</span>
@@ -267,16 +268,16 @@ const fmt = new Intl.NumberFormat('en-US');
             class="surface-card surface-card-hover group flex flex-col justify-between p-5 text-right transition-all duration-200 sm:col-start-2"
           >
             <div>
-              <span class="inline-flex items-center justify-end gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.14em] text-obs-text-muted group-hover:text-obs-accent transition-colors">
+              <span class="inline-flex items-center justify-end gap-1.5 text-caption font-bold uppercase tracking-[0.14em] text-obs-text-muted group-hover:text-obs-accent transition-colors">
                 <span>Next Chapter</span>
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
               </span>
-              <h4 class="mt-2 font-serif text-base font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors">
+              <h4 class="mt-2 text-base font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors">
                 {docProps.nextDoc.title}
               </h4>
             </div>
             {docProps.nextDoc.domainTitle && (
-              <div class="mt-4 flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-[0.66rem] text-obs-text-muted">
+              <div class="mt-4 flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-caption text-obs-text-muted">
                 {docProps.nextDoc.readingTime && (
                   <span>{docProps.nextDoc.readingTime} min read</span>
                 )}
@@ -307,7 +308,7 @@ const fmt = new Intl.NumberFormat('en-US');
 
         <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
           <div>
-            <h1 class="font-serif text-3xl font-extrabold tracking-tight text-obs-text-primary sm:text-4xl lg:text-5xl">
+            <h1 class="text-3xl font-extrabold tracking-tight text-obs-text-primary sm:text-4xl lg:text-5xl">
               {landingProps.landing.title}
             </h1>
             <p class="mt-3 max-w-2xl text-sm leading-relaxed text-obs-text-muted sm:text-base">
@@ -318,13 +319,13 @@ const fmt = new Intl.NumberFormat('en-US');
           <div class="flex items-center gap-3">
             <div class="rounded-xl border border-obs-border bg-obs-surface/80 px-4 py-2.5 text-center shadow-sm">
               <div class="font-mono text-lg font-bold text-obs-text-primary">{landingProps.landing.docs.length}</div>
-              <div class="text-[0.62rem] font-medium uppercase tracking-wider text-obs-text-muted">Topics</div>
+              <div class="text-micro font-medium uppercase tracking-wider text-obs-text-muted">Topics</div>
             </div>
             <div class="rounded-xl border border-obs-border bg-obs-surface/80 px-4 py-2.5 text-center shadow-sm">
               <div class="font-mono text-lg font-bold text-obs-accent">
                 {Math.round(landingProps.landing.docs.reduce((acc, d) => acc + d.readingTimeMinutes, 0))}m
               </div>
-              <div class="text-[0.62rem] font-medium uppercase tracking-wider text-obs-text-muted">Total Time</div>
+              <div class="text-micro font-medium uppercase tracking-wider text-obs-text-muted">Total Time</div>
             </div>
           </div>
         </div>
@@ -341,7 +342,7 @@ const fmt = new Intl.NumberFormat('en-US');
               <div>
                 <div class="flex items-center justify-between gap-2">
                   <span
-                    class="rounded-md border px-2 py-0.5 text-[0.62rem] font-bold uppercase tracking-wider"
+                    class="rounded-md border px-2 py-0.5 text-micro font-bold uppercase tracking-wider"
                     style={{
                       backgroundColor: color?.bg,
                       color: color?.text,
@@ -351,12 +352,12 @@ const fmt = new Intl.NumberFormat('en-US');
                     {doc.categoryTitle}
                   </span>
                   <div class="flex items-center gap-1.5">
-                    {doc.level && <span class="badge text-[0.62rem]">{doc.level}</span>}
-                    <span class="font-mono text-[0.65rem] text-obs-text-muted">#{idx + 1}</span>
+                    {doc.level && <span class="badge text-micro">{doc.level}</span>}
+                    <span class="font-mono text-caption text-obs-text-muted">#{idx + 1}</span>
                   </div>
                 </div>
 
-                <h2 class="mt-3 font-serif text-lg font-bold leading-snug text-obs-text-primary group-hover:text-obs-accent transition-colors">
+                <h2 class="mt-3 text-lg font-bold leading-snug text-obs-text-primary group-hover:text-obs-accent transition-colors">
                   {doc.title}
                 </h2>
 
@@ -368,11 +369,11 @@ const fmt = new Intl.NumberFormat('en-US');
               </div>
 
               <div class="mt-5 flex items-center justify-between border-t border-obs-border-subtle pt-3 text-xs text-obs-text-muted">
-                <span class="inline-flex items-center gap-1 font-mono text-[0.68rem]">
+                <span class="inline-flex items-center gap-1 font-mono text-caption">
                   <FileText className="h-3 w-3 text-obs-accent" />
                   {fmt.format(doc.wordCount)} words
                 </span>
-                <span class="inline-flex items-center gap-1 text-[0.68rem]">
+                <span class="inline-flex items-center gap-1 text-caption">
                   <Clock className="h-3 w-3 text-obs-accent" />
                   {doc.readingTimeMinutes} min
                 </span>

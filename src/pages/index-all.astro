@@ -31,7 +31,7 @@ const fmt = new Intl.NumberFormat('en-US');
   <div class="not-prose space-y-8">
     <header class="space-y-3 border-b border-obs-border pb-6">
       <p class="eyebrow"><FileText className="h-3.5 w-3.5" /> Complete index</p>
-      <h1 class="font-serif text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
+      <h1 class="text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
         Complete topic index (A–Z)
       </h1>
       <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
@@ -46,7 +46,7 @@ const fmt = new Intl.NumberFormat('en-US');
           id="index-filter"
           type="search"
           placeholder="Filter by title, domain, or module…"
-          class="w-full rounded-lg border border-obs-border bg-obs-surface py-2 pl-9 pr-3 text-sm text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:outline-none"
+          class="field w-full rounded-lg border border-obs-border bg-obs-surface py-2 pl-9 pr-3 text-sm text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:outline-none"
         />
       </div>
 
@@ -54,10 +54,10 @@ const fmt = new Intl.NumberFormat('en-US');
         {letters.map(([letter, list]) => (
           <a
             href={`#section-${letter}`}
-            class="flex h-7 min-w-7 items-center justify-center rounded border border-obs-border bg-obs-surface px-1.5 font-mono text-[0.68rem] font-semibold text-obs-text-secondary transition-colors hover:border-obs-accent/50 hover:text-obs-accent"
+            class="flex h-7 min-w-7 items-center justify-center rounded border border-obs-border bg-obs-surface px-1.5 font-mono text-caption font-semibold text-obs-text-secondary transition-colors hover:border-obs-accent/50 hover:text-obs-accent"
           >
             {letter}
-            <span class="ml-1 text-[0.56rem] text-obs-text-muted">{list.length}</span>
+            <span class="ml-1 text-micro text-obs-text-muted">{list.length}</span>
           </a>
         ))}
       </nav>
@@ -75,10 +75,10 @@ const fmt = new Intl.NumberFormat('en-US');
             <span class="flex h-7 w-7 items-center justify-center rounded-md border border-obs-accent/30 bg-obs-accent/10 font-mono text-xs font-bold text-obs-accent">
               {letter}
             </span>
-            <h2 id={`letter-${letter}`} class="font-serif text-lg font-bold text-obs-text-primary">
+            <h2 id={`letter-${letter}`} class="text-lg font-bold text-obs-text-primary">
               {letter}
             </h2>
-            <span class="ml-auto font-mono text-[0.62rem] text-obs-text-muted">{list.length}</span>
+            <span class="ml-auto font-mono text-micro text-obs-text-muted">{list.length}</span>
           </div>
 
           <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
@@ -89,10 +89,10 @@ const fmt = new Intl.NumberFormat('en-US');
                 class="index-item group flex items-center justify-between gap-2 rounded-lg border border-obs-border bg-obs-surface/70 px-2.5 py-2 transition-colors hover:border-obs-accent/45 hover:bg-obs-hover"
               >
                 <span class="min-w-0">
-                  <span class="block truncate text-[0.78rem] font-medium text-obs-text-primary group-hover:text-obs-accent">
+                  <span class="block truncate text-sm font-medium text-obs-text-primary group-hover:text-obs-accent">
                     {doc.title}
                   </span>
-                  <span class="block truncate text-[0.6rem] text-obs-text-muted">
+                  <span class="block truncate text-micro text-obs-text-muted">
                     {doc.domainTitle} · {doc.categoryTitle}
                   </span>
                 </span>

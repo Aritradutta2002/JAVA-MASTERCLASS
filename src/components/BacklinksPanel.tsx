@@ -54,7 +54,7 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
         </div>
         <div>
           <div className="text-xs font-semibold text-obs-text-primary">No Direct Connections</div>
-          <p className="text-[11px] leading-relaxed text-obs-text-muted mt-0.5">
+          <p className="text-caption leading-relaxed text-obs-text-muted mt-0.5">
             This document stands standalone. Explore related patterns across the curriculum in the graph view.
           </p>
         </div>
@@ -77,17 +77,17 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
           <div className="flex h-5 w-5 items-center justify-center rounded bg-obs-accent/15 text-obs-accent">
             <Link2 className="h-3 w-3" />
           </div>
-          <span className="text-[11px] font-bold uppercase tracking-wider text-obs-text-primary">
+          <span className="text-caption font-bold uppercase tracking-wider text-obs-text-primary">
             Knowledge Links
           </span>
-          <span className="rounded-full bg-obs-surface border border-obs-border/70 px-1.5 py-0.2 font-mono text-[10px] font-semibold text-obs-text-muted">
+          <span className="rounded-full bg-obs-surface border border-obs-border/70 px-1.5 py-0.5 font-mono text-micro font-semibold text-obs-text-muted">
             {totalConnections}
           </span>
         </div>
 
         <a
           href="/graph"
-          className="flex items-center gap-1 text-[11px] font-medium text-obs-text-muted hover:text-obs-accent transition-colors group"
+          className="flex items-center gap-1 text-caption font-medium text-obs-text-muted hover:text-obs-accent transition-colors group"
           title="Explore in full interactive graph"
         >
           <span>Graph</span>
@@ -99,7 +99,7 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
       {totalConnections > 4 && (
         <div className="space-y-2">
           {/* Segmented Tab Control */}
-          <div className="grid grid-cols-3 gap-1 rounded-lg border border-obs-border/70 bg-obs-canvas/80 p-0.5 text-[11px] font-medium">
+          <div className="grid grid-cols-3 gap-1 rounded-lg border border-obs-border/70 bg-obs-canvas/80 p-0.5 text-caption font-medium">
             <button
               type="button"
               onClick={() => setActiveTab('all')}
@@ -143,7 +143,8 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
               placeholder="Filter relations..."
-              className="w-full rounded-md border border-obs-border/70 bg-obs-surface/60 py-1 pl-7 pr-2.5 text-[11px] text-obs-text-primary placeholder:text-obs-text-muted/70 focus:border-obs-accent/70 focus:bg-obs-surface focus:outline-none transition-all"
+              aria-label="Filter knowledge links"
+              className="field w-full rounded-md border border-obs-border/70 bg-obs-surface/60 py-1 pl-7 pr-2.5 text-caption text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent/70 focus:bg-obs-surface focus:outline-none transition-all"
             />
           </div>
         </div>
@@ -156,10 +157,10 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
             type="button"
             onClick={() => setBacklinksOpen((v) => !v)}
             aria-expanded={backlinksOpen}
-            className="flex w-full items-center justify-between text-[11px] font-semibold text-obs-text-secondary hover:text-obs-text-primary py-0.5 select-none transition-colors group"
+            className="flex w-full items-center justify-between text-caption font-semibold text-obs-text-secondary hover:text-obs-text-primary py-0.5 select-none transition-colors group"
           >
             <span className="flex items-center gap-1.5">
-              <ArrowDownLeft className="h-3.5 w-3.5 text-emerald-400" />
+              <ArrowDownLeft className="h-3.5 w-3.5 text-obs-success-text" />
               <span>Backlinks ({filteredBacklinks.length})</span>
             </span>
             <span className="text-obs-text-muted group-hover:text-obs-text-secondary transition-colors">
@@ -170,7 +171,7 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
           {backlinksOpen && (
             <ul className="space-y-2 animate-fade-in">
               {filteredBacklinks.length === 0 ? (
-                <li className="text-[11px] text-obs-text-muted italic px-2 py-1">
+                <li className="text-caption text-obs-text-muted italic px-2 py-1">
                   No matching backlinks found.
                 </li>
               ) : (
@@ -194,7 +195,7 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
 
                         <div className="mt-1.5 flex items-center gap-1.5">
                           <span
-                            className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-medium border"
+                            className="inline-flex items-center px-1.5 py-0.5 rounded text-micro font-medium border"
                             style={{
                               backgroundColor: domainColor.bg,
                               color: domainColor.text,
@@ -206,7 +207,7 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
                         </div>
 
                         {backlink.contextSnippet && (
-                          <div className="mt-2 rounded-lg border-l-2 border-l-emerald-500/50 border border-obs-border/40 bg-obs-canvas/80 p-2 font-mono text-[11px] leading-relaxed text-obs-text-muted line-clamp-3 group-hover:text-obs-text-secondary transition-colors">
+                          <div className="mt-2 rounded-lg border-l-2 border-l-emerald-500/50 border border-obs-border/40 bg-obs-canvas/80 p-2 font-mono text-caption leading-relaxed text-obs-text-muted line-clamp-3 group-hover:text-obs-text-secondary transition-colors">
                             {backlink.contextSnippet}
                           </div>
                         )}
@@ -227,10 +228,10 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
             type="button"
             onClick={() => setOutgoingOpen((v) => !v)}
             aria-expanded={outgoingOpen}
-            className="flex w-full items-center justify-between text-[11px] font-semibold text-obs-text-secondary hover:text-obs-text-primary py-0.5 select-none transition-colors group"
+            className="flex w-full items-center justify-between text-caption font-semibold text-obs-text-secondary hover:text-obs-text-primary py-0.5 select-none transition-colors group"
           >
             <span className="flex items-center gap-1.5">
-              <ArrowUpRight className="h-3.5 w-3.5 text-sky-400" />
+              <ArrowUpRight className="h-3.5 w-3.5 text-obs-info-text" />
               <span>Outgoing Links ({filteredOutgoing.length})</span>
             </span>
             <span className="text-obs-text-muted group-hover:text-obs-text-secondary transition-colors">
@@ -241,7 +242,7 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
           {outgoingOpen && (
             <ul className="space-y-1.5 animate-fade-in">
               {filteredOutgoing.length === 0 ? (
-                <li className="text-[11px] text-obs-text-muted italic px-2 py-1">
+                <li className="text-caption text-obs-text-muted italic px-2 py-1">
                   No matching outgoing links found.
                 </li>
               ) : (

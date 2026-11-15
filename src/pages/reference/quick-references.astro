@@ -30,7 +30,7 @@ const fmt = new Intl.NumberFormat('en-US');
   <div class="not-prose space-y-9">
     <header class="space-y-3 border-b border-obs-border pb-6">
       <p class="eyebrow"><BookMarked className="h-3.5 w-3.5" /> Reference desk</p>
-      <h1 class="font-serif text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
+      <h1 class="text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
         Quick references
       </h1>
       <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
@@ -48,12 +48,12 @@ const fmt = new Intl.NumberFormat('en-US');
       <section aria-labelledby="cheatsheets-heading" class="space-y-3">
         <div class="flex items-end justify-between gap-2">
           <div>
-            <h2 id="cheatsheets-heading" class="font-serif text-xl font-bold text-obs-text-primary">
+            <h2 id="cheatsheets-heading" class="text-xl font-bold text-obs-text-primary">
               Cheat sheets
             </h2>
-            <p class="text-[0.72rem] text-obs-text-muted">Per-domain condensed revision notes.</p>
+            <p class="text-caption text-obs-text-muted">Per-domain condensed revision notes.</p>
           </div>
-          <a href="/library" class="text-[0.7rem] font-semibold text-obs-accent hover:underline">Library →</a>
+          <a href="/library" class="text-caption font-semibold text-obs-accent hover:underline">Library →</a>
         </div>
         <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {quickReferences.map((doc) => {
@@ -62,20 +62,20 @@ const fmt = new Intl.NumberFormat('en-US');
               <a href={doc.slug} class="surface-card surface-card-hover group flex flex-col p-4">
                 <div class="flex items-center justify-between gap-2">
                   <span
-                    class="rounded-full border px-2 py-0.5 text-[0.58rem] font-bold uppercase tracking-wider"
+                    class="rounded-full border px-2 py-0.5 text-micro font-bold uppercase tracking-wider"
                     style={{ backgroundColor: color?.bg, color: color?.text, borderColor: color?.border }}
                   >
                     {doc.domainTitle}
                   </span>
-                  <span class="font-mono text-[0.6rem] text-obs-text-muted">{doc.readingTimeMinutes} min</span>
+                  <span class="font-mono text-micro text-obs-text-muted">{doc.readingTimeMinutes} min</span>
                 </div>
-                <h3 class="mt-2 font-serif text-[1.02rem] font-semibold leading-snug text-obs-text-primary group-hover:text-obs-accent">
+                <h3 class="mt-2 text-base font-semibold leading-snug text-obs-text-primary group-hover:text-obs-accent">
                   {doc.title}
                 </h3>
                 {doc.summary && (
-                  <p class="mt-1.5 line-clamp-3 text-[0.74rem] leading-relaxed text-obs-text-muted">{doc.summary}</p>
+                  <p class="mt-1.5 line-clamp-3 text-caption leading-relaxed text-obs-text-muted">{doc.summary}</p>
                 )}
-                <div class="mt-auto flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-[0.62rem] text-obs-text-muted">
+                <div class="mt-auto flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-micro text-obs-text-muted">
                   <span>{fmt.format(doc.wordCount)} words</span>
                   <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                 </div>
@@ -90,14 +90,14 @@ const fmt = new Intl.NumberFormat('en-US');
       <section aria-labelledby="standards-heading" class="space-y-3">
         <div class="flex items-end justify-between gap-2">
           <div>
-            <h2 id="standards-heading" class="font-serif text-xl font-bold text-obs-text-primary">
+            <h2 id="standards-heading" class="text-xl font-bold text-obs-text-primary">
               Engineering standards
             </h2>
-            <p class="text-[0.72rem] text-obs-text-muted">
+            <p class="text-caption text-obs-text-muted">
               Conventions every chapter in the domain follows.
             </p>
           </div>
-          <a href="/standards" class="text-[0.7rem] font-semibold text-obs-accent hover:underline">Standards hub →</a>
+          <a href="/standards" class="text-caption font-semibold text-obs-accent hover:underline">Standards hub →</a>
         </div>
         <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {standards.map((doc) => (
@@ -109,10 +109,10 @@ const fmt = new Intl.NumberFormat('en-US');
                 <ShieldCheck className="h-4 w-4" />
               </span>
               <span class="min-w-0">
-                <span class="block truncate text-[0.82rem] font-semibold text-obs-text-primary group-hover:text-obs-accent">
+                <span class="block truncate text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent">
                   {doc.domainTitle}
                 </span>
-                <span class="block truncate text-[0.62rem] text-obs-text-muted">{doc.title}</span>
+                <span class="block truncate text-micro text-obs-text-muted">{doc.title}</span>
               </span>
               <ArrowRight className="ml-auto h-3 w-3 shrink-0 text-obs-text-muted opacity-40 group-hover:opacity-100" />
             </a>
@@ -125,12 +125,12 @@ const fmt = new Intl.NumberFormat('en-US');
       <section aria-labelledby="checklists-heading" class="space-y-3">
         <div class="flex items-end justify-between gap-2">
           <div>
-            <h2 id="checklists-heading" class="font-serif text-xl font-bold text-obs-text-primary">
+            <h2 id="checklists-heading" class="text-xl font-bold text-obs-text-primary">
               Checklists
             </h2>
-            <p class="text-[0.72rem] text-obs-text-muted">Coverage maps and progress trackers.</p>
+            <p class="text-caption text-obs-text-muted">Coverage maps and progress trackers.</p>
           </div>
-          <a href="/checklist" class="text-[0.7rem] font-semibold text-obs-accent hover:underline">
+          <a href="/checklist" class="text-caption font-semibold text-obs-accent hover:underline">
             Interactive tracker →
           </a>
         </div>
@@ -141,10 +141,10 @@ const fmt = new Intl.NumberFormat('en-US');
                 <BookOpen className="h-4 w-4" />
               </span>
               <span class="min-w-0">
-                <span class="block text-[0.84rem] font-semibold text-obs-text-primary group-hover:text-obs-accent">
+                <span class="block text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent">
                   {doc.title}
                 </span>
-                <span class="mt-0.5 block text-[0.68rem] leading-relaxed text-obs-text-muted">
+                <span class="mt-0.5 block text-caption leading-relaxed text-obs-text-muted">
                   {doc.summary || `${doc.domainTitle} · ${fmt.format(doc.wordCount)} words`}
                 </span>
               </span>
@@ -155,10 +155,10 @@ const fmt = new Intl.NumberFormat('en-US');
               <Sparkles className="h-4 w-4" />
             </span>
             <span class="min-w-0">
-              <span class="block text-[0.84rem] font-semibold text-obs-text-primary group-hover:text-obs-accent">
+              <span class="block text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent">
                 Interactive study checklist
               </span>
-              <span class="mt-0.5 block text-[0.68rem] leading-relaxed text-obs-text-muted">
+              <span class="mt-0.5 block text-caption leading-relaxed text-obs-text-muted">
                 Check off topics and store progress in your browser.
               </span>
             </span>
@@ -170,7 +170,7 @@ const fmt = new Intl.NumberFormat('en-US');
     <section class="surface-card flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center">
       <div>
         <p class="eyebrow"><BookMarked className="h-3.5 w-3.5" /> Keep it current</p>
-        <h2 class="mt-1 font-serif text-xl font-bold text-obs-text-primary">
+        <h2 class="mt-1 text-xl font-bold text-obs-text-primary">
           {fmt.format(stats.documents)} documents, generated from the repository
         </h2>
         <p class="mt-1 max-w-xl text-xs leading-relaxed text-obs-text-muted">

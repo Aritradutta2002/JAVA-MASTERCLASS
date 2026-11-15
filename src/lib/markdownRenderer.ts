@@ -41,7 +41,7 @@ export async function getMarkdownProcessor() {
       shikiConfig: {
         themes: {
           dark: 'one-dark-pro',
-          light: 'github-light',
+          light: 'github-light-high-contrast',
         },
         wrap: true,
       },
@@ -167,6 +167,17 @@ function injectDiagrams(html: string, diagrams: ExtractedDiagram[]): string {
   });
 }
 
+function demoteArticleH1(html: string): string {
+  return html.replace(/<h1(\b[^>]*)>/gi, '<h2$1>').replace(/<\/h1>/gi, '</h2>');
+}
+
+function labelTaskCheckboxes(html: string): string {
+  return html.replace(/<input\b([^>]*type="checkbox"[^>]*)>/gi, (match, attrs: string) => {
+    if (/\baria-label=/.test(attrs)) return match;
+    return `<input${attrs} aria-label="Task checkbox">`;
+  });
+}
+
 function enhanceImages(html: string): string {
   return html.replace(/<img\s+([^>]*?)>/gi, (_match, attrs: string) => {
     let next = attrs;
@@ -215,8 +226,10 @@ export async function renderMarkdown(
   let html = result.code;
 
   html = sanitizeHtml(html);
+  html = demoteArticleH1(html);
   html = wrapTables(html);
   html = enhanceExternalLinks(html);
+  html = labelTaskCheckboxes(html);
   html = enhanceImages(html);
   html = annotateCodeBlocks(html);
   html = injectDiagrams(html, diagrams);

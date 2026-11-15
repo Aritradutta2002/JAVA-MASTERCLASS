@@ -18,6 +18,14 @@
   margin-top: 0 !important;
 }
 
+/* Keep long-form documents cheap to lay out without hiding anchor targets. */
+.obsidian-prose > pre,
+.obsidian-prose > table,
+.obsidian-prose > figure {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 240px;
+}
+
 .obsidian-prose p {
   margin: 1.25rem 0;
 }
@@ -53,8 +61,8 @@
 }
 
 .obsidian-prose h1 {
-  font-size: clamp(2.5rem, 5vw, 3.5rem);
-  line-height: 1.12;
+  font-size: clamp(3rem, 5vw, 4rem);
+  line-height: 1.1;
   font-weight: 800;
   letter-spacing: -0.024em;
   margin-top: 0;
@@ -64,8 +72,8 @@
 }
 
 .obsidian-prose h2 {
-  font-size: clamp(1.85rem, 3.5vw, 2.5rem);
-  line-height: 1.18;
+  font-size: clamp(2.25rem, 3.5vw, 3rem);
+  line-height: 1.16;
   font-weight: 750;
   letter-spacing: -0.02em;
   margin-top: 3.25rem;
@@ -75,8 +83,8 @@
 }
 
 .obsidian-prose h3 {
-  font-size: clamp(1.4rem, 2.5vw, 1.85rem);
-  line-height: 1.25;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  line-height: 1.24;
   font-weight: 700;
   letter-spacing: -0.015em;
   margin-top: 2.5rem;

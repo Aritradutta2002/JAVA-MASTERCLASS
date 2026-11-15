@@ -34,6 +34,7 @@ import { DOMAIN_COLORS } from '../lib/constants';
 interface Props {
   navigation: NavigationNode[];
   currentSlug: string;
+  lazy?: boolean;
 }
 
 interface PinnedPage {
@@ -96,7 +97,9 @@ function filterNodes(nodes: NavigationNode[], query: string): NavigationNode[] {
   return nodes.map(visit).filter((node): node is NavigationNode => node !== null);
 }
 
-export default function SidebarTree({ navigation, currentSlug }: Props) {
+export default function SidebarTree({ navigation: initialNavigation, currentSlug, lazy = false }: Props) {
+  const [navigation, setNavigation] = useState(initialNavigation);
+  const [loadingNavigation, setLoadingNavigation] = useState(initialNavigation.length === 0);
   const [filter, setFilter] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [pinned, setPinned] = useState<PinnedPage[]>([]);
@@ -185,6 +188,40 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
       setRecents([]);
     }
   };
+
+  useEffect(() => {
+    if (initialNavigation.length > 0) return;
+    let cancelled = false;
+    const loadNavigation = () => {
+      fetch('/navigation.json')
+        .then((response) => {
+          if (!response.ok) throw new Error(`Navigation returned ${response.status}`);
+          return response.json();
+        })
+        .then((data: NavigationNode[]) => {
+          if (!cancelled) setNavigation(data);
+        })
+        .catch((error) => {
+          console.error('Failed to load navigation', error);
+        })
+        .finally(() => {
+          if (!cancelled) setLoadingNavigation(false);
+        });
+    };
+
+    if (lazy) {
+      window.addEventListener('obsidian:mobile-drawer-open', loadNavigation, { once: true });
+      return () => {
+        cancelled = true;
+        window.removeEventListener('obsidian:mobile-drawer-open', loadNavigation);
+      };
+    }
+
+    loadNavigation();
+    return () => {
+      cancelled = true;
+    };
+  }, [initialNavigation.length, lazy]);
 
   useEffect(() => {
     loadStored();
@@ -346,7 +383,7 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
             {node.slug ? (
               <a
                 href={node.slug}
-                className={`min-w-0 flex-1 truncate text-[0.73rem] font-bold uppercase tracking-[0.12em] transition-colors ${
+                className={`min-w-0 flex-1 truncate text-caption font-bold uppercase tracking-[0.12em] transition-colors ${
                   isContainsActive ? 'text-obs-accent font-extrabold' : 'text-obs-text-muted hover:text-obs-text-primary'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
@@ -354,13 +391,13 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
                 {node.title}
               </a>
             ) : (
-              <span className="min-w-0 flex-1 truncate text-[0.73rem] font-bold uppercase tracking-[0.12em] text-obs-text-muted">
+              <span className="min-w-0 flex-1 truncate text-caption font-bold uppercase tracking-[0.12em] text-obs-text-muted">
                 {node.title}
               </span>
             )}
 
             {node.count !== undefined && (
-              <span className="shrink-0 rounded-full border border-obs-border/70 bg-obs-canvas px-1.5 py-0.2 font-mono text-[0.58rem] font-medium text-obs-text-muted">
+              <span className="shrink-0 rounded-full border border-obs-border/70 bg-obs-canvas px-1.5 py-0.5 font-mono text-micro font-medium text-obs-text-muted">
                 {node.count}
               </span>
             )}
@@ -458,8 +495,8 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
 
         {node.count !== undefined && node.count > 0 && depth === 1 && (
           <span
-            className={`shrink-0 font-mono text-[0.6rem] px-1 rounded ${
-              isActive ? 'text-obs-accent font-semibold' : 'text-obs-text-muted/80'
+            className={`shrink-0 font-mono text-micro px-1 rounded ${
+              isActive ? 'text-obs-accent font-semibold' : 'text-obs-text-muted'
             }`}
           >
             {node.count}
@@ -488,10 +525,10 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
           <span className="flex h-5 w-5 items-center justify-center rounded-md bg-obs-accent/15 text-obs-accent shadow-xs">
             <FolderTree className="h-3 w-3" />
           </span>
-          <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-obs-text-muted">
+          <span className="text-caption font-bold uppercase tracking-[0.14em] text-obs-text-muted">
             Explorer
           </span>
-          <span className="rounded-full border border-obs-border/60 bg-obs-surface px-1.5 py-0.2 font-mono text-[0.58rem] font-medium text-obs-text-muted">
+          <span className="rounded-full border border-obs-border/60 bg-obs-surface px-1.5 py-0.5 font-mono text-micro font-medium text-obs-text-muted">
             {totalTopics}
           </span>
         </div>
@@ -543,7 +580,7 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
               }
             }}
             placeholder="Filter topics… (Press /)"
-            className="w-full rounded-lg border border-obs-border/80 bg-obs-canvas/80 py-1.5 pl-8 pr-12 text-xs text-obs-text-primary placeholder:text-obs-text-muted shadow-inner transition-all focus:border-obs-accent/60 focus:bg-obs-surface focus:outline-none focus:ring-2 focus:ring-obs-accent/20"
+            className="field w-full rounded-lg border border-obs-border/80 bg-obs-canvas/80 py-1.5 pl-8 pr-12 text-xs text-obs-text-primary placeholder:text-obs-text-muted shadow-inner transition-all focus:border-obs-accent/60 focus:bg-obs-surface focus:outline-none focus:ring-2 focus:ring-obs-accent/20"
           />
           {filter ? (
             <button
@@ -555,7 +592,7 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
               <X className="h-3.5 w-3.5" />
             </button>
           ) : (
-            <kbd className="pointer-events-none absolute right-2.5 hidden sm:inline-flex items-center rounded border border-obs-border/60 bg-obs-canvas-soft px-1 text-[0.6rem] font-mono text-obs-text-muted/70">
+            <kbd className="pointer-events-none absolute right-2.5 hidden sm:inline-flex items-center rounded border border-obs-border/60 bg-obs-canvas-soft px-1 text-micro font-mono text-obs-text-muted">
               /
             </kbd>
           )}
@@ -569,7 +606,7 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
                 <a
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center justify-center gap-1 rounded-md border px-1.5 py-1 text-[0.65rem] font-semibold transition-all ${
+                  className={`flex items-center justify-center gap-1 rounded-md border px-1.5 py-1 text-caption font-semibold transition-all ${
                     isLinkActive
                       ? 'border-obs-accent/50 bg-obs-accent/15 text-obs-accent shadow-xs'
                       : 'border-obs-border/70 bg-obs-surface/60 text-obs-text-muted hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary'
@@ -598,14 +635,14 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
               type="button"
               onClick={() => setShowPinned((value) => !value)}
               aria-expanded={showPinned}
-              className="flex w-full items-center justify-between rounded-lg px-1.5 py-1 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-obs-gold hover:bg-obs-gold/10 transition-colors"
+              className="flex w-full items-center justify-between rounded-lg px-1.5 py-1 text-caption font-bold uppercase tracking-[0.12em] text-obs-gold hover:bg-obs-gold/10 transition-colors"
             >
               <span className="flex items-center gap-1.5">
                 <ChevronRight className={`h-3 w-3 transition-transform duration-200 ${showPinned ? 'rotate-90' : ''}`} />
                 <Star className="h-3 w-3 fill-current" />
                 Pinned Topics
               </span>
-              <span className="font-mono text-[0.6rem] px-1.5 py-0.2 rounded-full bg-obs-gold/15 text-obs-gold">{pinned.length}</span>
+              <span className="font-mono text-micro px-1.5 py-0.5 rounded-full bg-obs-gold/15 text-obs-gold">{pinned.length}</span>
             </button>
             {showPinned && (
               <div className="mt-1 space-y-0.5 pt-1 border-t border-obs-gold/15">
@@ -645,7 +682,7 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
                 type="button"
                 onClick={() => setShowRecent((value) => !value)}
                 aria-expanded={showRecent}
-                className="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-obs-text-muted hover:text-obs-text-primary transition-colors"
+                className="flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-text-muted hover:text-obs-text-primary transition-colors"
               >
                 <ChevronRight className={`h-3 w-3 transition-transform duration-200 ${showRecent ? 'rotate-90' : ''}`} />
                 <Clock className="h-3 w-3 text-obs-accent" />
@@ -682,24 +719,35 @@ export default function SidebarTree({ navigation, currentSlug }: Props) {
           </section>
         )}
 
-        {filter && visibleNavigation.length === 0 && (
+        {loadingNavigation && (
+          <div className="space-y-2 px-2 py-3" aria-busy="true" aria-label="Loading navigation">
+            {[0, 1, 2, 3, 4, 5].map((item) => (
+              <div key={item} className="flex items-center gap-2">
+                <div className="skeleton h-5 w-5 shrink-0" />
+                <div className="skeleton h-3 flex-1" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loadingNavigation && filter && visibleNavigation.length === 0 && (
           <p className="px-2 py-6 text-center text-xs text-obs-text-muted">
             No topics match “{filter}”.
           </p>
         )}
 
-        {visibleNavigation.map((node) => renderNode(node, 0))}
+        {!loadingNavigation && visibleNavigation.map((node) => renderNode(node, 0))}
       </nav>
 
       {/* Footer info bar */}
-      <div className="flex items-center justify-between border-t border-obs-border/80 bg-obs-sidebar/40 px-3 py-2 text-[0.65rem] text-obs-text-muted">
+      <div className="flex items-center justify-between border-t border-obs-border/80 bg-obs-sidebar/40 px-3 py-2 text-caption text-obs-text-muted">
         <a href="/search" className="inline-flex items-center gap-1.5 hover:text-obs-accent transition-colors">
           <Search className="h-3 w-3 text-obs-accent/80" /> Search
         </a>
         <a href="/graph" className="inline-flex items-center gap-1.5 hover:text-obs-accent transition-colors">
           <GitBranch className="h-3 w-3 text-obs-accent/80" /> Graph
         </a>
-        <span className="hidden xl:inline text-[0.6rem] text-obs-text-muted/70">
+        <span className="hidden xl:inline text-micro text-obs-text-muted">
           Fold: <kbd className="font-mono bg-obs-canvas-soft px-1 rounded border border-obs-border/60">[</kbd>
         </span>
       </div>

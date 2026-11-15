@@ -70,23 +70,23 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
     <a
       href="/"
       class="group flex shrink-0 items-center gap-2.5 rounded-lg py-1 pr-1 font-semibold text-obs-text-primary transition-opacity hover:opacity-95"
-      aria-label="Java Masterclass home"
     >
+      <span class="sr-only">Java Masterclass home</span>
       <span
         class="relative flex h-8 w-8 items-center justify-center rounded-lg border border-obs-accent/30 bg-gradient-to-br from-obs-accent/20 to-obs-accent/5 text-obs-accent shadow-sm transition-all duration-200 group-hover:border-obs-accent/60 group-hover:shadow-[0_0_12px_rgba(167,139,250,0.35)]"
       >
         <BookOpen className="h-4 w-4 transition-transform duration-200 group-hover:scale-105" />
         <span class="absolute -right-0.5 -top-0.5 flex h-2 w-2">
-          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-          <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-obs-canvas"></span>
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-obs-emerald opacity-75"></span>
+          <span class="relative inline-flex h-2 w-2 rounded-full bg-obs-emerald ring-2 ring-obs-canvas"></span>
         </span>
       </span>
       <span class="hidden flex-col leading-none sm:flex">
-        <span class="flex items-center gap-1.5 text-[0.82rem] font-bold tracking-tight text-obs-text-primary">
+        <span class="flex items-center gap-1.5 text-sm font-bold tracking-tight text-obs-text-primary">
           Java Masterclass
-          <span class="rounded bg-obs-accent/15 px-1 py-0.2 font-mono text-[0.55rem] font-semibold text-obs-accent">v2</span>
+          <span class="rounded bg-obs-accent/15 px-1 py-0.5 font-mono text-micro font-semibold text-obs-accent">v2</span>
         </span>
-        <span class="mt-0.5 text-[0.58rem] font-medium uppercase tracking-[0.16em] text-obs-text-muted">
+        <span class="mt-0.5 text-micro font-medium uppercase tracking-[0.16em] text-obs-text-muted">
           Enterprise Knowledge Base
         </span>
       </span>
@@ -96,7 +96,7 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
     {breadcrumbs.length > 0 && (
       <nav
         aria-label="Breadcrumb"
-        class="hidden min-w-0 items-center gap-1 text-[0.72rem] text-obs-text-muted lg:flex"
+        class="hidden min-w-0 items-center gap-1 text-caption text-obs-text-muted lg:flex"
       >
         <ChevronRight className="h-3 w-3 shrink-0 text-obs-border/80" aria-hidden="true" />
         {breadcrumbs.map((crumb, index) => {
@@ -110,7 +110,7 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
               {isDomainCrumb ? (
                 <a
                   href={crumb.slug}
-                  class="flex items-center gap-1 rounded-md border px-2 py-0.5 font-semibold text-[0.68rem] tracking-wide transition-all hover:opacity-85"
+                  class="flex items-center gap-1 rounded-md border px-2 py-0.5 font-semibold text-caption tracking-wide transition-all hover:opacity-85"
                   style={{
                     backgroundColor: domainMeta?.bg || 'rgba(167, 139, 250, 0.1)',
                     borderColor: domainMeta?.border || 'rgba(167, 139, 250, 0.3)',
@@ -149,12 +149,11 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
       id="open-command-palette-btn"
       type="button"
       class="group flex h-8 items-center gap-2 rounded-lg border border-obs-border/80 bg-obs-surface/60 px-2.5 text-xs text-obs-text-muted shadow-xs backdrop-blur-sm transition-all hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary hover:shadow-[0_0_12px_rgba(167,139,250,0.15)] active:scale-98"
-      aria-label="Search the knowledge base"
     >
       <Search className="h-3.5 w-3.5 text-obs-accent transition-transform duration-200 group-hover:scale-110" />
       <span class="hidden sm:inline font-medium">Search knowledge...</span>
       <span class="sm:hidden font-medium">Search</span>
-      <kbd class="ml-1 inline-flex items-center gap-0.5 rounded border border-obs-border/70 bg-obs-canvas-soft px-1.5 py-0.5 font-mono text-[0.62rem] text-obs-text-muted/90 shadow-2xs">
+      <kbd class="ml-1 inline-flex items-center gap-0.5 rounded border border-obs-border/70 bg-obs-canvas-soft px-1.5 py-0.5 font-mono text-micro text-obs-text-muted shadow-2xs">
         <Command className="h-2.5 w-2.5" />K
       </kbd>
     </button>

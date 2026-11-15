@@ -58,7 +58,7 @@ const sortedDocs = [...docs].sort((a, b) => a.title.localeCompare(b.title));
           <Tag className="h-5 w-5" />
         </span>
         <div>
-          <h1 class="font-serif text-3xl font-bold tracking-tight text-obs-text-primary">#{tag}</h1>
+          <h1 class="text-3xl font-bold tracking-tight text-obs-text-primary">#{tag}</h1>
           <p class="mt-0.5 text-xs text-obs-text-muted">
             {docs.length} chapter{docs.length === 1 ? '' : 's'} · {domains.size} domain{domains.size === 1 ? '' : 's'}
           </p>
@@ -73,11 +73,11 @@ const sortedDocs = [...docs].sort((a, b) => a.title.localeCompare(b.title));
 
       {coTags.length > 0 && (
         <div class="flex flex-wrap items-center gap-1.5 pt-1">
-          <span class="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-obs-text-muted">Also tagged</span>
+          <span class="text-micro font-bold uppercase tracking-[0.12em] text-obs-text-muted">Also tagged</span>
           {coTags.map(([item, count]) => (
             <a
               href={`/tags/${encodeURIComponent(item)}`}
-              class="rounded border border-obs-border-subtle bg-obs-canvas-soft px-1.5 py-0.5 font-mono text-[0.62rem] text-obs-text-muted transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
+              class="rounded border border-obs-border-subtle bg-obs-canvas-soft px-1.5 py-0.5 font-mono text-micro text-obs-text-muted transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
             >
               #{item} <span class="opacity-60">{count}</span>
             </a>
@@ -92,17 +92,17 @@ const sortedDocs = [...docs].sort((a, b) => a.title.localeCompare(b.title));
           href={doc.slug}
           class="surface-card surface-card-hover group flex flex-col p-4"
         >
-          <div class="flex items-center justify-between gap-2 text-[0.62rem] text-obs-text-muted">
+          <div class="flex items-center justify-between gap-2 text-micro text-obs-text-muted">
             <span class="font-semibold uppercase tracking-wider text-obs-accent/80">{doc.domainTitle}</span>
             {doc.level && <span class="badge">{doc.level}</span>}
           </div>
-          <h2 class="mt-2 font-serif text-base font-semibold leading-snug text-obs-text-primary group-hover:text-obs-accent">
+          <h2 class="mt-2 text-base font-semibold leading-snug text-obs-text-primary group-hover:text-obs-accent">
             {doc.title}
           </h2>
           {doc.summary && (
             <p class="mt-1.5 line-clamp-3 text-xs leading-relaxed text-obs-text-muted">{doc.summary}</p>
           )}
-          <div class="mt-auto flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-[0.62rem] text-obs-text-muted">
+          <div class="mt-auto flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-micro text-obs-text-muted">
             <span class="inline-flex items-center gap-1">
               <FileText className="h-3 w-3" /> {doc.readingTimeMinutes} min
             </span>

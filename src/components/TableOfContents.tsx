@@ -103,19 +103,19 @@ export default function TableOfContents({ headings }: Props) {
           <span className="flex h-5 w-5 items-center justify-center rounded-md bg-obs-accent/15 text-obs-accent">
             <ListTree className="h-3 w-3" />
           </span>
-          <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-obs-text-muted">
+          <span className="text-caption font-bold uppercase tracking-[0.14em] text-obs-text-muted">
             On This Page
           </span>
         </div>
-        <span className="rounded-full border border-obs-border/70 bg-obs-canvas-soft px-1.5 py-0.2 font-mono text-[0.58rem] font-medium text-obs-text-muted">
+        <span className="rounded-full border border-obs-border/70 bg-obs-canvas-soft px-1.5 py-0.5 font-mono text-micro font-medium text-obs-text-muted">
           {filtered.length}
         </span>
       </div>
 
       {/* Reading Progress Indicator Bar */}
       <div className="mb-3.5 mt-1">
-        <div className="flex items-center justify-between text-[0.62rem] font-mono text-obs-text-muted">
-          <span className="flex items-center gap-1 text-[0.6rem] uppercase tracking-wider">
+        <div className="flex items-center justify-between text-micro font-mono text-obs-text-muted">
+          <span className="flex items-center gap-1 text-micro uppercase tracking-wider">
             <BookOpen className="h-2.5 w-2.5 text-obs-accent/80" />
             Reading Progress
           </span>
@@ -128,6 +128,7 @@ export default function TableOfContents({ headings }: Props) {
             className="h-full rounded-full bg-gradient-to-r from-obs-accent via-obs-accent-strong to-obs-gold transition-all duration-150 ease-out"
             style={{ width: `${readingProgress}%` }}
             role="progressbar"
+            aria-label="Reading progress"
             aria-valuenow={readingProgress}
             aria-valuemin={0}
             aria-valuemax={100}
@@ -162,7 +163,7 @@ export default function TableOfContents({ headings }: Props) {
                     paddingLeft: `${0.75 + indentLevel * 0.7}rem`,
                   }}
                   title={heading.text}
-                  className={`group flex items-center justify-between rounded-r-lg py-1.5 pr-2 text-[0.73rem] leading-snug transition-all duration-150 ${
+                  className={`group flex items-center justify-between rounded-r-lg py-1.5 pr-2 text-caption leading-snug transition-all duration-150 ${
                     isActive
                       ? 'bg-obs-accent/10 font-semibold text-obs-accent shadow-2xs'
                       : 'text-obs-text-muted hover:bg-obs-surface/60 hover:text-obs-text-primary'
@@ -186,13 +187,13 @@ export default function TableOfContents({ headings }: Props) {
         <button
           type="button"
           onClick={scrollToTop}
-          className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-[0.68rem] font-medium text-obs-text-muted transition-all hover:bg-obs-surface/80 hover:text-obs-accent"
+          className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-caption font-medium text-obs-text-muted transition-all hover:bg-obs-surface/80 hover:text-obs-accent"
         >
           <span className="flex items-center gap-1.5">
             <ArrowUp className="h-3 w-3" />
             Scroll to top
           </span>
-          <kbd className="rounded border border-obs-border/60 bg-obs-canvas-soft px-1 text-[0.58rem] font-mono text-obs-text-muted">
+          <kbd className="rounded border border-obs-border/60 bg-obs-canvas-soft px-1 text-micro font-mono text-obs-text-muted">
             Top
           </kbd>
         </button>

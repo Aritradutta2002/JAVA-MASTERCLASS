@@ -1,4 +1,5 @@
 ---
+import '@fontsource-variable/literata';
 import fs from 'node:fs';
 import path from 'node:path';
 import ObsidianLayout from '../../layouts/ObsidianLayout.astro';
@@ -50,8 +51,8 @@ const cards = [
           <card.icon className="h-4 w-4" />
         </span>
         <div>
-          <p class="text-[0.8rem] font-semibold text-obs-text-primary">{card.title}</p>
-          <p class="mt-0.5 text-[0.66rem] leading-relaxed text-obs-text-muted">{card.description}</p>
+          <p class="text-sm font-semibold text-obs-text-primary">{card.title}</p>
+          <p class="mt-0.5 text-caption leading-relaxed text-obs-text-muted">{card.description}</p>
         </div>
       </div>
     ))}
@@ -70,7 +71,7 @@ const cards = [
         <span class="block text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent">
           Authoring guide
         </span>
-        <span class="block text-[0.66rem] text-obs-text-muted">Add chapters and maintain the content.</span>
+        <span class="block text-caption text-obs-text-muted">Add chapters and maintain the content.</span>
       </span>
       <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-obs-text-muted" />
     </a>
@@ -82,7 +83,7 @@ const cards = [
         <span class="block text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent">
           Quick references
         </span>
-        <span class="block text-[0.66rem] text-obs-text-muted">Cheat sheets and standards.</span>
+        <span class="block text-caption text-obs-text-muted">Cheat sheets and standards.</span>
       </span>
       <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-obs-text-muted" />
     </a>

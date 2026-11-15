@@ -94,11 +94,11 @@ const fmt = new Intl.NumberFormat('en-US');
   wide
 >
   <div class="not-prose space-y-9">
-    <header class="relative overflow-hidden rounded-3xl border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/70 to-obs-canvas-soft p-6 shadow-obs sm:p-9">
+    <header class="relative overflow-hidden rounded-hero border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/70 to-obs-canvas-soft p-6 shadow-obs sm:p-9">
       <div class="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-obs-rose/10 blur-3xl"></div>
       <div class="relative space-y-4">
         <p class="eyebrow"><Code2 className="h-3.5 w-3.5" /> Algorithms track</p>
-        <h1 class="max-w-3xl text-balance font-serif text-3xl font-bold leading-tight tracking-tight text-obs-text-primary sm:text-4xl">
+        <h1 class="max-w-3xl text-balance text-3xl font-bold leading-tight tracking-tight text-obs-text-primary sm:text-4xl">
           Data structures & algorithms, from pattern to proof
         </h1>
         <p class="max-w-2xl text-pretty text-sm leading-relaxed text-obs-text-secondary">
@@ -116,7 +116,7 @@ const fmt = new Intl.NumberFormat('en-US');
           ].map((item) => (
             <div>
               <div class="font-mono text-xl font-bold text-obs-text-primary">{item.value}</div>
-              <div class="text-[0.6rem] font-medium uppercase tracking-[0.12em] text-obs-text-muted">{item.label}</div>
+              <div class="text-micro font-medium uppercase tracking-[0.12em] text-obs-text-muted">{item.label}</div>
             </div>
           ))}
         </div>
@@ -127,7 +127,7 @@ const fmt = new Intl.NumberFormat('en-US');
       {orderedGroups.map(([key, docs]) => (
         <a
           href={`#dsa-${key}`}
-          class="rounded-full border border-obs-border bg-obs-surface px-2.5 py-1 text-[0.65rem] font-semibold text-obs-text-muted transition-colors hover:border-obs-accent/45 hover:text-obs-accent"
+          class="rounded-full border border-obs-border bg-obs-surface px-2.5 py-1 text-caption font-semibold text-obs-text-muted transition-colors hover:border-obs-accent/45 hover:text-obs-accent"
         >
           {groupMeta[key]?.title ?? key} <span class="ml-1 opacity-60">{docs.length}</span>
         </a>
@@ -144,32 +144,32 @@ const fmt = new Intl.NumberFormat('en-US');
               <Icon className="h-4 w-4" />
             </span>
             <div>
-              <h2 id={`dsa-${key}-heading`} class="font-serif text-xl font-bold text-obs-text-primary">
+              <h2 id={`dsa-${key}-heading`} class="text-xl font-bold text-obs-text-primary">
                 {meta?.title ?? key}
               </h2>
-              <p class="text-[0.72rem] text-obs-text-muted">
+              <p class="text-caption text-obs-text-muted">
                 {meta?.description ?? `${docs.length} chapters`}
               </p>
             </div>
-            <span class="ml-auto shrink-0 font-mono text-[0.66rem] text-obs-text-muted">{docs.length}</span>
+            <span class="ml-auto shrink-0 font-mono text-caption text-obs-text-muted">{docs.length}</span>
           </div>
 
           <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {docs.map((doc) => (
               <a href={doc.slug} class="surface-card surface-card-hover group flex flex-col p-3.5">
                 <div class="flex items-center justify-between gap-2">
-                  <span class="text-[0.58rem] font-bold uppercase tracking-[0.1em] text-obs-accent/80">
+                  <span class="text-micro font-bold uppercase tracking-[0.1em] text-obs-accent/80">
                     {doc.moduleTitle}
                   </span>
-                  <span class="font-mono text-[0.58rem] text-obs-text-muted">{doc.readingTimeMinutes} min</span>
+                  <span class="font-mono text-micro text-obs-text-muted">{doc.readingTimeMinutes} min</span>
                 </div>
-                <h3 class="mt-1 font-serif text-[0.92rem] font-semibold leading-snug text-obs-text-primary group-hover:text-obs-accent">
+                <h3 class="mt-1 text-base font-semibold leading-snug text-obs-text-primary group-hover:text-obs-accent">
                   {doc.title}
                 </h3>
                 {doc.summary && (
-                  <p class="mt-1 line-clamp-2 text-[0.7rem] leading-relaxed text-obs-text-muted">{doc.summary}</p>
+                  <p class="mt-1 line-clamp-2 text-caption leading-relaxed text-obs-text-muted">{doc.summary}</p>
                 )}
-                <div class="mt-auto flex items-center justify-between border-t border-obs-border-subtle pt-2 text-[0.6rem] text-obs-text-muted">
+                <div class="mt-auto flex items-center justify-between border-t border-obs-border-subtle pt-2 text-micro text-obs-text-muted">
                   <span>{fmt.format(doc.wordCount)} words</span>
                   <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                 </div>
@@ -183,7 +183,7 @@ const fmt = new Intl.NumberFormat('en-US');
     <section class="surface-card flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center">
       <div>
         <p class="eyebrow"><Code2 className="h-3.5 w-3.5" /> Browse the source</p>
-        <h2 class="mt-1 font-serif text-xl font-bold text-obs-text-primary">
+        <h2 class="mt-1 text-xl font-bold text-obs-text-primary">
           {fmt.format(dsaJavaFiles)} Java implementations
         </h2>
         <p class="mt-1 max-w-xl text-xs leading-relaxed text-obs-text-muted">

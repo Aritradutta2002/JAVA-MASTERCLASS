@@ -23,7 +23,7 @@ const fmt = new Intl.NumberFormat('en-US');
   <div class="not-prose space-y-8">
     <header class="space-y-3 border-b border-obs-border pb-6">
       <p class="eyebrow"><ShieldCheck className="h-3.5 w-3.5" /> Standards</p>
-      <h1 class="font-serif text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
+      <h1 class="text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
         Engineering standards
       </h1>
       <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
@@ -49,20 +49,20 @@ const fmt = new Intl.NumberFormat('en-US');
             >
               <div class="flex items-center justify-between gap-2">
                 <span
-                  class="rounded-full border px-2 py-0.5 text-[0.58rem] font-bold uppercase tracking-wider"
+                  class="rounded-full border px-2 py-0.5 text-micro font-bold uppercase tracking-wider"
                   style={{ backgroundColor: color?.bg, color: color?.text, borderColor: color?.border }}
                 >
                   {doc.domainTitle}
                 </span>
                 <span class="badge"><FileText className="h-3 w-3" /> Standard</span>
               </div>
-              <h2 class="mt-2 font-serif text-lg font-bold text-obs-text-primary group-hover:text-obs-accent">
+              <h2 class="mt-2 text-lg font-bold text-obs-text-primary group-hover:text-obs-accent">
                 {doc.title}
               </h2>
               {doc.summary && (
-                <p class="mt-1.5 line-clamp-3 text-[0.78rem] leading-relaxed text-obs-text-muted">{doc.summary}</p>
+                <p class="mt-1.5 line-clamp-3 text-sm leading-relaxed text-obs-text-muted">{doc.summary}</p>
               )}
-              <div class="mt-4 flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-[0.64rem] text-obs-text-muted">
+              <div class="mt-4 flex items-center justify-between border-t border-obs-border-subtle pt-2.5 text-caption text-obs-text-muted">
                 <span>{fmt.format(doc.wordCount)} words · {doc.readingTimeMinutes} min</span>
                 <span class="inline-flex items-center gap-1 font-semibold text-obs-accent">
                   Read <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
@@ -77,7 +77,7 @@ const fmt = new Intl.NumberFormat('en-US');
     <section class="surface-card flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center">
       <div>
         <p class="eyebrow"><BookMarked className="h-3.5 w-3.5" /> Reference desk</p>
-        <h2 class="mt-1 font-serif text-xl font-bold text-obs-text-primary">Cheat sheets and checklists</h2>
+        <h2 class="mt-1 text-xl font-bold text-obs-text-primary">Cheat sheets and checklists</h2>
         <p class="mt-1 max-w-xl text-xs leading-relaxed text-obs-text-muted">
           Condensed domain revision notes and the master study checklist live alongside these
           standards.

@@ -75,3 +75,6 @@ logs/
 # Runtime files
 *.pid
 .blackboxcli/
+
+# Lighthouse reports
+.lighthouse/

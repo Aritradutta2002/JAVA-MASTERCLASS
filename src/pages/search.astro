@@ -33,7 +33,7 @@ const fmt = new Intl.NumberFormat('en-US');
 
       <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <h1 class="font-serif text-3xl font-extrabold tracking-tight text-obs-text-primary sm:text-4xl lg:text-5xl">
+          <h1 class="text-3xl font-extrabold tracking-tight text-obs-text-primary sm:text-4xl lg:text-5xl">
             Search the Curriculum
           </h1>
           <p class="mt-2 max-w-2xl text-sm leading-relaxed text-obs-text-muted sm:text-base">
@@ -102,11 +102,12 @@ const fmt = new Intl.NumberFormat('en-US');
         id="page-search-input"
         name="q"
         type="search"
+        required
         placeholder="Type a concept, class name, algorithmic pattern, or system design trade-off…"
         class="min-w-0 flex-1 bg-transparent py-2.5 text-base text-obs-text-primary placeholder:text-obs-text-muted focus:outline-none"
         autocomplete="off"
       />
-      <button type="submit" class="btn btn-primary px-5 py-2.5 text-sm font-semibold shadow-md shadow-obs-accent/20">
+      <button type="submit" class="btn btn-primary px-5 py-2.5 text-sm font-semibold shadow-md shadow-obs-glow">
         Search
       </button>
     </form>
@@ -117,12 +118,12 @@ const fmt = new Intl.NumberFormat('en-US');
     <!-- Fallback / Pre-build Empty State (Linear Style) -->
     <div
       id="search-fallback"
-      class="hidden rounded-3xl border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/80 to-obs-canvas p-10 text-center shadow-obs-lg sm:p-12"
+      class="hidden rounded-hero border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/80 to-obs-canvas p-10 text-center shadow-obs-lg sm:p-12"
     >
       <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-obs-accent/30 bg-obs-accent/10 text-obs-accent shadow-sm">
         <Sparkles className="h-7 w-7" />
       </div>
-      <h3 class="mt-4 font-serif text-xl font-bold tracking-tight text-obs-text-primary sm:text-2xl">
+      <h3 class="mt-4 text-xl font-bold tracking-tight text-obs-text-primary sm:text-2xl">
         Instant Full-Text Search
       </h3>
       <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-obs-text-muted">
@@ -132,7 +133,7 @@ const fmt = new Intl.NumberFormat('en-US');
         <button
           id="fallback-open-palette"
           type="button"
-          class="btn btn-primary shadow-md shadow-obs-accent/20"
+          class="btn btn-primary shadow-md shadow-obs-glow"
         >
           <Terminal className="h-4 w-4" />
           Open Command Palette (⌘K)
@@ -150,11 +151,11 @@ const fmt = new Intl.NumberFormat('en-US');
         class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
       >
         <div>
-          <span class="inline-flex items-center gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-obs-accent">
+          <span class="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-accent">
             <Library className="h-3.5 w-3.5" />
             <span>Library</span>
           </span>
-          <h4 class="mt-2 font-serif text-base font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors">
+          <h4 class="mt-2 text-base font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors">
             Browse by Domain
           </h4>
           <p class="mt-1 text-xs leading-relaxed text-obs-text-muted">
@@ -171,11 +172,11 @@ const fmt = new Intl.NumberFormat('en-US');
         class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
       >
         <div>
-          <span class="inline-flex items-center gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-obs-gold">
+          <span class="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-gold">
             <Hash className="h-3.5 w-3.5" />
             <span>Concepts</span>
           </span>
-          <h4 class="mt-2 font-serif text-base font-bold text-obs-text-primary group-hover:text-obs-gold transition-colors">
+          <h4 class="mt-2 text-base font-bold text-obs-text-primary group-hover:text-obs-gold transition-colors">
             Browse by Tag
           </h4>
           <p class="mt-1 text-xs leading-relaxed text-obs-text-muted">
@@ -192,11 +193,11 @@ const fmt = new Intl.NumberFormat('en-US');
         class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
       >
         <div>
-          <span class="inline-flex items-center gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-obs-emerald">
+          <span class="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-emerald">
             <Network className="h-3.5 w-3.5" />
             <span>Graph</span>
           </span>
-          <h4 class="mt-2 font-serif text-base font-bold text-obs-text-primary group-hover:text-obs-emerald transition-colors">
+          <h4 class="mt-2 text-base font-bold text-obs-text-primary group-hover:text-obs-emerald transition-colors">
             Knowledge Graph
           </h4>
           <p class="mt-1 text-xs leading-relaxed text-obs-text-muted">

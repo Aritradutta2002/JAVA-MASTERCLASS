@@ -25,7 +25,7 @@ export default defineConfig({
     sitemap({
       filter: (page) => {
         const pathname = new URL(page, SITE_URL).pathname;
-        if (pathname === '/404' || pathname === '/search') return false;
+        if (pathname === '/404' || pathname === '/search' || pathname === '/navigation.json') return false;
         if (pathname.startsWith('/search-index') || pathname.startsWith('/graph-data')) return false;
         // /standards/<domain> mirrors the canonical domain standard document.
         // Keep the /standards index itself in the sitemap.
@@ -45,7 +45,7 @@ export default defineConfig({
     shikiConfig: {
       themes: {
         dark: 'one-dark-pro',
-        light: 'github-light',
+        light: 'github-light-high-contrast',
       },
       wrap: true,
     },

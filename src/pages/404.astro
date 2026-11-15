@@ -31,7 +31,7 @@ const fmt = new Intl.NumberFormat('en-US');
   noIndex
 >
   <div class="not-prose mx-auto max-w-3xl py-12">
-    <div class="surface-card relative overflow-hidden rounded-3xl border border-obs-border shadow-obs-lg">
+    <div class="surface-card relative overflow-hidden rounded-hero border border-obs-border shadow-obs-lg">
       <!-- Ambient Glow Behind 404 -->
       <div class="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-obs-accent/15 blur-3xl" aria-hidden="true"></div>
       <div class="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-obs-gold/10 blur-3xl" aria-hidden="true"></div>
@@ -47,7 +47,7 @@ const fmt = new Intl.NumberFormat('en-US');
           <span>Note Not Found</span>
         </div>
 
-        <h1 class="mt-3 font-serif text-2xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
+        <h1 class="mt-3 text-2xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
           This Document Does Not Exist
         </h1>
 
@@ -64,6 +64,7 @@ const fmt = new Intl.NumberFormat('en-US');
               id="error-search-input"
               name="q"
               type="search"
+              required
               placeholder="Search topic or concept…"
               class="min-w-0 flex-1 bg-transparent py-1.5 text-xs text-obs-text-primary placeholder:text-obs-text-muted focus:outline-none sm:text-sm"
               autocomplete="off"

@@ -58,17 +58,17 @@ function highlightJavaCode(code: string) {
       } else if (lineComment) {
         result += `<span class="text-obs-text-muted italic opacity-75">${escapeHtml(lineComment)}</span>`;
       } else if (str) {
-        result += `<span class="text-emerald-400 font-normal">${escapeHtml(str)}</span>`;
+        result += `<span class="text-obs-success-text font-normal">${escapeHtml(str)}</span>`;
       } else if (annotation) {
-        result += `<span class="text-amber-300 font-medium">${escapeHtml(annotation)}</span>`;
+        result += `<span class="text-obs-warning-text font-medium">${escapeHtml(annotation)}</span>`;
       } else if (keyword) {
-        result += `<span class="text-purple-400 font-semibold">${escapeHtml(keyword)}</span>`;
+        result += `<span class="text-obs-accent-hover font-semibold">${escapeHtml(keyword)}</span>`;
       } else if (boolNull) {
-        result += `<span class="text-rose-400 font-medium">${escapeHtml(boolNull)}</span>`;
+        result += `<span class="text-obs-error-text font-medium">${escapeHtml(boolNull)}</span>`;
       } else if (type) {
-        result += `<span class="text-sky-300 font-medium">${escapeHtml(type)}</span>`;
+        result += `<span class="text-obs-info-text font-medium">${escapeHtml(type)}</span>`;
       } else if (num) {
-        result += `<span class="text-amber-200">${escapeHtml(num)}</span>`;
+        result += `<span class="text-obs-warning-text">${escapeHtml(num)}</span>`;
       }
       lastIndex = tokenRegex.lastIndex;
     }
@@ -115,19 +115,19 @@ const filesData = filePaths
         <div class="h-4 w-px bg-obs-border/60 mx-1 hidden sm:block" />
 
         <div class="flex items-center gap-2">
-          <div class="flex h-6 w-6 items-center justify-center rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/25">
+          <div class="flex h-6 w-6 items-center justify-center rounded-md bg-obs-warning-subtle text-obs-warning-text border border-obs-warning/25">
             <Terminal className="h-3.5 w-3.5" />
           </div>
           <span class="text-xs font-bold uppercase tracking-wider text-obs-text-primary">
             Runnable Reference Implementation
           </span>
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-obs-surface border border-obs-border text-obs-text-secondary">
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-micro font-mono font-medium bg-obs-surface border border-obs-border text-obs-text-secondary">
             Java 21 / JVM
           </span>
         </div>
       </div>
 
-      <div class="flex items-center gap-2 text-[11px] text-obs-text-muted font-mono">
+      <div class="flex items-center gap-2 text-caption text-obs-text-muted font-mono">
         <span>{filesData.length} source file{filesData.length > 1 ? 's' : ''}</span>
       </div>
     </div>
@@ -138,15 +138,15 @@ const filesData = filePaths
         <details class="group/file" open={idx === 0}>
           <summary class="flex cursor-pointer items-center justify-between px-4 py-3 text-xs font-medium text-obs-text-secondary hover:bg-obs-surface/80 hover:text-obs-text-primary transition-all select-none">
             <div class="flex items-center gap-2.5 min-w-0">
-              <FileCode2 className="h-4 w-4 text-amber-400 shrink-0" />
+              <FileCode2 className="h-4 w-4 text-obs-warning-text shrink-0" />
               <span class="font-mono text-obs-accent font-semibold truncate">{file.name}</span>
-              <span class="text-[11px] text-obs-text-muted/70 font-mono hidden md:inline truncate">
+              <span class="text-caption text-obs-text-muted font-mono hidden md:inline truncate">
                 {file.relPath}
               </span>
             </div>
 
             <div class="flex items-center gap-3 shrink-0 ml-2">
-              <span class="text-[11px] font-mono text-obs-text-muted bg-obs-surface/60 px-2 py-0.5 rounded border border-obs-border/40">
+              <span class="text-caption font-mono text-obs-text-muted bg-obs-surface/60 px-2 py-0.5 rounded border border-obs-border/40">
                 {file.lineCount} lines
               </span>
               <ChevronDown className="h-4 w-4 text-obs-text-muted group-open/file:rotate-180 transition-transform duration-200" />
@@ -160,11 +160,11 @@ const filesData = filePaths
                 type="button"
                 data-copy-button
                 data-file-index={idx}
-                class="copy-btn inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-obs-surface/90 hover:bg-obs-hover border border-obs-border/80 text-obs-text-secondary hover:text-obs-text-primary shadow-sm backdrop-blur-md transition-all active:scale-95"
+                class="copy-btn inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-caption font-medium bg-obs-surface/90 hover:bg-obs-hover border border-obs-border/80 text-obs-text-secondary hover:text-obs-text-primary shadow-sm backdrop-blur-md transition-all active:scale-95"
                 title="Copy source code to clipboard"
               >
                 <Copy className="h-3.5 w-3.5 text-obs-text-muted copy-icon" />
-                <Check className="h-3.5 w-3.5 text-emerald-400 check-icon hidden" />
+                <Check className="h-3.5 w-3.5 text-obs-success-text check-icon hidden" />
                 <span class="copy-label font-mono">Copy Code</span>
               </button>
             </div>
@@ -175,10 +175,10 @@ const filesData = filePaths
                 <tbody>
                   {file.lines.map((l) => (
                     <tr class="hover:bg-white/[0.03] transition-colors group/line">
-                      <td class="select-none text-right pr-4 pl-2 text-[11px] font-mono text-obs-text-muted/40 group-hover/line:text-obs-text-muted/80 w-12 align-top border-r border-obs-border/30">
+                      <td class="select-none text-right pr-4 pl-2 text-caption font-mono text-obs-text-muted group-hover/line:text-obs-text-muted w-12 align-top border-r border-obs-border/30">
                         {l.lineNum}
                       </td>
-                      <td class="pl-4 pr-16 whitespace-pre text-[12.5px] font-mono text-obs-text-secondary align-top">
+                      <td class="pl-4 pr-16 whitespace-pre text-sm font-mono text-obs-text-secondary align-top">
                         <Fragment set:html={l.html || '&nbsp;'} />
                       </td>
                     </tr>
@@ -231,13 +231,13 @@ const filesData = filePaths
           if (copyIcon) copyIcon.classList.add('hidden');
           if (checkIcon) checkIcon.classList.remove('hidden');
           if (label) label.textContent = 'Copied!';
-          btn.classList.add('border-emerald-500/40', 'bg-emerald-500/10', 'text-emerald-400');
+          btn.classList.add('border-obs-success/40', 'bg-obs-success-subtle', 'text-obs-success-text');
 
           setTimeout(() => {
             if (copyIcon) copyIcon.classList.remove('hidden');
             if (checkIcon) checkIcon.classList.add('hidden');
             if (label) label.textContent = 'Copy Code';
-            btn.classList.remove('border-emerald-500/40', 'bg-emerald-500/10', 'text-emerald-400');
+            btn.classList.remove('border-obs-success/40', 'bg-obs-success-subtle', 'text-obs-success-text');
           }, 2000);
         } catch (err) {
           console.error('Failed to copy code:', err);

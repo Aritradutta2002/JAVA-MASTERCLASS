@@ -1,4 +1,5 @@
 ---
+import '@fontsource-variable/literata';
 import fs from 'node:fs';
 import path from 'node:path';
 import ObsidianLayout from '../../layouts/ObsidianLayout.astro';
@@ -32,8 +33,8 @@ const fmt = new Intl.NumberFormat('en-US');
         <PenLine className="h-4 w-4" />
       </span>
       <div>
-        <p class="text-[0.8rem] font-semibold text-obs-text-primary">Write in Markdown</p>
-        <p class="mt-0.5 text-[0.66rem] leading-relaxed text-obs-text-muted">
+        <p class="text-sm font-semibold text-obs-text-primary">Write in Markdown</p>
+        <p class="mt-0.5 text-caption leading-relaxed text-obs-text-muted">
           Drop a file in a domain folder. Routes, navigation, search, and backlinks are generated.
         </p>
       </div>
@@ -43,8 +44,8 @@ const fmt = new Intl.NumberFormat('en-US');
         <Workflow className="h-4 w-4" />
       </span>
       <div>
-        <p class="text-[0.8rem] font-semibold text-obs-text-primary">Link concepts</p>
-        <p class="mt-0.5 text-[0.66rem] leading-relaxed text-obs-text-muted">
+        <p class="text-sm font-semibold text-obs-text-primary">Link concepts</p>
+        <p class="mt-0.5 text-caption leading-relaxed text-obs-text-muted">
           Relative links and wiki links become graph edges and backlinks automatically.
         </p>
       </div>
@@ -54,8 +55,8 @@ const fmt = new Intl.NumberFormat('en-US');
         <BookOpen className="h-4 w-4" />
       </span>
       <div>
-        <p class="text-[0.8rem] font-semibold text-obs-text-primary">{fmt.format(stats.documents)} live documents</p>
-        <p class="mt-0.5 text-[0.66rem] leading-relaxed text-obs-text-muted">
+        <p class="text-sm font-semibold text-obs-text-primary">{fmt.format(stats.documents)} live documents</p>
+        <p class="mt-0.5 text-caption leading-relaxed text-obs-text-muted">
           Every existing chapter is an example of the structure described below.
         </p>
       </div>
@@ -75,7 +76,7 @@ const fmt = new Intl.NumberFormat('en-US');
         <span class="block text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent">
           Quick references
         </span>
-        <span class="block text-[0.66rem] text-obs-text-muted">See the reference format in practice.</span>
+        <span class="block text-caption text-obs-text-muted">See the reference format in practice.</span>
       </span>
       <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-obs-text-muted" />
     </a>
@@ -87,7 +88,7 @@ const fmt = new Intl.NumberFormat('en-US');
         <span class="block text-sm font-semibold text-obs-text-primary group-hover:text-obs-accent">
           Engineering standards
         </span>
-        <span class="block text-[0.66rem] text-obs-text-muted">The conventions each domain follows.</span>
+        <span class="block text-caption text-obs-text-muted">The conventions each domain follows.</span>
       </span>
       <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-obs-text-muted" />
     </a>

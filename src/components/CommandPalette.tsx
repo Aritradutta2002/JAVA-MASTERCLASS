@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import MiniSearch from 'minisearch';
+import { createFocusTrap } from '../lib/focusTrap';
 import type { SearchRecord } from '../lib/types';
 import {
   ArrowRight,
@@ -61,10 +62,13 @@ export default function CommandPalette() {
   const [query, setQuery] = useState('');
   const [records, setRecords] = useState<SearchRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadToken, setReloadToken] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [recents, setRecents] = useState<{ title: string; slug: string }[]>([]);
   
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   const miniSearch = useMemo(
@@ -105,20 +109,27 @@ export default function CommandPalette() {
 
     if (records.length === 0 && !loading) {
       setLoading(true);
+      setLoadError(false);
       fetch('/search-index.json')
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) throw new Error(`Search index returned ${res.status}`);
+          return res.json();
+        })
         .then((data: SearchRecord[]) => {
           setRecords(data);
           miniSearch.removeAll();
           miniSearch.addAll(data);
         })
-        .catch((err) => console.error('Failed to load search index', err))
+        .catch((err) => {
+          console.error('Failed to load search index', err);
+          setLoadError(true);
+        })
         .finally(() => setLoading(false));
     }
 
     const timer = window.setTimeout(() => inputRef.current?.focus(), 40);
     return () => window.clearTimeout(timer);
-  }, [open, records.length, loading, miniSearch]);
+  }, [open, records.length, loading, miniSearch, reloadToken]);
 
   // Reset query and selection on open/query change
   useEffect(() => {
@@ -242,17 +253,15 @@ export default function CommandPalette() {
     });
   }, [selectedIndex]);
 
-  // Handle global Escape key
+  // Trap focus inside the palette and restore it on close.
   useEffect(() => {
-    if (!open) return;
-    const handleGlobalKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        setOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleGlobalKey);
-    return () => window.removeEventListener('keydown', handleGlobalKey);
+    if (!open || !dialogRef.current) return;
+    const trap = createFocusTrap(dialogRef.current, {
+      onEscape: () => setOpen(false),
+      initialFocus: inputRef.current,
+    });
+    trap.activate();
+    return () => trap.deactivate();
   }, [open]);
 
   const navigateTo = (slug: string) => {
@@ -282,13 +291,14 @@ export default function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-start justify-center bg-black/70 p-3 pt-[8vh] backdrop-blur-md sm:p-4 sm:pt-[10vh] animate-fade-in"
+      className="fixed inset-0 z-[80] flex items-start justify-center bg-black/70 p-3 pt-16 backdrop-blur-md sm:p-4 sm:pt-20 animate-fade-in"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) setOpen(false);
       }}
       role="presentation"
     >
       <div
+        ref={dialogRef}
         className="w-full max-w-2xl overflow-hidden rounded-2xl border border-obs-border/80 bg-obs-sidebar/95 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] backdrop-blur-2xl animate-slide-up"
         role="dialog"
         aria-modal="true"
@@ -306,10 +316,13 @@ export default function CommandPalette() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search chapters, concepts, systems, and commands…"
-            className="flex-1 bg-transparent text-sm font-medium text-obs-text-primary placeholder:text-obs-text-muted/70 focus:outline-none"
+            className="flex-1 bg-transparent text-sm font-medium text-obs-text-primary placeholder:text-obs-text-muted focus:outline-none"
+            role="combobox"
             aria-label="Search query"
             aria-controls="command-results"
+            aria-expanded="true"
             aria-autocomplete="list"
+            aria-activedescendant={flatItems[selectedIndex] ? `command-option-${selectedIndex}` : undefined}
           />
           {query ? (
             <button
@@ -321,7 +334,7 @@ export default function CommandPalette() {
               <X className="h-3.5 w-3.5" />
             </button>
           ) : (
-            <kbd className="hidden sm:inline-flex items-center rounded border border-obs-border/70 bg-obs-canvas-soft px-1.5 py-0.5 text-[0.62rem] font-mono text-obs-text-muted">
+            <kbd className="hidden sm:inline-flex items-center rounded border border-obs-border/70 bg-obs-canvas-soft px-1.5 py-0.5 text-micro font-mono text-obs-text-muted">
               ESC
             </kbd>
           )}
@@ -334,13 +347,41 @@ export default function CommandPalette() {
           role="listbox"
         >
           {loading && (
-            <div className="flex items-center justify-center gap-2 py-10 text-xs text-obs-text-muted">
-              <span className="h-3 w-3 animate-spin rounded-full border-2 border-obs-accent border-t-transparent" />
-              <span>Indexing knowledge base…</span>
+            <div className="space-y-2 p-2" aria-busy="true" aria-label="Indexing knowledge base">
+              {[0, 1, 2, 3].map((item) => (
+                <div key={item} className="flex items-center gap-3 rounded-xl border border-obs-border/40 p-3">
+                  <div className="skeleton h-8 w-8 shrink-0" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="skeleton h-3 w-2/3" />
+                    <div className="skeleton h-2.5 w-1/2" />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
-          {!loading && query.trim() && flatItems.length === 0 && (
+          {!loading && loadError && query.trim() && (
+            <div className="px-4 py-10 text-center">
+              <p className="text-sm font-semibold text-obs-text-primary">Search index unavailable</p>
+              <p className="mt-1 text-xs text-obs-text-muted">
+                The local index did not load. Retry, or use the full-text search page.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReloadToken((value) => value + 1)}
+                  className="btn btn-primary px-3 py-2 text-xs"
+                >
+                  Retry index
+                </button>
+                <a href="/search" className="btn btn-secondary px-3 py-2 text-xs">
+                  Open search page
+                </a>
+              </div>
+            </div>
+          )}
+
+          {!loading && !loadError && query.trim() && flatItems.length === 0 && (
             <div className="px-4 py-12 text-center">
               <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-obs-accent/10 text-obs-accent mb-3">
                 <Search className="h-5 w-5" />
@@ -359,7 +400,7 @@ export default function CommandPalette() {
             </div>
           )}
 
-          {!loading &&
+          {!loading && !loadError &&
             flatItems.map((item, index) => {
               const isSelected = index === selectedIndex;
               const Icon = item.icon || FileText;
@@ -373,7 +414,7 @@ export default function CommandPalette() {
               return (
                 <React.Fragment key={item.id}>
                   {showGroupHeader && (
-                    <div className="px-3 pt-3 pb-1 text-[0.62rem] font-bold uppercase tracking-[0.14em] text-obs-text-muted/80">
+                    <div className="px-3 pt-3 pb-1 text-micro font-bold uppercase tracking-[0.14em] text-obs-text-muted">
                       {item.group === 'Recent' && 'Recently Viewed'}
                       {item.group === 'Actions' && 'Quick Navigation & Tools'}
                       {item.group === 'Domains' && 'Curriculum Domains'}
@@ -385,6 +426,7 @@ export default function CommandPalette() {
                     ref={(el) => {
                       itemRefs.current[index] = el;
                     }}
+                    id={`command-option-${index}`}
                     role="option"
                     aria-selected={isSelected}
                     tabIndex={-1}
@@ -428,41 +470,41 @@ export default function CommandPalette() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`truncate text-[0.84rem] ${
+                          className={`truncate text-sm ${
                             isSelected ? 'font-bold text-obs-text-primary' : 'font-medium text-obs-text-primary'
                           }`}
                         >
                           {item.title}
                         </span>
                         {item.group === 'Domains' && (
-                          <span className="hidden sm:inline-flex rounded-full border border-obs-accent/30 bg-obs-accent/10 px-1.5 py-0.2 font-mono text-[0.55rem] font-semibold text-obs-accent">
+                          <span className="hidden sm:inline-flex rounded-full border border-obs-accent/30 bg-obs-accent/10 px-1.5 py-0.5 font-mono text-micro font-semibold text-obs-accent">
                             Curriculum
                           </span>
                         )}
                       </div>
-                      <span className="block truncate text-[0.68rem] text-obs-text-muted">
+                      <span className="block truncate text-caption text-obs-text-muted">
                         {item.subtitle}
                       </span>
                     </div>
 
                     {/* Right Enter badge when selected */}
                     {isSelected ? (
-                      <div className="flex shrink-0 items-center gap-1 rounded border border-obs-accent/40 bg-obs-accent/15 px-1.5 py-0.5 text-[0.62rem] font-semibold text-obs-accent shadow-2xs">
+                      <div className="flex shrink-0 items-center gap-1 rounded border border-obs-accent/40 bg-obs-accent/15 px-1.5 py-0.5 text-micro font-semibold text-obs-accent shadow-2xs">
                         <span>Open</span>
                         <CornerDownLeft className="h-2.5 w-2.5" />
                       </div>
                     ) : (
-                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-obs-text-muted/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-obs-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
                     )}
                   </div>
                 </React.Fragment>
               );
             })}
 
-          {!loading && query.trim() && flatItems.length > 0 && (
+          {!loading && !loadError && query.trim() && flatItems.length > 0 && (
             <a
               href={`/search?q=${encodeURIComponent(query)}`}
-              className="mt-2 flex items-center justify-between rounded-xl border border-obs-border/60 bg-obs-surface/40 px-3 py-2.5 text-[0.74rem] font-semibold text-obs-accent hover:border-obs-accent/40 hover:bg-obs-surface transition-all"
+              className="mt-2 flex items-center justify-between rounded-xl border border-obs-border/60 bg-obs-surface/40 px-3 py-2.5 text-caption font-semibold text-obs-accent hover:border-obs-accent/40 hover:bg-obs-surface transition-all"
             >
               <span className="flex items-center gap-2">
                 <Sparkles className="h-3.5 w-3.5" />
@@ -474,18 +516,18 @@ export default function CommandPalette() {
         </div>
 
         {/* Footer info bar with Raycast keyboard hints */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-obs-border/70 bg-obs-canvas/60 px-4 py-2.5 text-[0.64rem] text-obs-text-muted">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-obs-border/70 bg-obs-canvas/60 px-4 py-2.5 text-caption text-obs-text-muted">
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1">
-              <kbd className="rounded border border-obs-border/70 bg-obs-canvas-soft px-1 text-[0.58rem] font-mono">↑↓</kbd>
+              <kbd className="rounded border border-obs-border/70 bg-obs-canvas-soft px-1 text-micro font-mono">↑↓</kbd>
               Navigate
             </span>
             <span className="inline-flex items-center gap-1">
-              <kbd className="rounded border border-obs-border/70 bg-obs-canvas-soft px-1 text-[0.58rem] font-mono">↵</kbd>
+              <kbd className="rounded border border-obs-border/70 bg-obs-canvas-soft px-1 text-micro font-mono">↵</kbd>
               Select
             </span>
             <span className="inline-flex items-center gap-1">
-              <kbd className="rounded border border-obs-border/70 bg-obs-canvas-soft px-1 text-[0.58rem] font-mono">esc</kbd>
+              <kbd className="rounded border border-obs-border/70 bg-obs-canvas-soft px-1 text-micro font-mono">esc</kbd>
               Dismiss
             </span>
           </div>

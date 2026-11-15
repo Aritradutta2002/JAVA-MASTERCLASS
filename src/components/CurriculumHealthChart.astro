@@ -1,0 +1,128 @@
+---
+interface DomainHealth {
+  id: string;
+  title: string;
+  count: number;
+  words: number;
+  minutes: number;
+  diagramDocs: number;
+  codeDocs: number;
+  color: { hex: string; text: string; bg: string; border: string };
+}
+
+interface Props {
+  domains: DomainHealth[];
+  totalDocs: number;
+  totalWords: number;
+  totalMinutes: number;
+  totalDiagrams: number;
+}
+
+const { domains, totalDocs, totalWords, totalMinutes, totalDiagrams } = Astro.props;
+const maxCount = Math.max(...domains.map((domain) => domain.count), 1);
+const averageCount = totalDocs / Math.max(domains.length, 1);
+const averageWords = totalWords / Math.max(domains.length, 1);
+const fmt = new Intl.NumberFormat('en-US');
+---
+
+<figure class="surface-card overflow-hidden" aria-labelledby="curriculum-health-heading">
+  <div class="flex flex-col justify-between gap-4 border-b border-obs-border p-6 sm:flex-row sm:items-start">
+    <div>
+      <p class="eyebrow">Curriculum health</p>
+      <h2 id="curriculum-health-heading" class="mt-1 text-2xl font-bold tracking-tight text-obs-text-primary">
+        Coverage and depth at a glance
+      </h2>
+      <p class="mt-2 max-w-2xl text-sm leading-relaxed text-obs-text-muted">
+        Live corpus metrics across every domain. Comparisons use the current curriculum average, not a fabricated time series.
+      </p>
+    </div>
+    <span class="badge badge-success shrink-0">
+      <span class="h-1.5 w-1.5 rounded-full bg-obs-success" aria-hidden="true"></span>
+      {domains.length} domains covered
+    </span>
+  </div>
+
+  <div class="grid gap-8 p-6 lg:grid-cols-[1.25fr_0.75fr]">
+    <div class="space-y-4">
+      {domains.map((domain) => {
+        const share = totalDocs > 0 ? Math.round((domain.count / totalDocs) * 100) : 0;
+        const width = Math.max(4, Math.round((domain.count / maxCount) * 100));
+        const vsAverage = averageCount > 0 ? domain.count / averageCount : 0;
+        return (
+          <div class="min-w-0">
+            <div class="mb-1.5 flex items-center justify-between gap-3 text-sm">
+              <span class="flex min-w-0 items-center gap-2 font-medium text-obs-text-primary">
+                <span class="h-2 w-2 shrink-0 rounded-full" style={`background-color:${domain.color.hex}`} aria-hidden="true"></span>
+                <span class="truncate">{domain.title}</span>
+              </span>
+              <span class="shrink-0 font-mono text-xs text-obs-text-muted">
+                {domain.count} chapters · {share}%
+              </span>
+            </div>
+            <div class="h-2 overflow-hidden rounded-full bg-obs-canvas-soft">
+              <div
+                class="h-full rounded-full transition-[width] duration-500"
+                style={`width:${width}%;background-color:${domain.color.hex}`}
+              ></div>
+            </div>
+            <p class="mt-1 text-xs text-obs-text-muted">
+              {fmt.format(domain.words)} words · {vsAverage.toFixed(1)}× average · {domain.diagramDocs} diagrammed chapters
+            </p>
+          </div>
+        );
+      })}
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 self-start">
+      <div class="rounded-xl border border-obs-border bg-obs-canvas-soft p-4">
+        <p class="text-xs font-medium uppercase tracking-wider text-obs-text-muted">Chapters</p>
+        <p class="mt-1 font-mono text-2xl font-bold text-obs-text-primary">{fmt.format(totalDocs)}</p>
+        <p class="mt-1 text-xs text-obs-text-muted">Across {domains.length} domains</p>
+      </div>
+      <div class="rounded-xl border border-obs-border bg-obs-canvas-soft p-4">
+        <p class="text-xs font-medium uppercase tracking-wider text-obs-text-muted">Words</p>
+        <p class="mt-1 font-mono text-2xl font-bold text-obs-text-primary">{(totalWords / 1_000_000).toFixed(2)}M</p>
+        <p class="mt-1 text-xs text-obs-text-muted">{fmt.format(Math.round(averageWords))} average per domain</p>
+      </div>
+      <div class="rounded-xl border border-obs-border bg-obs-canvas-soft p-4">
+        <p class="text-xs font-medium uppercase tracking-wider text-obs-text-muted">Reading time</p>
+        <p class="mt-1 font-mono text-2xl font-bold text-obs-text-primary">{fmt.format(Math.round(totalMinutes / 60))}h</p>
+        <p class="mt-1 text-xs text-obs-text-muted">Estimated deep reading</p>
+      </div>
+      <div class="rounded-xl border border-obs-border bg-obs-canvas-soft p-4">
+        <p class="text-xs font-medium uppercase tracking-wider text-obs-text-muted">Diagrams</p>
+        <p class="mt-1 font-mono text-2xl font-bold text-obs-text-primary">{fmt.format(totalDiagrams)}</p>
+        <p class="mt-1 text-xs text-obs-text-muted">Architecture visuals</p>
+      </div>
+    </div>
+  </div>
+
+  <figcaption class="sr-only">
+    Curriculum coverage table. Each domain lists chapter count, word count, reading time, diagrammed chapters, and code chapters.
+  </figcaption>
+  <table class="sr-only">
+    <caption>Curriculum health by domain</caption>
+    <thead>
+      <tr>
+        <th scope="col">Domain</th>
+        <th scope="col">Chapters</th>
+        <th scope="col">Words</th>
+        <th scope="col">Reading minutes</th>
+        <th scope="col">Diagrammed chapters</th>
+        <th scope="col">Code chapters</th>
+      </tr>
+    </thead>
+    <tbody>
+      {domains.map((domain) => (
+        <tr>
+          <th scope="row">{domain.title}</th>
+          <td>{domain.count}</td>
+          <td>{domain.words}</td>
+          <td>{domain.minutes}</td>
+          <td>{domain.diagramDocs}</td>
+          <td>{domain.codeDocs}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</figure>

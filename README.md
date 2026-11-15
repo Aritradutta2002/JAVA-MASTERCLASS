@@ -1,9 +1,9 @@
 # 🚀 Interview Ready with Java
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Java-17%2B-blue?style=for-the-badge&logo=java" alt="Java">
-  <img src="https://img.shields.io/badge/DSA-500%2B%20Problems-green?style=for-the-badge" alt="DSA">
-  <img src="https://img.shields.io/badge/FAANG-Interview%20Ready-orange?style=for-the-badge" alt="Interview">
+  <img src="https://img.shields.io/badge/Java-17%2B-blue?style=for-the-badge&logo=java" alt="Java" width="120" height="28">
+  <img src="https://img.shields.io/badge/DSA-500%2B%20Problems-green?style=for-the-badge" alt="DSA" width="180" height="28">
+  <img src="https://img.shields.io/badge/FAANG-Interview%20Ready-orange?style=for-the-badge" alt="Interview" width="190" height="28">
 </p>
 
 > **Your complete preparation kit for Java technical interviews at top tech companies**
