@@ -57,6 +57,7 @@ export async function getMarkdownProcessor() {
             properties: {
               className: ['heading-anchor'],
               ariaLabel: 'Copy link to this section',
+              'data-pagefind-ignore': '',
             },
             content: {
               type: 'element',
@@ -157,7 +158,7 @@ function injectDiagrams(html: string, diagrams: ExtractedDiagram[]): string {
     if (!diagram) return '';
     return `<figure class="mermaid-figure">
   <div class="mermaid-container">
-    <div class="mermaid" data-mermaid-source="${escapeHtml(diagram.source)}">${escapeHtml(diagram.source)}</div>
+    <div class="mermaid" data-pagefind-ignore data-mermaid-source="${escapeHtml(diagram.source)}">${escapeHtml(diagram.source)}</div>
   </div>
   <details class="mermaid-source" data-pagefind-ignore>
     <summary>Diagram source</summary>

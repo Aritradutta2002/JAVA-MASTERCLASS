@@ -89,11 +89,12 @@ const fmt = new Intl.NumberFormat('en-US');
       </div>
     </header>
 
-    <!-- Search Input Form -->
+    <!-- Search Input Form (Accessible Fallback) -->
     <form
       action="/search"
       method="get"
       role="search"
+      id="static-search-form"
       class="group relative flex items-center gap-3 rounded-2xl border border-obs-border bg-obs-surface/90 p-2 shadow-obs-lg backdrop-blur-md transition-all duration-200 focus-within:border-obs-accent/70 focus-within:ring-2 focus-within:ring-obs-accent/20"
     >
       <label for="page-search-input" class="sr-only">Search all chapters</label>
@@ -218,6 +219,7 @@ const fmt = new Intl.NumberFormat('en-US');
       const mount = document.getElementById('pagefind-search');
       const fallback = document.getElementById('search-fallback');
       const fallbackButton = document.getElementById('fallback-open-palette');
+      const staticForm = document.getElementById('static-search-form');
       const input = document.getElementById('page-search-input');
 
       if (input && initialQuery) input.value = initialQuery;
@@ -228,20 +230,21 @@ const fmt = new Intl.NumberFormat('en-US');
       document.querySelectorAll('.query-chip').forEach(function (btn) {
         btn.addEventListener('click', function () {
           const q = btn.getAttribute('data-query') || '';
-          if (input) input.value = q;
           const pagefindInput = mount ? mount.querySelector('.pagefind-ui__search-input') : null;
           if (pagefindInput) {
             pagefindInput.value = q;
             pagefindInput.dispatchEvent(new Event('input', { bubbles: true }));
-          } else {
-            const form = input ? input.closest('form') : null;
-            form?.submit();
+            pagefindInput.focus();
+          } else if (input) {
+            input.value = q;
+            staticForm?.submit();
           }
         });
       });
 
       function showFallback() {
         if (mount) mount.classList.add('hidden');
+        if (staticForm) staticForm.classList.remove('hidden');
         fallback?.classList.remove('hidden');
       }
 
@@ -258,10 +261,27 @@ const fmt = new Intl.NumberFormat('en-US');
             resetStyles: false,
             bundlePath: '/pagefind/',
             translations: {
-              placeholder: 'Search every chapter…',
+              placeholder: 'Search every chapter, concept, diagram, and code pattern…',
               zero_results: 'No results found for "[SEARCH_TERM]". Try another technical term.',
             },
           });
+
+          // Successfully mounted Pagefind UI — hide static fallback form for single clean input
+          if (staticForm) {
+            staticForm.classList.add('hidden');
+          }
+
+          // Clean any trailing '#' from autolink heading titles in search results
+          const observer = new MutationObserver(function () {
+            mount.querySelectorAll('.pagefind-ui__result-link').forEach(function (el) {
+              const last = el.lastChild;
+              if (last && last.nodeType === Node.TEXT_NODE && last.textContent && last.textContent.endsWith('#')) {
+                last.textContent = last.textContent.slice(0, -1);
+              }
+            });
+          });
+          observer.observe(mount, { childList: true, subtree: true });
+
           const pagefindInput = mount.querySelector('.pagefind-ui__search-input');
           if (pagefindInput && initialQuery) {
             pagefindInput.value = initialQuery;
@@ -276,7 +296,12 @@ const fmt = new Intl.NumberFormat('en-US');
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
       stylesheet.href = '/pagefind/pagefind-ui.css';
-      document.head.appendChild(stylesheet);
+      // Prepend before site stylesheets to allow obsidian theme bridge to take priority
+      if (document.head.firstChild) {
+        document.head.insertBefore(stylesheet, document.head.firstChild);
+      } else {
+        document.head.appendChild(stylesheet);
+      }
 
       const script = document.createElement('script');
       script.src = '/pagefind/pagefind-ui.js';
