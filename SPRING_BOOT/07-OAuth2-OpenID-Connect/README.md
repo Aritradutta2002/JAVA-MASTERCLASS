@@ -13,8 +13,9 @@
 | ⭐⭐⭐⭐⭐ | [02 · Authorization Code & PKCE Flows](02-Authorization-Code-and-PKCE-Flows.md) | 🟡→🔴 | 50 min | Every redirect and every POST of the Authorization Code flow, `state` / `nonce` / `code`, PKCE (`code_verifier` → `code_challenge`) and the 4 attacks it kills, public vs confidential clients, `OAuth2AuthorizationRequestRedirectFilter` → `OAuth2LoginAuthenticationFilter`, the `AuthorizationRequestRepository` |
 | ⭐⭐⭐⭐ | [03 · Client Credentials, Refresh Tokens & OpenID Connect](03-Client-Credentials-Refresh-Tokens-and-OpenID-Connect.md) | 🟡→🔴 | 50 min | Machine-to-machine with **no user**, refresh-token rotation, OIDC's `openid` scope / ID token / UserInfo / discovery document / logout, `issuer-uri` discovery at startup, the `aud` validation gotcha, introspection vs local validation |
 | ⭐⭐⭐⭐ | [04 · Social Login, Keycloak, Enterprise SSO & Security](04-Social-Login-Keycloak-Enterprise-SSO-and-Security.md) | 🟡→🔴 | 50 min | "Login with Google" end to end, the GitHub private-email gotcha, Keycloak realms/clients/roles and `realm_access`, SAML vs OIDC, JIT provisioning, account-linking rules, scope minimisation, the corporate-domain allowlist |
+| ⭐⭐⭐⭐⭐ | [05 · Spring Authorization Server & Custom Identity Provider](05-Spring-Authorization-Server-and-Custom-Identity-Provider.md) | 🔴→⚫ | 60 min | Modern Spring Authorization Server (SAS 1.2+ / Spring Boot 3.3+), dual SecurityFilterChain architecture, RegisteredClient & JdbcRegisteredClientRepository, OAuth2AuthorizationService & JdbcOAuth2AuthorizationService, JWKSource & zero-downtime key rotation, OAuth2TokenCustomizer for JWT claims, custom consent & login, client authentication methods, token introspection/revocation endpoints, SAS vs Keycloak vs managed IdPs |
 
-> **Total:** ~4 chapters · 205 min of reading · 70+ interview questions · 36 counter-questions · 48 MCQs · 16 production debugging scenarios
+> **Total:** 5 chapters · 265 min of reading · 95+ interview questions · 46 counter-questions · 68 MCQs · 20 production debugging scenarios
 
 ---
 
@@ -35,6 +36,10 @@
 | Does the Client Credentials grant return a refresh token? | "Yes, like any other grant" — **no**. There is no end user and no long-lived session to maintain, so the client simply requests a new access token when the old one expires |
 | How do you log a user out of an OIDC provider? | "Call `/logout`" — the real mechanism is **RP-initiated logout**: `end_session_endpoint` with `id_token_hint` and a registered `post_logout_redirect_uri` |
 | Social login — where do you store the provider's access token? | "In the session" — for most social-login use cases you do **not** need it, and storing it creates a liability you cannot revoke |
+| Why was `@EnableAuthorizationServer` deprecated? | Saying "Spring dropped auth servers" — Spring replaced it with **Spring Authorization Server** because the legacy stack was tightly coupled, lacked OIDC, encouraged insecure grants (password/implicit), and was unmaintainable |
+| Why does Spring Authorization Server require two `SecurityFilterChain` beans? | Trying to merge them into one chain — the **Protocol Chain (`@Order(HIGHEST_PRECEDENCE)`)** must process protocol endpoints before web filters run, while the **Application Chain (`@Order(2)`)** manages human interactive login and consent |
+| What happens if `JWKSource` generates keys in memory in production? | Not realizing that **pod redeployment invalidates all active tokens** — resource servers cache the old JWKS and reject every token signed by the new pod with `Invalid signature` |
+| Where do custom JWT claims belong in Spring Authorization Server? | Putting them directly in the entity — use `OAuth2TokenCustomizer<JwtEncodingContext>` to inject claims into access tokens or ID tokens based on token type |
 
 ---
 
@@ -49,38 +54,38 @@
                         └──────────────────────┬────────────────────────┘
                                                │  ① (authenticate + consent)
                                                ▼
-   ┌──────────────────────────────────────────────────────────────────────────────┐
-   │                      THE AUTHORIZATION SERVER  (holds the identity)          │
-   │                                                                              │
-   │   /authorize  ──▶ login ──▶ consent screen ──▶ issues an authorization CODE  │
-   │   /token      ──▶ exchanges CODE (+ PKCE verifier) ──▶ ACCESS TOKEN          │
-   │   /userinfo   ──▶ returns the OIDC claims (email, name, sub)                 │
-   │   /jwks.json  ──▶ publishes the public keys so verifiers can check signatures │
-   │   /revoke · /introspect · /.well-known/openid-configuration                  │
-   └───────────┬──────────────────────────────────────────────┬───────────────────┘
-               │  ② ACCESS TOKEN (5–15 min)                   │  ③ ID TOKEN (OIDC only)
-               │     Authorization: Bearer <jwt>              │     "who the user is"
-               │     → verified LOCALLY against the JWKS      │     → sent to the CLIENT, never to the API
-               ▼                                              ▼
-   ┌──────────────────────────────────────────────────────────────────────────────┐
-   │                       THE CLIENT  (your web app / SPA / mobile app)         │
-   │                                                                              │
-   │   holds the tokens  ·  calls the resource server on the user's behalf        │
-   └───────────┬──────────────────────────────────────────────────────────────────┘
-               │  ④ Authorization: Bearer <access token>
-               ▼
-   ┌──────────────────────────────────────────────────────────────────────────────┐
-   │                    THE RESOURCE SERVER  (the API holding the data)            │
-   │                                                                              │
-   │   BearerTokenAuthenticationFilter → JwtDecoder (JWKS) → JWT → authorities      │
-   │   → SecurityContextHolder → AuthorizationFilter                              │
-   └──────────────────────────────────────────────────────────────────────────────┘
+    ┌──────────────────────────────────────────────────────────────────────────────┐
+    │                      THE AUTHORIZATION SERVER  (holds the identity)          │
+    │                                                                              │
+    │   /authorize  ──▶ login ──▶ consent screen ──▶ issues an authorization CODE  │
+    │   /token      ──▶ exchanges CODE (+ PKCE verifier) ──▶ ACCESS TOKEN          │
+    │   /userinfo   ──▶ returns the OIDC claims (email, name, sub)                 │
+    │   /jwks.json  ──▶ publishes the public keys so verifiers can check signatures │
+    │   /revoke · /introspect · /.well-known/openid-configuration                  │
+    └───────────┬──────────────────────────────────────────────┬───────────────────┘
+                │  ② ACCESS TOKEN (5–15 min)                   │  ③ ID TOKEN (OIDC only)
+                │     Authorization: Bearer <jwt>              │     "who the user is"
+                │     → verified LOCALLY against the JWKS      │     → sent to the CLIENT, never to the API
+                ▼                                              ▼
+    ┌──────────────────────────────────────────────────────────────────────────────┐
+    │                       THE CLIENT  (your web app / SPA / mobile app)         │
+    │                                                                              │
+    │   holds the tokens  ·  calls the resource server on the user's behalf        │
+    └───────────┬──────────────────────────────────────────────────────────────────┘
+                │  ④ Authorization: Bearer <access token>
+                ▼
+    ┌──────────────────────────────────────────────────────────────────────────────┐
+    │                    THE RESOURCE SERVER  (the API holding the data)            │
+    │                                                                              │
+    │   BearerTokenAuthenticationFilter → JwtDecoder (JWKS) → JWT → authorities      │
+    │   → SecurityContextHolder → AuthorizationFilter                              │
+    └──────────────────────────────────────────────────────────────────────────────┘
 
-   ★ THE ONE-LINE VERSION FOR THE INTERVIEW
-   ──────────────────────────────────────────
-   "OAuth lets a third-party app act on a user's behalf without ever holding the
-    user's password. OpenID Connect adds the missing identity piece — an ID token
-    and a UserInfo endpoint — so the client can actually know who signed in."
+    ★ THE ONE-LINE VERSION FOR THE INTERVIEW
+    ──────────────────────────────────────────
+    "OAuth lets a third-party app act on a user's behalf without ever holding the
+     user's password. OpenID Connect adds the missing identity piece — an ID token
+     and a UserInfo endpoint — so the client can actually know who signed in."
 ```
 
 > **Caption:** The split that matters is **access token = authority for the API** and
@@ -107,6 +112,9 @@
 - [ ] **Introspection vs local validation.** Latency, revocation accuracy, and the fact that introspection makes the authorization server's availability part of your API's availability.
 - [ ] **The GitHub private-email gotcha.** GitHub's `/user` does not always return `email`; you must call `/user/emails` and pick the **primary + verified** one.
 - [ ] **Keycloak's role claim shape.** `realm_access.roles` (realm-wide) vs `resource_access.<client>.roles` (per-client) — and that a plain `JwtGrantedAuthoritiesConverter` reading `scope` will map **none** of them.
+- [ ] **Spring Authorization Server dual SecurityFilterChain.** The protocol chain at `@Order(Ordered.HIGHEST_PRECEDENCE)` and the human login chain at `@Order(2)`, bridged by `LoginUrlAuthenticationEntryPoint`.
+- [ ] **`RegisteredClient` vs `ClientRegistration`.** `RegisteredClient` is used on the **Authorization Server** to register clients; `ClientRegistration` is used on the **Client Application** to connect to an IdP.
+- [ ] **Key rotation in SAS.** Setting stable `kid` identifiers, maintaining active signing keys alongside retired validation keys, and avoiding in-memory key generation on production pod restarts.
 
 ---
 
@@ -122,6 +130,10 @@
 - [ ] Write a custom `OAuth2UserService` that calls the GitHub `/user/emails` endpoint, picks the **primary verified** address, and asserts that a private-email GitHub account still resolves to a usable email.
 - [ ] Map Keycloak's `realm_access.roles` into `ROLE_*` authorities with a custom `JwtAuthenticationConverter` and print the resulting `SecurityContext` authorities.
 - [ ] Implement the **corporate-domain allowlist** rule in an `OAuth2UserService` and write the test that rejects `attacker@gmail.com` while accepting `user@acme.com`.
+- [ ] Build a custom **Spring Authorization Server** using `JdbcRegisteredClientRepository` and `JdbcOAuth2AuthorizationService` on PostgreSQL and register a client with PKCE enforcement.
+- [ ] Write an `OAuth2TokenCustomizer<JwtEncodingContext>` that injects `tenant_id`, `user_uuid`, and mapped `roles` into issued Access Tokens.
+- [ ] Implement a custom consent screen controller at `/oauth2/consent` that reads approved vs unapproved scopes and renders a Thymeleaf view.
+- [ ] Perform a Token Revocation call against `/oauth2/revoke` for a refresh token and prove that subsequent `/oauth2/introspect` calls return `{"active": false}`.
 
 ---
 

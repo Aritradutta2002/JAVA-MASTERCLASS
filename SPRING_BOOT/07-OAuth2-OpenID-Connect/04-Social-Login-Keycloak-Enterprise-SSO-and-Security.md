@@ -3558,7 +3558,7 @@ customer's** roles. Onboarding a new customer must not require an application ch
 
 ---
 
-**Next Chapter:** → [08 · Microservices with Spring Boot](../08-Microservices-with-Spring-Boot/README.md)
+**Next Chapter:** → [05 · Spring Authorization Server & Custom Identity Provider](./05-Spring-Authorization-Server-and-Custom-Identity-Provider.md)
 **Previous Chapter:** ← [03 · Client Credentials, Refresh Tokens & OpenID Connect](./03-Client-Credentials-Refresh-Tokens-and-OpenID-Connect.md)
 **Standard followed:** [../STANDARD.md](../STANDARD.md) · **Updated:** 2026
 
