@@ -18,7 +18,9 @@
   - [3.3 The Generational Hypothesis](#33-the-generational-hypothesis)
   - [3.4 Object Lifecycle: Birth, Promotion, Death](#34-object-lifecycle-birth-promotion-death)
   - [3.5 Minor vs Major vs Full vs Mixed GC](#35-minor-vs-major-vs-full-vs-mixed-gc)
-  - [3.6 The Collectors](#36-the-collectors)
+  - [3.6 The Collectors & Generational ZGC](#36-the-collectors)
+    - [3.6.5 Generational ZGC (JEP 439)](#365-zgc--the-z-garbage-collector--generational-zgc--xxusezgc-jep-439)
+    - [3.6.9 Containers & Kubernetes Memory Sizing](#369-running-java-in-containers--kubernetes-memory-sizing--jvm-flags)
   - [3.7 Reference Types — Strong, Soft, Weak, Phantom](#37-reference-types--strong-soft-weak-phantom)
   - [3.8 `finalize()` and `Cleaner`](#38-finalize-and-cleaner)
   - [3.9 Memory Leaks in a GC'd Language](#39-memory-leaks-in-a-gcd-language)
@@ -42,7 +44,8 @@
 - **GC roots** = local variables in every thread's stack frames, static fields of loaded classes, JNI global references, monitors held by live threads, and the interned-string table.
 - **The generational hypothesis: most objects die young.** So the heap is split — young (Eden + Survivor) and old — and the cheap collection of a nearly-dead young generation is done far more often.
 - **Minor GC** collects the young generation (fast, STW, copying). **Major/Full GC** collects the whole heap (slow, often concurrent-mark in modern collectors). **Mixed GC** (G1) collects young + a slice of old.
-- **G1 is the default since Java 9** — a *region-based* collector with a soft pause-time goal (`-XX:MaxGCPauseMillis`, default 200 ms). **ZGC** (Java 15+) and **Shenandoah** (Java 12+) give sub-millisecond pauses with concurrent compaction. **CMS is removed in Java 14** and was never a good idea.
+- **G1 is the default since Java 9** — a *region-based* collector with a soft pause-time goal (`-XX:MaxGCPauseMillis`, default 200 ms). **Generational ZGC** (JEP 439 in Java 21+, default in Java 23+ via JEP 474; enabled via `-XX:+UseZGC -XX:+ZGenerational`) and **Shenandoah** (Java 12+) give sub-millisecond (< 1 ms) pauses with concurrent compaction even on multi-terabyte heaps. **CMS was removed in Java 14** and was never a good idea.
+- **Running in Containers (Docker/Kubernetes):** Always use container-aware percentage flags (`-XX:InitialRAMPercentage`, `-XX:MaxRAMPercentage=70.0..75.0`) rather than hardcoding `-Xmx`. The Linux kernel OOM Killer kills the container (`SIGKILL`, exit code 137, no heap dump) when total process RSS (Heap + Metaspace + CodeCache + Direct NIO + Thread Stacks `N * -Xss`) exceeds cgroup `memory.max`. Use `-XX:ActiveProcessorCount` to correctly size thread pools when CPU quotas are constrained.
 - **Objects larger than half a G1 region are "humongous"** and are allocated directly into contiguous old-generation regions — a fragmentation hazard.
 - **Four reference strengths:** strong (default), soft (cleared under memory pressure — use for caches), weak (cleared at the next GC — use for canonical maps), phantom (post-mortem, for `Cleaner`-style cleanup).
 - **`finalize()` is deprecated for removal (Java 9) and was terminally deprecated in Java 18.** Use try-with-resources or `java.lang.ref.Cleaner`.
@@ -205,7 +208,7 @@
 - **Big heaps** — the classic "we cache 40 GB of market data" case.
 - **Modern hardware** — memory bandwidth and multi-core scaling changed the trade-off.
 
-This is why **ZGC and Shenandoah are *non-generational*** (they use a single generation with coloured pointers / load barriers), and why G1 keeps generations only as a *heuristic* over regions.
+Historically, this is why **early ZGC (Java 11–20) and Shenandoah were non-generational** (using a single generation with coloured pointers and load barriers). However, non-generational collectors pay a CPU penalty re-scanning long-lived objects when handling high allocation throughput. To conquer this, **Java 21 introduced Generational ZGC (JEP 439)**, separating young and old objects while retaining concurrent compaction, and G1 keeps generations as a *heuristic* over regions.
 
 ### 3.4 Object Lifecycle: Birth, Promotion, Death
 
@@ -339,22 +342,31 @@ This is the key insight: **garbage is free, survivors are expensive.** Tuning th
 
 **When G1 is right:** heaps from ~4 GB to ~64 GB, latency-sensitive services, and anything that wants a *predictable* pause rather than a low average pause. **G1 is the correct default answer in 90% of interviews.**
 
-#### 3.6.5 ZGC — The Z Garbage Collector (`-XX:+UseZGC`, production-ready in Java 17)
+#### 3.6.5 ZGC — The Z Garbage Collector & Generational ZGC (`-XX:+UseZGC`, JEP 439)
 
-- **Sub-millisecond pauses, independent of heap size and live-set size.** The design goal is stated as "< 1 ms pause, < 10% of CPU overhead".
-- **Fully concurrent** — marking, relocation and compaction all happen while the application runs.
-- **Coloured pointers + load barriers** instead of a SATB write barrier: the GC encodes "this object has been relocated" in the *metadata bits* of the pointer. The application reads pointers through a **load barrier** that checks the colour and re-reads the relocated address if needed.
-- Uses **multi-mapping** (the same physical pages mapped at different virtual addresses) to relocate objects without copying physical pages.
-- **Non-generational** — one generation, but it still has a "young" heuristic via the coloured pointer and the nursery concept in later versions.
-- **Limitations:** historically higher CPU overhead than G1, and (in older versions) some allocation-heavy workloads suffered. Modern ZGC (17+) is much better.
-- **Use when:** very large heaps (100 GB – 16 TB), strict tail-latency SLAs (trading platforms, ad servers, low-latency APIs).
+- **Sub-millisecond pauses, independent of heap size and live-set size.** The design goal is stated as "< 1 ms pause, < 10% of CPU overhead", scaling from a few megabytes to **16 Terabytes**.
+- **Fully concurrent** — marking, relocation, and compaction all execute concurrently while mutator application threads are running. Stop-the-world pauses are typically **sub-millisecond (0.1–0.5 ms)**, limited to tiny thread-local safepoints for phase transitions.
+- **Coloured pointers + load barriers** instead of a SATB write barrier: the GC encodes "this object has been relocated" in the *metadata bits* of 64-bit pointers (bits 42–45: `Finalizable`, `Remapped`, `Marked0`, `Marked1`). When an application thread reads a reference, the JIT-compiled **load barrier** checks the colour bit; if the referent has been relocated, the load barrier immediately looks up the forwarding table, repairs ("self-heals") the reference in place, and returns the new object pointer.
+- **Multi-mapping:** Single-generation ZGC mapped the same physical memory page to three distinct virtual address ranges (one per color mask) using `mmap`, avoiding physical memory copies during relocation.
+- **The Non-Generational Bottleneck (Java 11–20):** In single-generation ZGC, every collection cycle had to mark and compact the entire heap. On allocation-intensive services, application threads allocated faster than the concurrent GC could trace the whole live set. This caused **allocation stalls** — mutator threads were artificially throttled and halted waiting for memory, causing tail-latency spikes that negated the low-pause benefits.
+- **Generational ZGC (JEP 439 in Java 21+, JEP 474 default in Java 23+):**
+  - Re-introduces the weak generational hypothesis into ZGC: young objects are collected frequently and quickly; long-lived objects are collected infrequently.
+  - **Store barriers + Load barriers:** Because Generational ZGC maintains young and old generations without stopping the world, it introduces a lightweight JIT-inlined **store barrier** to track old-to-young reference writes into remembered sets (field coloring). Load barriers continue handling concurrent relocation self-healing.
+  - **4× higher allocation throughput tolerance:** Eliminates allocation stalls for virtually all bursty, high-throughput microservices.
+  - **Pause times remain < 1 ms:** Even during mixed generational compaction, STW pauses remain strictly sub-millisecond.
+  - **Memory overhead reduction:** Generational ZGC eliminates multi-mapping on platforms that don't support it well, saving virtual address space and reducing page table overhead.
+- **Key Configuration Flags:**
+  - `-XX:+UseZGC -XX:+ZGenerational` (enables Generational ZGC in Java 21 and 22; in Java 23+, Generational mode is the default).
+  - `-XX:SoftMaxHeapSize=<size>`: Guides ZGC to keep heap usage below this soft limit, uncommitting physical pages back to the OS when traffic drops, while retaining `-Xmx` as a hard ceiling for bursts.
+  - `-XX:ZAllocationSpikeTolerance=<factor>` (default 2.0): Factor determining how proactively ZGC triggers collections ahead of anticipated allocation surges.
+- **Use when:** Ultra-low latency requirements (financial trading, ad tech, real-time gaming, high-SLA microservices) across moderate (8–32 GB) to massive (100 GB – 16 TB) heaps.
 
 #### 3.6.6 Shenandoah (`-XX:+UseShenandoahGC`, production-ready in Java 15)
 
 - **Like ZGC in goal, different in mechanism:** performs **concurrent compaction** with a **Brooks forwarding pointer** — every reference to a moved object is updated in place, at the cost of a compare-and-swap per reference access (an extra load barrier).
-- **Non-generational**, fully concurrent, and supports **compaction of the whole heap**, not just young regions.
+- **Non-generational** (experimental generational Shenandoah exists in Java 21+ via `-XX:ShenandoahGCMode=generational`), fully concurrent, and supports **compaction of the whole heap**, not just young regions.
 - **Lower CPU overhead than ZGC** on many workloads, but a **higher allocation-rate penalty** (the forwarding pointers cost on every read).
-- **Not available on all platforms** — it is an OpenJDK distribution-specific build (Shenandoah is **not** in Oracle JDK builds; it is in the standard OpenJDK builds from some vendors, and in Red Hat's builds).
+- **Not available on all platforms** — it is an OpenJDK distribution-specific build (Shenandoah is **not** in Oracle JDK builds; it is in standard OpenJDK builds from Red Hat, Amazon Corretto, Azul, etc.).
 - **Use when:** latency-sensitive with a moderate heap, and you are on a distribution that ships it.
 
 #### 3.6.7 Epsilon (`-XX:+UnlockExperimentalVMOptions -XX:+UseEpsilonGC`)
@@ -371,9 +383,59 @@ This is the key insight: **garbage is free, survivors are expensive.** Tuning th
 | **Parallel** | Long, STW | **Highest** | Yes | Yes | Batch / throughput | All |
 | **CMS** | Low (avg) | Medium | **No** → fragmentation | Yes | *Removed* | ≤ Java 13 |
 | **G1** | **Predictable** (goal 200 ms) | High | **Yes** | Heuristic | **Default**, 4–64 GB, latency-sensitive | Java 9+ |
-| **ZGC** | **< 1 ms** | Medium–High | Yes, concurrent | No | Huge heaps, strict tail latency | Java 15+ (prod) |
-| **Shenandoah** | **< 1 ms** | Medium | Yes, concurrent | No | Latency-sensitive, moderate heap | Java 15+ (prod), OpenJDK only |
-| **Epsilon** | None | n/a | No | n/a | Testing, short jobs | Experimental |
+| **ZGC** | **< 1 ms** | Medium–High | Yes, concurrent | **Yes (Generational ZGC, JEP 439)** | Ultra-low tail latency, 8 GB to 16 TB | Java 21+ (GenZGC) |
+| **Shenandoah** | **< 1 ms** | Medium | Yes, concurrent | Single (Gen exp.) | Latency-sensitive, moderate heap | Java 15+ (prod), OpenJDK only |
+| **Epsilon** | None | n/a | No | n/a | Testing, ephemeral lambdas | Experimental |
+
+#### 3.6.9 Running Java in Containers & Kubernetes: Memory Sizing & JVM Flags
+
+Running modern Java microservices inside Docker containers or Kubernetes pods requires careful coordination between the Linux kernel's **control groups (cgroups v1 / cgroups v2)** and the HotSpot runtime.
+
+```text
+  CONTAINER MEMORY BUDGET BREAKDOWN (Cgroup Limit = 4 GB)
+  ═════════════════════════════════════════════════════════
+  ┌────────────────────────────────────────────────────────┐
+  │ 1. HEAP MEMORY (-XX:MaxRAMPercentage=75.0% -> ~3.0 GB) │
+  │    Eden + Survivor + Old Generation                    │
+  ├────────────────────────────────────────────────────────┤
+  │ 2. OFF-HEAP & NATIVE MEMORY (Reserved ~1.0 GB / 25%)   │
+  │    • Metaspace: -XX:MaxMetaspaceSize=256m             │
+  │    • Direct ByteBuffers: -XX:MaxDirectMemorySize=256m  │
+  │    • CodeCache (JIT): -XX:ReservedCodeCacheSize=240m   │
+  │    • Thread Stacks: N threads × -Xss1m (or 512k)       │
+  │    • GC Structures: Mark bitmaps, Card tables          │
+  │    • JVM Internal C++ allocations (malloc / arena)     │
+  │    • Native libraries, glibc allocations, Profilers    │
+  └────────────────────────────────────────────────────────┘
+  ▲ If total process RSS exceeds 4.0 GB -> Linux OOM Killer:
+    Kernel sends SIGKILL (Exit Code 137). NO HEAP DUMP CREATED!
+```
+
+##### 1. The Container OOM Killer Trap
+- When a container exceeds its memory limit (`resources.limits.memory` in K8s, or `docker run -m 4g`), the Linux kernel does **NOT** throw a `java.lang.OutOfMemoryError`.
+- Instead, the Linux OOM Killer invokes `SIGKILL` directly against PID 1 in the container namespace.
+- The process immediately terminates with **Exit Code 137** (`128 + 9 = 137`).
+- **Fatal consequence:** `-XX:+HeapDumpOnOutOfMemoryError` will **NOT execute**, leaving engineering teams with zero heap dump files and empty application crash logs.
+
+##### 2. Container Memory Flags Reference
+
+| Flag | Purpose | Recommended Production Setting |
+|---|---|---|
+| `-XX:+UseContainerSupport` | Enables automatic cgroup limit detection (RAM & CPU). Enabled by default in Java 8u191, 11+. | Keep enabled (default `true`). |
+| `-XX:InitialRAMPercentage=N` | Initial heap size as percentage of container memory limit. | `50.0` to `70.0%` |
+| `-XX:MaxRAMPercentage=N` | Maximum heap size (`-Xmx`) dynamically calculated from container memory. | **`70.0%` to `75.0%`** (leave 25–30% for off-heap). For heavy Netty / Direct NIO, use `60.0%`. |
+| `-XX:MinRAMPercentage=N` | Maximum heap size percentage for systems with very small physical memory (< 250 MB). | `50.0%` |
+| `-XX:ActiveProcessorCount=N` | Explicitly overrides detected CPU quota for thread pool sizing (`availableProcessors`). | Set when running under fractional CPU quotas (e.g., `cpu: 500m` or `1.5`). |
+| `-XX:MaxMetaspaceSize=N` | Bounds class metadata memory to prevent Metaspace leaks from blowing container RSS. | `256m` to `512m` |
+| `-XX:MaxDirectMemorySize=N` | Bounds off-heap direct byte buffers (NIO, Netty, gRPC). | `256m` to `1g` |
+| `-XX:ReservedCodeCacheSize=N` | Maximum memory allocated for JIT compiled native code. | `240m` (HotSpot default) |
+| `-Xss=N` | Per-thread native stack size. | `512k` to `1m` (lowering saves 100s of MBs with high thread counts). |
+| `-XX:+ExitOnOutOfMemoryError` | Automatically terminates the JVM on true Java OOM, prompting Kubernetes to restart pod immediately. | Highly recommended for Kubernetes pods. |
+
+##### 3. Why You Must NEVER Hardcode `-Xmx` in Container Images
+- If you hardcode `-Xmx4g` in your Docker entrypoint and a Kubernetes DevOps engineer sets pod memory limit to `4Gi`, the pod will inevitably crash.
+- Why? `4Gi Heap + 500MB Off-Heap = 4.5Gi RSS > 4Gi Cgroup Limit` $\implies$ Immediate `SIGKILL 137`.
+- **Best Practice:** Use `-XX:MaxRAMPercentage=75.0`. If the pod limit is scaled from 4Gi to 8Gi in Kubernetes YAML, the JVM automatically scales its heap to 6Gi without rebuilding the container image or editing environment variables.
 
 ### 3.7 Reference Types — Strong, Soft, Weak, Phantom
 
@@ -1458,13 +1520,10 @@ public final class ResourceRegistry<K> {
 ### ⚫ Expert / Principal
 
 **Q: The generational hypothesis is weakening in modern workloads. Explain why and what the collectors do about it.**
-**A:** The hypothesis assumes most objects die young. That is true for *request-scoped* objects but false for **caches, long-lived datasets and streaming buffers** — in a market-data service or an ML inference service, the live set can be tens of gigabytes and nothing dies young. In that regime, a generational collector's young GC has to copy a huge survivor set and promotion becomes the dominant cost, while the old generation is a single contiguous copy target that fragments. **ZGC and Shenandoah dropped generations entirely** — one generation, a single heap, concurrent relocation and compaction — because the "young/old" split buys nothing when the live set dominates. **G1** kept the split but made it a *heuristic over regions* rather than fixed spaces, so it can age a region on demand. The modern consensus: **generations are an optimisation for short-lived-object workloads; for large-live-set workloads, concurrent compaction matters more.**
-
-**Q: How do you size a G1 heap and the pause-time goal for a service with a 99.9th-percentile latency SLO of 5 ms?**
-**A:** I would *not* start with G1 for a 5 ms SLO — G1's default goal is 200 ms and its floor is bounded by the evacuation of live data, so a 5 ms goal on a large heap is unachievable. I would move to **ZGC** (sub-millisecond, concurrent) with a heap sized from the *live set* plus headroom (typically 2–3× the live set), not from the machine's RAM. Then I would validate empirically: run a load test with `-Xlog:gc*,safepoint` and look at the **pause-time percentile distribution** (p99, p99.9), not the average. And I would also measure **safepoint** time separately, because a 1 ms GC pause inside a 50 ms safepoint wait is invisible in the GC log but fatal to the tail.
+**A:** The hypothesis assumes most objects die young. That is true for *request-scoped* objects but false for **caches, long-lived datasets and streaming buffers** — in a market-data service or an ML inference service, the live set can be tens of gigabytes and nothing dies young. In that regime, a generational collector's young GC has to copy a huge survivor set and promotion becomes the dominant cost, while the old generation is a single contiguous copy target that fragments. Early **ZGC (Java 11–20) and Shenandoah dropped generations entirely** — one generation, a single heap, concurrent relocation and compaction. However, non-generational collectors paid a heavy CPU tax re-tracing old objects under high allocation rates, resulting in allocation stalls. In response, **Java 21 introduced Generational ZGC (JEP 439)**: it re-introduced young/old generations using concurrent load and store barriers without requiring contiguous regions. **G1** kept the split as a *heuristic over regions* rather than fixed spaces, aging regions on demand. The modern consensus: **generational collection remains essential for allocation-heavy workloads, but modern collectors decouple generations from stop-the-world phases.**
 
 **Q: Explain the write barriers used by each collector and what they cost.**
-**A:** **G1** uses a **SATB (post-write) barrier** — on every reference write it logs the *old* value into a per-thread buffer, and it also maintains the **remembered set** and **card table** so that a region's incoming references are known. **ZGC** uses a **load barrier** with **coloured pointers**: the pointer's metadata bits encode the object's colour (marked/relocated/unmarked), and on every read the application checks the colour; if the object was relocated, the barrier re-reads the new address. **Shenandoah** uses a **Brooks forwarding pointer**: the object header holds a pointer to the new copy, and every reference to the object is updated in place via a compare-and-swap. The cost profile follows directly: G1 taxes **writes**, ZGC taxes **reads** (and needs multi-mapping to avoid copying physical pages), Shenandoah taxes **reads** with a CAS. That is why ZGC's CPU overhead is higher on read-heavy workloads and why Shenandoah struggles with very high allocation rates.
+**A:** **G1** uses a **SATB (post-write) barrier** — on every reference write it logs the *old* value into a per-thread buffer, and it also maintains the **remembered set** and **card table** so that a region's incoming references are known. **Single-generation ZGC** used only a **load barrier** with **coloured pointers**: the pointer's metadata bits encode the object's colour (marked/relocated/unmarked), and on every read the application checks the colour; if the object was relocated, the barrier self-heals and re-reads the new address. **Generational ZGC (Java 21+)** uses **both load barriers (for concurrent relocation self-healing) and lightweight store barriers** (to record old-to-young pointers into remembered sets). **Shenandoah** uses a **Brooks forwarding pointer**: the object header holds a pointer to the new copy, and every reference to the object is updated in place via a compare-and-swap. The cost profile follows directly: G1 taxes **writes**, early ZGC taxed **reads**, Generational ZGC taxes **reads and writes lightly**, Shenandoah taxes **reads** with a CAS. That is why G1 has lower read overhead, while Generational ZGC delivers sub-millisecond pauses across multi-terabyte heaps even under intense allocation rates.
 
 **Q: A service's heap usage is stable but p99 latency spikes correlate with GC. What would you investigate?**
 **A:** Stable heap usage rules out a leak, so I would look at *pause composition* rather than pause duration alone. Concretely: (1) Is it a **young** GC or a **mixed/full** GC? Mixed GCs are much longer. (2) Is there a **humongous allocation**? A single large array can force a full GC. (3) Is the pause actually **safepoint** time? (`-Xlog:safepoint` shows the total safepoint time, and a biased-lock revocation or a `ClassLoader` operation can dominate.) (4) Is **promotion** spiking? A high promotion rate makes each young GC more expensive. (5) Is the JVM **sharing** the CPU with the GC threads under a container quota? (6) Are the app's own pauses (e.g. a `synchronized` convoy or a slow `finalize()`) being misattributed to GC? I would correlate the GC log timestamps with the application's own request-latency log to confirm the attribution before tuning anything.
@@ -1515,8 +1574,8 @@ public final class ResourceRegistry<K> {
 ### CQ7. "If ZGC gives sub-millisecond pauses, why isn't it the default?"
 
 - **Naive answer:** "Because it requires more CPU."  ← true, but not the whole story
-- **The trap:** The interviewer may push on *compatibility*: ZGC is not supported on all platforms, and there are **allocation-heavy** workloads where ZGC's load barriers and multi-mapping cost more than they save. Also, for small heaps, the overhead is not worth it.
-- **Expert answer:** ZGC trades CPU for latency. On a 100 GB heap with a strict p99.9 SLO, that trade is obviously right. On a 512 MB heap with a 50 ms SLO, G1's pauses are already sub-millisecond in practice, and ZGC's extra CPU would be wasted. Plus: ZGC is not available on every platform (notably 32-bit), and its behaviour with very high allocation rates has historically been weaker than G1's. The collector choice is a *requirement* decision, not a "newest is best" decision.
+- **The trap:** The interviewer may push on *compatibility* and *trade-offs*: Single-generation ZGC suffered under high allocation rates (allocation stalls) and required higher memory headroom. While **Generational ZGC (Java 21+ JEP 439)** solved the allocation stall problem with 4× higher throughput tolerance, G1 remains the balanced default across the industry.
+- **Expert answer:** ZGC trades CPU cycles for ultra-low tail latency. On a 64 GB+ heap with a strict p99.9 < 5 ms SLA, Generational ZGC (`-XX:+UseZGC -XX:+ZGenerational`) is unmatched. However, on small heaps (e.g. 512 MB – 2 GB) or throughput-centric batch workloads, G1 or Parallel GC deliver higher overall throughput per watt and smaller memory footprints. Furthermore, G1's default 200 ms soft pause goal is already well below the latency requirements of 90% of business microservices. Choosing a GC is an engineering trade-off between throughput, footprint, and pause latency.
 
 ### CQ8. "How would you know the difference between a memory leak and a cache that is simply too big?"
 
@@ -1547,6 +1606,19 @@ public final class ResourceRegistry<K> {
 - **Naive answer:** "Look at the GC log's pause times."  ← necessary, not sufficient
 - **The trap:** GC pauses are not the only source of latency; and the GC log's pause time excludes **safepoint** time and the time the mutator spends in the load barrier.
 - **Expert answer:** Two layers. (1) *Attribution*: correlate GC log timestamps with request-latency traces (the GC log line carries a wall-clock timestamp) to confirm that the slow requests really coincide with a pause. (2) *Completeness*: enable `-Xlog:safepoint` and look at **total** safepoint time, not just the GC pause — a class-loading storm or a biased-lock revocation can produce a multi-second safepoint with no GC at all. In a container with a CPU quota, also check whether the GC threads are *starved* — the pause can be short but the mutator can be descheduled. The modern tool for this is **JFR** (`jdk.GCPhasePause`, `jdk.SafepointBegin`, `jdk.ThreadPark`), which gives you the full picture in one recording.
+
+### CQ13. "We set -Xmx4g on a 4GB Kubernetes pod and the container keeps dying with Exit Code 137, but there is no OutOfMemoryError in logs. Why?"
+
+- **Naive answer:** "Kubernetes is killing it due to a transient pod eviction or failed health check."  ← missing the container memory boundary
+- **The trap:** Failing to realize that `-Xmx` controls **only the Java heap**, while the Linux kernel cgroup controller enforces limits on the **entire process Resident Set Size (RSS)**.
+- **Expert answer:** When a Kubernetes pod specifies `resources.limits.memory: 4Gi`, the Linux kernel enforces this via cgroups (`memory.max` in cgroup v2). The JVM process RSS consists of:
+  $$\text{Total RSS} = \text{Heap} + \text{Metaspace} + \text{CodeCache} + \text{Direct NIO} + (N_{\text{threads}} \times \text{-Xss}) + \text{GC Structures} + \text{glibc/JVM Internal}$$
+  If `-Xmx` is set to 4GB, any off-heap allocation (even 200MB of Metaspace or 100 threads × 1MB) immediately pushes total RSS beyond 4GB. The Linux kernel OOM Killer sends an uncatchable `SIGKILL` (`exit code 137 = 128 + 9`). Because it is a kernel-level kill, HotSpot cannot throw `OutOfMemoryError` and `-XX:+HeapDumpOnOutOfMemoryError` will never trigger.
+  **The Fix:**
+  1. Remove hardcoded `-Xmx4g`. Use `-XX:MaxRAMPercentage=75.0` (reserves ~1GB for off-heap in a 4GB pod).
+  2. Bound off-heap: `-XX:MaxMetaspaceSize=256m` and `-XX:MaxDirectMemorySize=256m`.
+  3. Reduce thread stack: `-Xss512k`.
+  4. Verify container termination cause: `kubectl describe pod <pod>` showing `OOMKilled: true`, or check `/sys/fs/cgroup/memory.events` for `oom_kill` increments.
 
 ---
 
@@ -1651,8 +1723,13 @@ public final class ResourceRegistry<K> {
 │                      │ humongous = > ½ region → old gen, contiguous → full-GC risk;  │
 │                      │ SATB write barrier; remembered set; compacts                   │
 ├──────────────────────┼──────────────────────────────────────────────────────────────────┤
-│ ZGC / Shenandoah     │ fully concurrent, sub-ms pauses; coloured pointers+load       │
-│                      │ barriers (ZGC) / Brooks forwarding pointers (Shenandoah)        │
+│ ZGC (Generational)   │ sub-ms pauses (<1ms); JEP 439 (Java 21+); coloured pointers,  │
+│                      │ concurrent load & store barriers; -XX:+UseZGC -XX:+ZGenerational│
+│ Shenandoah           │ concurrent compaction; Brooks forwarding pointer               │
+├──────────────────────┼──────────────────────────────────────────────────────────────────┤
+│ Container Flags      │ -XX:InitialRAMPercentage / -XX:MaxRAMPercentage=75.0%           │
+│                      │ Total RSS = Heap + Metaspace + CodeCache + Direct + Threads   │
+│                      │ Exceeding limit -> SIGKILL (exit 137, no OOM stack trace)       │
 ├──────────────────────┼──────────────────────────────────────────────────────────────────┤
 │ Reference strengths  │ strong (never) │ soft (under pressure) │ weak (next GC) │      │
 │                      │ phantom (post-mortem, get()==null)                            │
@@ -1720,6 +1797,45 @@ java \
 | `UseStringDeduplication` | In a service full of JSON parsing, `String` objects duplicate their `byte[]` in the old gen; this can cut old-gen usage by 10–30%. |
 | `NativeMemoryTracking=summary` | Enables `jcmd VM.native_memory summary` — the only way to attribute native memory. Costs ~5% overhead; enable it when investigating. |
 | `StartFlightRecording=...settings=profile` | Continuous, low-overhead profiling: allocation rates, GC phase pauses, safepoints, lock contention. This is your "always-on" observability. |
+
+#### 12.1.1 Generational ZGC Flag Profile (Java 21+, JEP 439)
+
+For ultra-low tail latency applications (trading engines, payment gateways, real-time gaming) requiring sub-millisecond pauses across large heaps (8 GB to multi-terabyte):
+
+```bash
+java \
+  -XX:+UseZGC \
+  -XX:+ZGenerational \                              # enables Generational ZGC in Java 21/22 (default in Java 23+)
+  -XX:InitialRAMPercentage=70.0 \
+  -XX:MaxRAMPercentage=75.0 \                       # dynamically bounds heap to 75% of container RAM
+  -XX:SoftMaxHeapSize=12g \                         # elastic target: ZGC uncommits unneeded pages above 12GB to OS
+  -XX:ZAllocationSpikeTolerance=3.0 \               # triggers concurrent collection earlier during bursty traffic
+  -XX:MaxMetaspaceSize=256m \
+  -XX:MaxDirectMemorySize=512m \
+  -XX:+ExitOnOutOfMemoryError \
+  -Xlog:gc*,safepoint:file=/var/log/app-zgc.log:time,uptime,level,tags:filecount=5,filesize=50M \
+  -jar app.jar
+```
+
+#### 12.1.2 Production Kubernetes Container Flag Profile
+
+For containerized microservices running in Docker / Kubernetes pods under strict cgroup memory and CPU limits:
+
+```bash
+java \
+  -XX:+UseContainerSupport \                        # auto-detects cgroup v1 and cgroup v2 RAM and CPU limits
+  -XX:InitialRAMPercentage=50.0 \                   # start heap at 50% of pod limit
+  -XX:MaxRAMPercentage=70.0 \                       # cap heap at 70% (leaves 30% headroom for off-heap & native RSS)
+  -XX:ActiveProcessorCount=2 \                      # set when pod CPU limit is fractional (e.g. 1500m or 2 cores)
+  -XX:MaxMetaspaceSize=256m \                       # prevents classloader leaks from causing kernel OOM kills
+  -XX:MaxDirectMemorySize=256m \                    # bounds NIO / Netty / gRPC direct buffers
+  -XX:ReservedCodeCacheSize=240m \
+  -Xss512k \                                        # halves thread stack footprint vs 1MB default
+  -XX:+ExitOnOutOfMemoryError \                     # immediately exits on heap OOM -> Kubernetes restarts the pod
+  -XX:+HeapDumpOnOutOfMemoryError \
+  -XX:HeapDumpPath=/var/log/dumps/oom.hprof \
+  -jar microservice.jar
+```
 
 ### 12.2 The GC incident runbook
 
