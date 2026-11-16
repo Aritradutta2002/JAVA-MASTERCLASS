@@ -18,12 +18,34 @@
   - [3.2 Intermediate Level](#32-intermediate-level)
   - [3.3 Advanced Level](#33-advanced-level)
   - [3.4 Expert Level](#34-expert-level)
+    - [3.4.1 RFC 9449: Demonstrating Proof of Possession (DPoP) at the Application Layer](#341-rfc-9449-demonstrating-proof-of-possession-dpop-at-the-application-layer)
+    - [3.4.2 Nested JWE (RFC 7516 Encrypted JWT Containing Signed JWS RFC 7515)](#342-nested-jwe-rfc-7516-encrypted-jwt-containing-signed-jws-rfc-7515)
+    - [3.4.3 Advanced Claims-to-Authority Architecture in Spring Security 6](#343-advanced-claims-to-authority-architecture-in-spring-security-6)
 - [4. Internal Working Mechanism](#4-internal-working-mechanism)
+  - [4.1 The Complete Spring Security 6 Validation Pipeline](#41-the-complete-spring-security-6-validation-pipeline)
+  - [4.2 The Five Validation Phases & Their Defences](#42-the-five-validation-phases--their-defences)
+  - [4.3 DPoP Verification Pipeline & Server-Nonce Management](#43-dpop-verification-pipeline--server-nonce-management)
+  - [4.4 Nested JWE Decryption & Verification Dual-Phase Pipeline](#44-nested-jwe-decryption--verification-dual-phase-pipeline)
 - [5. Step-by-Step Execution Flow](#5-step-by-step-execution-flow)
 - [6. Visualizations](#6-visualizations)
+  - [6.1 The validation decision tree — and the attack each branch blocks (Mermaid flowchart)](#61-the-validation-decision-tree--and-the-attack-each-branch-blocks-mermaid-flowchart)
+  - [6.2 The complete login flow (Mermaid sequence)](#62-the-complete-login-flow-mermaid-sequence)
+  - [6.3 The service-to-service `act` / impersonation flow (Mermaid sequence)](#63-the-service-to-service-act--impersonation-flow-mermaid-sequence)
+  - [6.4 The hardening checklist, grouped (ASCII)](#64-the-hardening-checklist-grouped-ascii)
+  - [6.5 DPoP Handshake, Nonce Challenge & Sender-Constraining (Mermaid Sequence)](#65-dpop-handshake-nonce-challenge--sender-constraining-mermaid-sequence)
+  - [6.6 Nested JWE Serialization Anatomy (ASCII Diagram)](#66-nested-jwe-serialization-anatomy-ascii-diagram)
 - [7. Production-Level Use Cases & Real Industry Examples](#7-production-level-use-cases--real-industry-examples)
 - [8. Worked Examples (with Output + Dry Run)](#8-worked-examples-with-output--dry-run)
+  - [8.1 Worked Example 1 — The algorithm-confusion attack, demonstrated and blocked](#81-worked-example-1--the-algorithm-confusion-attack-demonstrated-and-blocked)
+  - [8.2 Worked Example 2 — A complete, explicit `JwtAuthenticationConverter`](#82-worked-example-2--a-complete-explicit-jwtauthenticationconverter)
+  - [8.3 Worked Example 3 — A multi-tenant token with a forged `tenant_id`](#83-worked-example-3--a-multi-tenant-token-with-a-forged-tenant_id)
+  - [8.4 Worked Example 4 — DPoP Proof Token Generation, ath Binding & Nonce Challenge](#84-worked-example-4--dpop-proof-token-generation-ath-binding--nonce-challenge)
+  - [8.5 Worked Example 5 — Nested JWE Construction, Decryption & Validation](#85-worked-example-5--nested-jwe-construction-decryption--validation)
 - [9. Code from Scratch — Production-Grade](#9-code-from-scratch--production-grade)
+  - [9.1 Hardened Spring Security 6 Resource Server Configuration](#91-hardened-spring-security-6-resource-server-configuration)
+  - [9.2 Spring Security 6 Resource Server with Custom `JwtAuthenticationConverter`](#92-spring-security-6-resource-server-with-custom-jwtauthenticationconverter)
+  - [9.3 Spring Security 6 DPoP Verification Filter & Proof Token Validator](#93-spring-security-6-dpop-verification-filter--proof-token-validator)
+  - [9.4 Spring Security 6 Nested JWE Nimbus Decoder Bean](#94-spring-security-6-nested-jwe-nimbus-decoder-bean)
 - [10. Common Mistakes & Gotchas](#10-common-mistakes--gotchas)
 - [11. Performance Considerations](#11-performance-considerations)
 - [12. Security Considerations](#12-security-considerations)
@@ -420,7 +442,197 @@ has an overlap window; (3) the issuer applies **its own** policy (it will not mi
 
 ---
 
+
+### 3.4.1 RFC 9449: Demonstrating Proof of Possession (DPoP) at the Application Layer
+
+#### The Bearer Token Dilemma (RFC 6750)
+The standard OAuth 2.0 / JWT paradigm relies on **Bearer Tokens**:
+> *"Any party in possession of a bearer token (a 'bearer') can use it to get access to the associated resources, without having to prove possession of the cryptographic key that was used to create it."*
+
+If an attacker captures a bearer token—via Cross-Site Scripting (XSS), insecure logging, proxy inspection, browser cache leakage, or a man-in-the-middle TLS termination point—the attacker can replay the token from any machine on the planet until the token expires.
+
+#### The Sender-Constraining Architecture
+**DPoP (RFC 9449)** transforms bearer tokens into **sender-constrained tokens** at the application layer, without requiring the complex public-key infrastructure (PKI) of Mutual TLS (mTLS / RFC 8705).
+
+In DPoP:
+1. The **client** generates an asymmetric key pair (e.g., ECDSA with P-256 curve `ES256`, or `Ed25519`). The private key *never leaves the client's secure enclave / storage*.
+2. When requesting an access token from the Authorization Server, the client creates an ephemeral **DPoP Proof Token** (a signed JWT) and passes it in the `DPoP` HTTP header.
+3. The Authorization Server computes the **JWK Thumbprint (RFC 7638)** of the client's public key ($SHA\text{-}256$ of the canonical JSON representation of the JWK) and embeds it into the minted access token under the `cnf` (confirmation) claim:
+   ```json
+   {
+     "iss": "https://auth.example.com",
+     "sub": "user_44912",
+     "aud": "https://api.example.com",
+     "exp": 1763294400,
+     "cnf": {
+       "jkt": "0ZcOCORZTXKIAoYTbx7qnh4UEBK2vd6xVC_NIHAn38Q"
+     }
+   }
+   ```
+4. For every subsequent API call to a Resource Server, the client must present **both**:
+   - The sender-constrained access token (in `Authorization: DPoP <access_token>`).
+   - A fresh DPoP Proof Token (in `DPoP: <proof_jwt>`).
+
+#### Anatomy of a DPoP Proof Token
+The DPoP proof is a lightweight, single-use signed JWT containing:
+
+**Header:**
+```json
+{
+  "typ": "dpop+jwt",
+  "alg": "ES256",
+  "jwk": {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "l8_WDMW2P6B3m7VvX1tFvK-j3k-H8L9D4H2D3E1F5G0",
+    "y": "m9_XENX3Q7C4n8WwY2uGwL-k4l-I9M0E5I3E4F2G6H1"
+  }
+}
+```
+*Note:* The public key is explicitly declared inside the `jwk` header parameter.
+
+**Payload:**
+```json
+{
+  "jti": "dpop_uuid_b6f9a0c1",
+  "htm": "POST",
+  "htu": "https://api.example.com/api/v1/payments",
+  "iat": 1763290800,
+  "ath": "fUHyO2r2Z3DZ532ZTflux0qcVu6KcR6PCJMMRBRFsr8",
+  "nonce": "server_nonce_9921_abc"
+}
+```
+
+#### The Six Invariants of DPoP Verification
+When a Resource Server receives an API request, it validates:
+1. **Proof Token Typing:** The DPoP proof header `typ` MUST be exactly `dpop+jwt`.
+2. **Cryptographic Signature:** The signature MUST verify using the public key embedded in the header's `jwk`.
+3. **Sender Binding (`cnf.jkt`):** The SHA-256 thumbprint of the embedded `jwk` MUST strictly match the `cnf.jkt` claim inside the access token. If a captured access token is presented with an attacker's key, thumbprint matching fails!
+4. **HTTP Method Binding (`htm`):** The `htm` claim MUST case-insensitively match the actual HTTP request method (`POST`, `GET`, etc.).
+5. **HTTP URI Binding (`htu`):** The `htu` claim MUST match the target endpoint URI, strictly excluding query parameters and fragment identifiers. A proof minted for `GET /api/v1/profile` cannot be replayed against `POST /api/v1/transfers`!
+6. **Access Token Hash Binding (`ath`):** The `ath` claim MUST match the base64url-encoded SHA-256 hash of the presented access token:
+   $$\text{ath} = \text{Base64URL}(\text{SHA-256}(\text{access\_token}))$$
+   This prevents an attacker from splicing a valid DPoP proof from one request onto a stolen access token.
+
+#### Replay Prevention via Server Nonce (`DPoP-Nonce`)
+Even with short validity windows (`iat` $\pm 60$ seconds), an eavesdropped DPoP proof could be replayed within that 60-second window. RFC 9449 solves this via **Server-Supplied Nonces**:
+1. When the client invokes the Resource Server without a nonce (or with a stale/expired nonce), the server immediately rejects the request with **HTTP 401 Unauthorized**:
+   ```http
+   HTTP/1.1 401 Unauthorized
+   WWW-Authenticate: DPoP error="use_dpop_nonce", error_description="Authorization server requires a new DPoP nonce"
+   DPoP-Nonce: eyJhbGciOi...eyJzZXJ2ZXJfbm9uY2UiOi...
+   ```
+2. The client intercepts the 401, extracts the `DPoP-Nonce` response header, caches it, creates a fresh DPoP proof containing that `nonce`, and retries the request.
+3. The Resource Server validates that the nonce exists in its cache/HMAC table and consumes or cycles it, reducing the replay window to **zero**.
+
+---
+
+### 3.4.2 Nested JWE (RFC 7516 Encrypted JWT Containing Signed JWS RFC 7515)
+
+#### The Confidentiality Problem with Standard JWS
+Standard JSON Web Tokens (RFC 7519) are digitally signed using JSON Web Signature (JWS / RFC 7515). JWS provides **authenticity, data integrity, and non-repudiation**—but provides **zero confidentiality**.
+The payload is merely base64url encoded. Anyone who inspects network traffic, examines reverse-proxy access logs, reads browser local storage, or inspects application performance monitoring (APM) spans can decode the payload instantly.
+
+Placing sensitive assertions—such as Primary Account Numbers (PAN), Social Security Numbers (SSN), security clearance classifications, or customer health records—inside a standard JWS is an immediate data confidentiality violation.
+
+#### The Architectural Solution: Nested JWE
+A **Nested JWE** (RFC 7516 Section 1.1) encapsulates a digitally signed JWS *inside* an encrypted JWE.
+- The **inner JWS** guarantees authenticity: proves who authored the token.
+- The **outer JWE** guarantees confidentiality: ensures only the designated recipient possessing the private decryption key can view the claims.
+
+#### The Cryptographic Ordering Rule: Sign-then-Encrypt
+In cryptography, the order of composition is critical:
+$$\text{Nested JWT} = \text{Encrypt}_{K_{recipient}}(\text{Sign}_{K_{sender}}(\text{Claims}))$$
+
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        NESTED JWE: SIGN-THEN-ENCRYPT INVARIANT                         │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ 1. SIGN PHASE (Sender/Issuer):                                                         │
+│    Claims Set ──▶ Signed with Sender's Private Key (RS256) ──▶ Inner JWS (3-part)      │
+│                                                                                        │
+│ 2. ENCRYPT PHASE (Sender/Issuer):                                                      │
+│    Inner JWS ──▶ Encrypted with Recipient's Public Key (RSA-OAEP-256 + A256GCM)        │
+│              ──▶ Outer JWE (5-part Compact Serialization)                              │
+│                                                                                        │
+│ 3. DECRYPT PHASE (Recipient/Resource Server):                                          │
+│    Outer JWE ──▶ Decrypted with Recipient's Private Key ──▶ Recovered Inner JWS        │
+│                                                                                        │
+│ 4. VERIFY PHASE (Recipient/Resource Server):                                           │
+│    Inner JWS ──▶ Signature Verified with Sender's Public Key ──▶ Validated Claims Set  │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Why NOT Encrypt-then-Sign? (The Surreptitious Forwarding Attack)
+If an architecture mistakenly implements *Encrypt-then-Sign*:
+1. Alice encrypts sensitive data for Bob: $C = \text{Encrypt}_{Bob}(\text{Data})$.
+2. Alice signs the ciphertext: $\text{Token} = \text{Sign}_{Alice}(C)$.
+3. Eve intercepts the token in transit. Eve cannot read $C$, but Eve can **strip Alice's signature**, append her own signature: $\text{Token}_{Eve} = \text{Sign}_{Eve}(C)$, and forward it to Bob.
+4. Bob decrypts $C$ and verifies Eve's signature. Bob falsely concludes that *Eve* authored the data!
+
+Under **Sign-then-Encrypt**, Alice's signature is sealed *inside* the ciphertext. Eve cannot strip the signature without decrypting $C$, which she cannot do without Bob's private key. The identity of the author is cryptographically bound to the plaintext.
+
+#### Outer JWE vs Inner JWS Headers
+The outer JWE header explicitly declares `cty: "JWT"` (Content Type) to instruct the decoder that the decrypted payload is not raw JSON, but a signed JWS token:
+
+**Outer JWE Protected Header (5 parts):**
+```json
+{
+  "alg": "RSA-OAEP-256",
+  "enc": "A256GCM",
+  "cty": "JWT",
+  "kid": "recip-key-2026"
+}
+```
+- `alg`: Key Management Algorithm used to encrypt the Content Encryption Key (CEK).
+- `enc`: Authenticated Encryption Algorithm used to encrypt the payload.
+- `cty`: Indicates the encapsulated content is a JWT.
+
+**Inner JWS Protected Header (3 parts):**
+```json
+{
+  "alg": "RS256",
+  "kid": "issuer-key-2026"
+}
+```
+
+---
+
+### 3.4.3 Advanced Claims-to-Authority Architecture in Spring Security 6
+
+In enterprise environments, identity providers (Keycloak, Okta, Azure AD, Auth0, PingFederate) do not emit simple flat role lists. Roles are nested inside hierarchical claims structures:
+
+**Sample Enterprise Keycloak JWT Payload:**
+```json
+{
+  "iss": "https://auth.example.com/realms/enterprise",
+  "sub": "usr_9912",
+  "tenant_id": "corp_north",
+  "realm_access": {
+    "roles": ["FINANCE_USER", "OFFICER"]
+  },
+  "resource_access": {
+    "order-service": {
+      "roles": ["ORDER_APPROVER", "PAYMENT_INITIATOR"]
+    }
+  },
+  "permissions": ["orders:read", "orders:write", "payments:execute"]
+}
+```
+
+The default Spring Security `JwtAuthenticationConverter` inspects only the `scope` or `scp` claim and maps them to `SCOPE_<name>`.
+An enterprise Resource Server requires a custom converter that:
+1. Traverses nested JSON maps (`realm_access.roles` and `resource_access.{client}.roles`).
+2. Converts roles into `GrantedAuthority` objects prefixed with `ROLE_`.
+3. Converts fine-grained scopes/permissions into un-prefixed authorities (`orders:read`).
+4. Extracts domain subject attributes (`tenant_id`, `email`, `department`) into an immutable `SecurityUser` principal.
+5. Returns a strongly typed `JwtAuthenticationToken` or custom `Authentication` implementation.
+
+---
+
 ## 4. Internal Working Mechanism
+
+### 4.1 The Complete Spring Security 6 Validation Pipeline
 
 **Where each defence lives in the Spring Security chain.**
 
@@ -457,6 +669,8 @@ FilterChainProxy
          never from a request header.
 ```
 
+### 4.2 The Five Validation Phases & Their Defences
+
 **The two classes you would write for this chapter.**
 
 | Class | Responsibility | The attack it blocks |
@@ -472,6 +686,88 @@ FilterChainProxy
 `DelegatingOAuth2TokenValidator`, it runs **after** the signature is verified, and it
 produces a single, consistent error shape. Writing these checks in a `Filter` or in
 the controller means they can be bypassed by a code path that forgot them.
+
+---
+
+
+### 4.3 DPoP Verification Pipeline & Server-Nonce Management
+
+The DPoP verification pipeline operates as an early-stage filter before `BearerTokenAuthenticationFilter`:
+
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        RFC 9449 DPoP VERIFICATION PIPELINE                             │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ 1. HEADER INSPECTION:                                                                  │
+│    - Check Authorization header format: "Authorization: DPoP <token>" (or Bearer)      │
+│    - Check DPoP proof header: "DPoP: <proof_jwt>"                                      │
+│    - If access token has cnf.jkt but DPoP header is missing ──▶ REJECT (401)           │
+│                                                                                        │
+│ 2. PROOF TOKEN VERIFICATION:                                                           │
+│    - Parse DPoP JWT: Assert header typ == "dpop+jwt"                                   │
+│    - Extract header jwk: Verify signature of DPoP proof using this public key          │
+│    - Assert algorithm is an approved asymmetric algorithm (ES256, Ed25519, RS256)     │
+│    - Reject symmetric algorithms (HS256) or "none" immediately                         │
+│                                                                                        │
+│ 3. SENDER BINDING VERIFICATION:                                                        │
+│    - Compute SHA-256 JWK Thumbprint (RFC 7638) of the embedded public key             │
+│    - Assert Thumbprint == access_token.claims.cnf.jkt                                  │
+│                                                                                        │
+│ 4. REQUEST BINDING VERIFICATION:                                                       │
+│    - Assert proof.htm.equalsIgnoreCase(request.getMethod())                            │
+│    - Assert proof.htu.equals(canonicalRequestUri(request))                             │
+│    - Compute SHA-256 of access token: Base64URL(SHA-256(access_token))                │
+│    - Assert proof.ath.equals(computedHash)                                             │
+│                                                                                        │
+│ 5. REPLAY & NONCE VERIFICATION:                                                        │
+│    - Assert proof.iat is within ±60s clock skew window                                 │
+│    - Validate server-issued nonce against distributed cache (Redis)                    │
+│    - If nonce is missing or expired:                                                   │
+│        Generate fresh server nonce                                                     │
+│        Return 401 with WWW-Authenticate: DPoP error="use_dpop_nonce"                   │
+│        Set response header: DPoP-Nonce: <fresh_nonce>                                  │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 4.4 Nested JWE Decryption & Verification Dual-Phase Pipeline
+
+Processing a Nested JWE requires a two-stage decoupled pipeline in Spring Security 6:
+
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                 NESTED JWE DUAL-STAGE PIPELINE IN SPRING SECURITY 6                    │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ Ingress HTTP Request: "Authorization: Bearer <5-part-JWE>"                             │
+│        │                                                                               │
+│        ▼                                                                               │
+│ ┌────────────────────────────────────────────────────────────────────────────────┐     │
+│ │ STAGE 1: JWE DECRYPTION (Nimbus EncryptedJWT)                                  │     │
+│ │ - Parses 5-part compact serialization: Header.EncKey.IV.Ciphertext.AuthTag     │     │
+│ │ - Inspects outer header: alg="RSA-OAEP-256", enc="A256GCM", cty="JWT"          │     │
+│ │ - Decrypts Content Encryption Key (CEK) using Resource Server's RSA Private Key│     │
+│ │ - Authenticated AES-GCM Decryption recovers decrypted payload string           │     │
+│ └───────────────────────────────────────┬────────────────────────────────────────┘     │
+│                                         │ Payload is Inner JWS String                  │
+│                                         ▼                                              │
+│ ┌────────────────────────────────────────────────────────────────────────────────┐     │
+│ │ STAGE 2: JWS SIGNATURE VERIFICATION (Nimbus SignedJWT)                         │     │
+│ │ - Parses 3-part compact serialization: Header.Payload.Signature                │     │
+│ │ - Inspects inner header: alg="RS256", kid="issuer-key-2026"                    │     │
+│ │ - Fetches Issuer's public key from JWKS matching kid                           │     │
+│ │ - Verifies cryptographic signature using Issuer's Public Key                   │     │
+│ │ - Runs timestamp, issuer, and audience validator chain                        │     │
+│ └───────────────────────────────────────┬────────────────────────────────────────┘     │
+│                                         │ Validated Claims Set                         │
+│                                         ▼                                              │
+│ ┌────────────────────────────────────────────────────────────────────────────────┐     │
+│ │ STAGE 3: CLAIMS TO AUTHORITIES CONVERSION                                      │     │
+│ │ - Custom JwtAuthenticationConverter maps validated claims to GrantedAuthorities│     │
+│ │ - Binds custom SecurityUser to SecurityContextHolder                           │     │
+│ └────────────────────────────────────────────────────────────────────────────────┘     │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -723,6 +1019,91 @@ check, a caller holding any valid token could set `act` and impersonate.
 issuer's job, group ② is every resource server's job, and groups ③–⑤ are the
 operational discipline. In an interview, reciting items from **group ②** is what marks
 you out as someone who has actually deployed this.
+
+---
+
+
+### 6.5 DPoP Handshake, Nonce Challenge & Sender-Constraining (Mermaid Sequence)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as Client App (Holds Private Key)
+    participant RS as Resource Server (Spring Security 6)
+    participant AS as Authorization Server (IdP)
+
+    Note over Client,AS: 1. Token Issuance Phase
+    Client->>Client: Generate ephemeral EC Key Pair (ES256)
+    Client->>Client: Create DPoP Proof Token (typ: dpop+jwt, jwk: ClientPubKey)
+    Client->>AS: POST /oauth/token (grant_type=authorization_code, DPoP: <proof>)
+    AS->>AS: Verify DPoP Proof & compute jkt = SHA256(ClientPubKey)
+    AS-->>Client: 200 OK: Access Token (Contains "cnf": {"jkt": "<jkt_hash>"})
+
+    Note over Client,RS: 2. API Invocations with Nonce Challenge
+    Client->>Client: Sign DPoP Proof (htm: POST, htu: /api/transfers, ath: SHA256(Token), no nonce)
+    Client->>RS: POST /api/transfers (Authorization: DPoP <Token>, DPoP: <Proof>)
+    RS->>RS: DPoP Filter: Missing Server Nonce!
+    RS-->>Client: 401 Unauthorized (DPoP-Nonce: server_nonce_9981a, error: use_dpop_nonce)
+
+    Note over Client,RS: 3. Retry with Server-Supplied Nonce
+    Client->>Client: Create fresh DPoP Proof with nonce: "server_nonce_9981a"
+    Client->>RS: POST /api/transfers (Authorization: DPoP <Token>, DPoP: <FreshProof>)
+    RS->>RS: 1. Verify DPoP Signature via embedded jwk<br/>2. Match SHA256(jwk) == Token cnf.jkt<br/>3. Verify htm == POST & htu == /api/transfers<br/>4. Verify ath == SHA256(Token)<br/>5. Validate & consume server_nonce_9981a
+    RS-->>Client: 200 OK (Transfer Executed Successfully)
+
+    Note over Client,RS: 4. Stolen Token Replay Attempt (Attacker without Client Private Key)
+    actor Attacker as Malicious Eavesdropper
+    Attacker->>Attacker: Intercepted Token with cnf.jkt
+    Attacker->>Attacker: Generates own EC Key Pair & DPoP Proof
+    Attacker->>RS: POST /api/transfers (Authorization: DPoP <Token>, DPoP: <AttackerProof>)
+    RS->>RS: Compute SHA256(AttackerPubKey) != Token cnf.jkt
+    RS-->>Attacker: 401 Unauthorized ("DPoP sender thumbprint mismatch!")
+```
+
+---
+
+### 6.6 Nested JWE Serialization Anatomy (ASCII Diagram)
+
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        NESTED JWE COMPACT SERIALIZATION ANATOMY                        │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                        │
+│  OUTER ENCRYPTED JWT (RFC 7516) - 5 DOT-SEPARATED BASE64URL SEGMENTS:                  │
+│                                                                                        │
+│  Segment 1: Protected Header                                                           │
+│  {"alg":"RSA-OAEP-256","enc":"A256GCM","cty":"JWT","kid":"recip-2026"}               │
+│       │                                                                                │
+│       ▼ (.)                                                                            │
+│  Segment 2: Encrypted Key (Content Encryption Key encrypted with Recipient RSA PubKey) │
+│  AQIB...88xQ                                                                           │
+│       │                                                                                │
+│       ▼ (.)                                                                            │
+│  Segment 3: Initialization Vector (IV - 96-bit nonce for AES-GCM)                      │
+│  48Gj...12kA                                                                           │
+│       │                                                                                │
+│       ▼ (.)                                                                            │
+│  Segment 4: Ciphertext (Encrypted Payload)                                             │
+│  ┌──────────────────────────────────────────────────────────────────────────────┐     │
+│  │  DECRYPTED CIPHERTEXT REVEALS THE INNER SIGNED JWS (RFC 7515):                │     │
+│  │                                                                              │     │
+│  │  Inner Segment 1: JWS Header                                                 │     │
+│  │  {"alg":"RS256","kid":"issuer-2026"}                                         │     │
+│  │       │                                                                      │     │
+│  │       ▼ (.)                                                                  │     │
+│  │  Inner Segment 2: JWS Claims Payload                                         │     │
+│  │  {"iss":"https://auth.example.com","sub":"u991","pan":"4111-XXXX-XXXX-1111"}│     │
+│  │       │                                                                      │     │
+│  │       ▼ (.)                                                                  │     │
+│  │  Inner Segment 3: JWS Signature (Signed with Issuer RSA Private Key)         │     │
+│  │  pL90...k11Z                                                                 │     │
+│  └──────────────────────────────────────────────────────────────────────────────┘     │
+│       │                                                                                │
+│       ▼ (.)                                                                            │
+│  Segment 5: Authentication Tag (128-bit GCM MAC protecting integrity & AAD)           │
+│  x9Lk...00pQ                                                                           │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -1175,7 +1556,176 @@ the token was valid, so this is **403** (authenticated but not authorised), **no
 
 ---
 
+
+### 8.4 Worked Example 4 — DPoP Proof Token Generation, ath Binding & Nonce Challenge
+
+#### Problem Statement
+Prove how a Resource Server validates RFC 9449 DPoP proof tokens, enforces `ath` access-token binding, and blocks an attacker attempting to use a stolen access token.
+
+#### Step 1: Client Issues Initial Request Without Nonce
+```bash
+curl -i -X POST https://api.example.com/api/v1/payments \
+     -H "Authorization: DPoP eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..." \
+     -H "DPoP: eyJhbGciOiJFUzI1NiIsInR5cCI6ImRwb3Arand0IiwandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiYzg5...\"" \
+     -H "Content-Type: application/json" \
+     -d '{"amount": 500.00, "recipient": "acc_88192"}'
+```
+
+#### Actual HTTP 401 Nonce Challenge Response
+```http
+HTTP/1.1 401 Unauthorized
+Date: Mon, 16 Nov 2026 12:00:00 GMT
+WWW-Authenticate: DPoP error="use_dpop_nonce", error_description="Resource server requires a valid DPoP nonce"
+DPoP-Nonce: NCE_20261116_9941a8e2b
+Content-Type: application/problem+json
+
+{
+  "type": "https://api.example.com/errors/use-dpop-nonce",
+  "title": "DPoP Nonce Required",
+  "status": 401,
+  "detail": "Please retry the request including the provided DPoP-Nonce in your DPoP proof token."
+}
+```
+
+#### Step 2: Client Re-Signs Proof with `DPoP-Nonce` and Re-invokes
+The client generates a fresh DPoP proof:
+- `ath`: $\text{Base64URL}(\text{SHA-256}(\text{"eyJhbGciOiJSUzI1Ni..."})) = \text{"fUHyO2r2Z3DZ532ZTflux0qcVu6KcR6PCJMMRBRFsr8"}$
+- `htm`: `"POST"`
+- `htu`: `"https://api.example.com/api/v1/payments"`
+- `nonce`: `"NCE_20261116_9941a8e2b"`
+
+```bash
+curl -i -X POST https://api.example.com/api/v1/payments \
+     -H "Authorization: DPoP eyJhbGciOiJSUzI1Ni..." \
+     -H "DPoP: eyJhbGciOiJFUzI1NiIsInR5cCI6ImRwb3Arand0Iiw..." \
+     -H "Content-Type: application/json" \
+     -d '{"amount": 500.00, "recipient": "acc_88192"}'
+```
+
+#### Actual HTTP 200 Response
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+DPoP-Nonce: NCE_20261116_0012c7f4e
+
+{
+  "status": "SETTLED",
+  "transactionId": "tx_441299",
+  "senderThumbprint": "0ZcOCORZTXKIAoYTbx7qnh4UEBK2vd6xVC_NIHAn38Q"
+}
+```
+
+#### Step 3: Stolen Token Replay Attempt (Blocked)
+An attacker steals the access token `eyJhbGciOiJSUzI1Ni...` from network logs and presents it using their own client private key:
+```http
+HTTP/1.1 401 Unauthorized
+Content-Type: application/problem+json
+
+{
+  "type": "https://api.example.com/errors/invalid-dpop-proof",
+  "title": "Invalid DPoP Proof",
+  "status": 401,
+  "detail": "Sender confirmation failed: JWK thumbprint of DPoP public key does not match token 'cnf.jkt' claim."
+}
+```
+
+---
+
+### 8.5 Worked Example 5 — Nested JWE Construction, Decryption & Validation
+
+#### Problem Statement
+Demonstrate building and decrypting an RFC 7516 Nested JWE containing confidential PAN card data wrapped in an RFC 7515 signed JWS.
+
+#### Complete Compilable Java Demonstration
+```java
+package com.example.jwt.nested;
+
+import com.nimbusds.jose.EncryptionMethod;
+import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWEHeader;
+import com.nimbusds.jose.JWEObject;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.crypto.RSAEncrypter;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.crypto.RSADecrypter;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Date;
+
+public class NestedJweDemonstration {
+
+    public static void main(String[] args) throws Exception {
+        // 1. Generate Key Pairs: Issuer (Signs) & Resource Server (Decrypts)
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(2048);
+        KeyPair issuerKeys = kpg.generateKeyPair();
+        KeyPair recipientKeys = kpg.generateKeyPair();
+
+        // 2. PHASE 1: Build & Sign Inner JWS
+        JWTClaimsSet innerClaims = new JWTClaimsSet.Builder()
+            .issuer("https://auth.example.com")
+            .subject("usr_cardholder_991")
+            .claim("pan", "4111-2222-3333-4444")
+            .claim("cvv", "882")
+            .expirationTime(new Date(System.currentTimeMillis() + 300_000))
+            .build();
+
+        SignedJWT signedJWT = new SignedJWT(
+            new JWSHeader.Builder(JWSAlgorithm.RS256).keyID("issuer-key-1").build(),
+            innerClaims
+        );
+        signedJWT.sign(new RSASSASigner((RSAPrivateKey) issuerKeys.getPrivate()));
+        String innerJwsString = signedJWT.serialize();
+
+        // 3. PHASE 2: Encrypt Inner JWS into Outer JWE (cty: "JWT")
+        JWEHeader outerHeader = new JWEHeader.Builder(JWEAlgorithm.RSA_OAEP_256, EncryptionMethod.A256GCM)
+            .contentType("JWT") // Crucial: marks payload as a nested JWT
+            .keyID("recip-key-1")
+            .build();
+
+        JWEObject jweObject = new JWEObject(outerHeader, new Payload(innerJwsString));
+        jweObject.encrypt(new RSAEncrypter((RSAPublicKey) recipientKeys.getPublic()));
+        String nestedJweCompact = jweObject.serialize();
+
+        System.out.println("=== NESTED JWE COMPACT SERIALIZATION ===");
+        System.out.println(nestedJweCompact);
+        System.out.println("Dot count (must be 4 for 5 segments): " + nestedJweCompact.chars().filter(ch -> ch == '.').count());
+
+        // 4. PHASE 3: Recipient Decrypts Outer JWE
+        JWEObject parsedJwe = JWEObject.parse(nestedJweCompact);
+        parsedJwe.decrypt(new RSADecrypter((RSAPrivateKey) recipientKeys.getPrivate()));
+        SignedJWT decryptedInnerJws = parsedJwe.getPayload().toSignedJWT();
+
+        // 5. PHASE 4: Recipient Verifies Signature of Inner JWS
+        boolean signatureValid = decryptedInnerJws.verify(new RSASSAVerifier((RSAPublicKey) issuerKeys.getPublic()));
+        System.out.println("Inner JWS Signature Verified: " + signatureValid);
+        System.out.println("Decrypted Confidential PAN: " + decryptedInnerJws.getJWTClaimsSet().getStringClaim("pan"));
+    }
+}
+```
+
+#### Execution Output
+```text
+=== NESTED JWE COMPACT SERIALIZATION ===
+eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIiwiY3R5IjoiSldUIiwia2lkIjoicmVjaXAtMSJ9.Z4q...88x.19...kL.09...pQ.m8...2A
+Dot count (must be 4 for 5 segments): 4
+Inner JWS Signature Verified: true
+Decrypted Confidential PAN: 4111-2222-3333-4444
+```
+
+---
+
 ## 9. Code from Scratch — Production-Grade
+
+### 9.1 Hardened Spring Security 6 Resource Server Configuration
 
 **The hardened resource-server configuration — every defence in one file.**
 
@@ -1398,6 +1948,439 @@ public class LogRedactionConfig {
 
     public static List<String> sensitiveHeaders() {
         return List.of("authorization", "proxy-authorization", "cookie", "set-cookie");
+    }
+}
+```
+
+---
+
+
+### 9.2 Spring Security 6 Resource Server with Custom `JwtAuthenticationConverter`
+
+This production component handles real-world enterprise claim hierarchies (e.g. Keycloak `realm_access.roles` and `resource_access.{client}.roles`), extracts multi-tenant context, and maps authenticated users into a strongly typed domain principal.
+
+```java
+package com.example.jwt.converter;
+
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Enterprise Spring Security 6 JwtAuthenticationConverter.
+ * Features:
+ * 1. Safe traversal of nested claim maps (Keycloak realm_access and resource_access).
+ * 2. Prefix consistency: Roles mapped to ROLE_<NAME>, permissions kept raw.
+ * 3. Enriched principal creation containing userId, tenantId, and department.
+ */
+@Component
+public class EnterpriseJwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
+
+    private static final String REALM_ACCESS_CLAIM = "realm_access";
+    private static final String RESOURCE_ACCESS_CLAIM = "resource_access";
+    private static final String ROLES_ENTRY = "roles";
+    private static final String SCOPE_CLAIM = "scope";
+    private static final String SCP_CLAIM = "scp";
+
+    private final String clientResourceName;
+
+    public EnterpriseJwtAuthenticationConverter() {
+        this.clientResourceName = "order-service";
+    }
+
+    public EnterpriseJwtAuthenticationConverter(String clientResourceName) {
+        this.clientResourceName = clientResourceName;
+    }
+
+    @Override
+    public AbstractAuthenticationToken convert(Jwt jwt) {
+        Collection<GrantedAuthority> authorities = extractAuthorities(jwt);
+        SecurityUser principal = extractSecurityUser(jwt, authorities);
+        return new JwtAuthenticationToken(jwt, authorities, principal.getUsername());
+    }
+
+    public Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
+        Set<GrantedAuthority> authorities = new HashSet<>();
+
+        // 1. Extract Keycloak Realm Roles
+        Map<String, Object> realmAccess = jwt.getClaimAsMap(REALM_ACCESS_CLAIM);
+        if (realmAccess != null && realmAccess.get(ROLES_ENTRY) instanceof List<?> roles) {
+            roles.stream()
+                .filter(String.class::isInstance)
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + ((String) role).toUpperCase()))
+                .forEach(authorities::add);
+        }
+
+        // 2. Extract Client-Specific Resource Roles
+        Map<String, Object> resourceAccess = jwt.getClaimAsMap(RESOURCE_ACCESS_CLAIM);
+        if (resourceAccess != null && resourceAccess.get(clientResourceName) instanceof Map<?, ?> clientMap) {
+            if (clientMap.get(ROLES_ENTRY) instanceof List<?> clientRoles) {
+                clientRoles.stream()
+                    .filter(String.class::isInstance)
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + ((String) role).toUpperCase()))
+                    .forEach(authorities::add);
+            }
+        }
+
+        // 3. Extract Standard OAuth2 Scopes
+        extractScopes(jwt, SCOPE_CLAIM, authorities);
+        extractScopes(jwt, SCP_CLAIM, authorities);
+
+        // 4. Extract Explicit Functional Permissions
+        List<String> permissions = jwt.getClaimAsStringList("permissions");
+        if (permissions != null) {
+            permissions.stream()
+                .map(SimpleGrantedAuthority::new)
+                .forEach(authorities::add);
+        }
+
+        return Collections.unmodifiableSet(authorities);
+    }
+
+    private void extractScopes(Jwt jwt, String claimName, Set<GrantedAuthority> authorities) {
+        Object claim = jwt.getClaims().get(claimName);
+        if (claim instanceof String scopeStr) {
+            for (String scope : scopeStr.split(" ")) {
+                if (!scope.isBlank()) {
+                    authorities.add(new SimpleGrantedAuthority("SCOPE_" + scope));
+                }
+            }
+        } else if (claim instanceof Collection<?> scopeList) {
+            for (Object scope : scopeList) {
+                if (scope instanceof String scopeStr && !scopeStr.isBlank()) {
+                    authorities.add(new SimpleGrantedAuthority("SCOPE_" + scopeStr));
+                }
+            }
+        }
+    }
+
+    private SecurityUser extractSecurityUser(Jwt jwt, Collection<GrantedAuthority> authorities) {
+        String userId = jwt.getSubject();
+        String tenantId = jwt.getClaimAsString("tenant_id");
+        String email = jwt.getClaimAsString("email");
+        String department = jwt.getClaimAsString("department");
+
+        return new SecurityUser(userId, tenantId, email, department, authorities);
+    }
+
+    public record SecurityUser(
+        String username,
+        String tenantId,
+        String email,
+        String department,
+        Collection<? extends GrantedAuthority> authorities
+    ) {}
+}
+```
+
+---
+
+### 9.3 Spring Security 6 DPoP Verification Filter & Proof Token Validator
+
+This production filter enforces RFC 9449 Demonstrating Proof-of-Possession on protected API boundaries:
+
+```java
+package com.example.jwt.dpop;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Instant;
+import java.util.Base64;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Production RFC 9449 DPoP Verification Filter.
+ * Enforces sender-constraining, ath access-token binding, htm/htu matching, and server-issued nonces.
+ */
+@Component
+public class DPoPAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final String DPOP_HEADER = "DPoP";
+    private static final String DPOP_NONCE_HEADER = "DPoP-Nonce";
+    private static final long MAX_CLOCK_SKEW_SECONDS = 60L;
+
+    private final JwtDecoder jwtDecoder;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // Cache storing active server-issued nonces with timestamp expiration
+    private final Map<String, Long> activeNonces = new ConcurrentHashMap<>();
+
+    public DPoPAuthenticationFilter(JwtDecoder jwtDecoder) {
+        this.jwtDecoder = jwtDecoder;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return !path.startsWith("/api/v1/payments") && !path.startsWith("/api/v1/transfers");
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+
+        String authHeader = request.getHeader("Authorization");
+        String dpopProof = request.getHeader(DPOP_HEADER);
+
+        // 1. If request is not attempting DPoP or missing Bearer token, delegate downstream
+        if (!StringUtils.hasText(authHeader) || !authHeader.regionMatches(true, 0, "DPoP ", 0, 5)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String rawAccessToken = authHeader.substring(5).trim();
+
+        // 2. Validate presence of DPoP proof token
+        if (!StringUtils.hasText(dpopProof)) {
+            sendDPoPError(response, request.getRequestURI(), "Missing mandatory DPoP proof token in 'DPoP' header");
+            return;
+        }
+
+        try {
+            // 3. Decode & Verify Access Token
+            Jwt accessToken = jwtDecoder.decode(rawAccessToken);
+            Map<String, Object> cnfClaim = accessToken.getClaimAsMap("cnf");
+            if (cnfClaim == null || !cnfClaim.containsKey("jkt")) {
+                sendDPoPError(response, request.getRequestURI(), "Presented access token is not sender-constrained (missing cnf.jkt claim)");
+                return;
+            }
+            String expectedThumbprint = (String) cnfClaim.get("jkt");
+
+            // 4. Parse & Verify DPoP Proof Token
+            SignedJWT proofJwt = SignedJWT.parse(dpopProof);
+            JWSHeader proofHeader = proofJwt.getHeader();
+
+            // Invariant: typ must be "dpop+jwt"
+            if (proofHeader.getType() == null || !"dpop+jwt".equalsIgnoreCase(proofHeader.getType().getType())) {
+                sendDPoPError(response, request.getRequestURI(), "DPoP proof header 'typ' must be 'dpop+jwt'");
+                return;
+            }
+
+            // Invariant: Embedded JWK verification
+            JWK clientJwk = proofHeader.getJWK();
+            if (clientJwk == null) {
+                sendDPoPError(response, request.getRequestURI(), "DPoP proof must contain client's public JWK in 'jwk' header parameter");
+                return;
+            }
+
+            // Verify signature using client public key
+            if (!verifyProofSignature(proofJwt, clientJwk)) {
+                sendDPoPError(response, request.getRequestURI(), "DPoP proof cryptographic signature verification failed");
+                return;
+            }
+
+            // Invariant: Match JWK Thumbprint to access token cnf.jkt
+            String clientThumbprint = clientJwk.computeThumbprint().toString();
+            if (!expectedThumbprint.equals(clientThumbprint)) {
+                sendDPoPError(response, request.getRequestURI(), "DPoP sender thumbprint mismatch against access token cnf.jkt");
+                return;
+            }
+
+            // 5. Verify Claims (htm, htu, ath, iat, nonce)
+            JWTClaimsSet claims = proofJwt.getJWTClaimsSet();
+
+            // Match HTTP Method
+            if (!request.getMethod().equalsIgnoreCase(claims.getStringClaim("htm"))) {
+                sendDPoPError(response, request.getRequestURI(), "DPoP proof 'htm' method does not match HTTP request method");
+                return;
+            }
+
+            // Match HTTP URI (excluding query string)
+            String expectedUri = request.getRequestURL().toString();
+            if (!expectedUri.equalsIgnoreCase(claims.getStringClaim("htu"))) {
+                sendDPoPError(response, request.getRequestURI(), "DPoP proof 'htu' URI does not match HTTP target URL");
+                return;
+            }
+
+            // Match Access Token Hash (ath)
+            String expectedAth = computeSha256Base64Url(rawAccessToken);
+            if (!expectedAth.equals(claims.getStringClaim("ath"))) {
+                sendDPoPError(response, request.getRequestURI(), "DPoP proof 'ath' does not match SHA-256 hash of presented access token");
+                return;
+            }
+
+            // Check iat skew
+            Instant iat = claims.getIssueTime().toInstant();
+            if (Math.abs(Instant.now().getEpochSecond() - iat.getEpochSecond()) > MAX_CLOCK_SKEW_SECONDS) {
+                sendDPoPError(response, request.getRequestURI(), "DPoP proof token expired or issued too far in the future");
+                return;
+            }
+
+            // 6. Server Nonce Enforcement
+            String clientNonce = claims.getStringClaim("nonce");
+            if (!StringUtils.hasText(clientNonce) || !isValidAndConsumeNonce(clientNonce)) {
+                String freshNonce = generateAndStoreNonce();
+                response.setHeader(DPOP_NONCE_HEADER, freshNonce);
+                response.setHeader("WWW-Authenticate", "DPoP error=\"use_dpop_nonce\", error_description=\"Resource server requires a valid DPoP nonce\"");
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+                objectMapper.writeValue(response.getOutputStream(), ProblemDetail.forStatusAndDetail(
+                    HttpStatus.UNAUTHORIZED, "Valid DPoP nonce required. Retry with supplied DPoP-Nonce header."
+                ));
+                return;
+            }
+
+            // Verification succeeded: pass downstream
+            filterChain.doFilter(request, response);
+
+        } catch (Exception ex) {
+            sendDPoPError(response, request.getRequestURI(), "Malformed DPoP token: " + ex.getMessage());
+        }
+    }
+
+    private boolean verifyProofSignature(SignedJWT proof, JWK jwk) throws Exception {
+        if (jwk instanceof ECKey ecKey) {
+            return proof.verify(new ECDSAVerifier(ecKey.toECPublicKey()));
+        } else if (jwk instanceof RSAKey rsaKey) {
+            return proof.verify(new RSASSAVerifier(rsaKey.toRSAPublicKey()));
+        }
+        return false;
+    }
+
+    private String computeSha256Base64Url(String input) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        byte[] digest = md.digest(input.getBytes(StandardCharsets.US_ASCII));
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
+    }
+
+    private synchronized boolean isValidAndConsumeNonce(String nonce) {
+        Long timestamp = activeNonces.remove(nonce);
+        if (timestamp == null) {
+            return false;
+        }
+        return (System.currentTimeMillis() - timestamp) <= 120_000L; // 2-minute validity
+    }
+
+    private synchronized String generateAndStoreNonce() {
+        String nonce = "NCE_" + System.currentTimeMillis() + "_" + Long.toHexString(Double.doubleToLongBits(Math.random()));
+        activeNonces.put(nonce, System.currentTimeMillis());
+        return nonce;
+    }
+
+    private void sendDPoPError(HttpServletResponse response, String uri, String detail) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setHeader("WWW-Authenticate", "DPoP error=\"invalid_dpop_proof\"");
+        response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, detail);
+        problem.setTitle("DPoP Verification Failure");
+        problem.setInstance(URI.create(uri));
+        objectMapper.writeValue(response.getOutputStream(), problem);
+    }
+}
+```
+
+---
+
+### 9.4 Spring Security 6 Nested JWE Nimbus Decoder Bean
+
+This production configuration establishes a dual-stage `JwtDecoder` in Spring Security 6 that automatically decrypts an outer 5-part JWE with a private RSA key and verifies the inner 3-part JWS signature against an external JWKS:
+
+```java
+package com.example.jwt.config;
+
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.JWEDecryptionKeySelector;
+import com.nimbusds.jose.proc.JWEKeySelector;
+import com.nimbusds.jose.proc.JWSKeySelector;
+import com.nimbusds.jose.proc.JWSVerificationKeySelector;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
+import com.nimbusds.jwt.proc.DefaultJWTProcessor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Set;
+
+/**
+ * Spring Security 6 Nested JWE Decoder Configuration.
+ * Configures Nimbus DefaultJWTProcessor with:
+ * 1. JWEDecryptionKeySelector using Resource Server's RSA Private Key.
+ * 2. JWSVerificationKeySelector using Issuer's Public JWK Set.
+ */
+@Configuration
+public class NestedJweSecurityConfiguration {
+
+    @Value("${security.jwe.private-key}")
+    private RSAPrivateKey recipientPrivateKey;
+
+    @Value("${security.jws.public-key}")
+    private RSAPublicKey issuerPublicKey;
+
+    @Bean
+    public JwtDecoder nestedJwtDecoder() {
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+
+        // 1. Stage 1: Key Selector for JWE Decryption (Outer Layer)
+        // Decrypts Content Encryption Key using recipient's private RSA key
+        JWEKeySelector<SecurityContext> jweKeySelector = new JWEDecryptionKeySelector<>(
+            com.nimbusds.jose.JWEAlgorithm.RSA_OAEP_256,
+            com.nimbusds.jose.EncryptionMethod.A256GCM,
+            new ImmutableJWKSet<>(new JWKSet(new com.nimbusds.jose.jwk.RSAKey.Builder((RSAPublicKey) null)
+                .privateKey(recipientPrivateKey)
+                .keyID("recip-key-2026")
+                .build()))
+        );
+        jwtProcessor.setJWEKeySelector(jweKeySelector);
+
+        // 2. Stage 2: Key Selector for JWS Signature Verification (Inner Layer)
+        // Verifies authenticity using Issuer's public key
+        JWSKeySelector<SecurityContext> jwsKeySelector = new JWSVerificationKeySelector<>(
+            Set.of(JWSAlgorithm.RS256, JWSAlgorithm.ES256),
+            new ImmutableJWKSet<>(new JWKSet(new com.nimbusds.jose.jwk.RSAKey.Builder(issuerPublicKey)
+                .keyID("issuer-key-2026")
+                .build()))
+        );
+        jwtProcessor.setJWSKeySelector(jwsKeySelector);
+
+        return new NimbusJwtDecoder(jwtProcessor);
     }
 }
 ```
@@ -1979,6 +2962,18 @@ a rule that lives only in a reviewer's head is gone the moment they leave.
 
 ---
 
+
+**Q: What is DPoP (RFC 9449) and how does it prevent token replay attacks?**
+**A:** DPoP (Demonstrating Proof of Possession at the Application Layer) sender-constrains access tokens to an asymmetric key pair generated and held by the client. The Authorization Server embeds the client's public-key thumbprint in the access token's `cnf.jkt` claim. On every API call, the client generates a short-lived DPoP proof JWT (containing the HTTP method `htm`, target URI `htu`, access token hash `ath`, and server nonce) signed with its private key. If an attacker captures the access token from logs or network traffic, they cannot use it because they do not possess the client's private key, and a DPoP proof generated with their own key will fail the `cnf.jkt` thumbprint match. Replay of intercepted proofs is eliminated via server-supplied `DPoP-Nonce` headers.
+
+**Q: What is a Nested JWE (RFC 7516) and why is the order 'Sign-then-Encrypt' critical?**
+**A:** A Nested JWE is an encrypted JWT that contains a digitally signed JWS as its payload. Standard JWS provides integrity and authenticity, but zero confidentiality; anyone inspecting network traffic or logs can read the payload. Nested JWE encrypts the signed JWS with the recipient's public key (using algorithms like `RSA-OAEP-256` + `A256GCM`), ensuring only the intended recipient can decrypt it. The order must be **Sign-then-Encrypt**: the sender signs the claims with their private key, then encrypts the JWS with the recipient's public key. If Encrypt-then-Sign were used, an attacker could strip the outer signature without touching the ciphertext, attach their own signature, and forward it, falsely claiming authorship of the data (Surreptitious Forwarding attack).
+
+**Q: How do you configure a custom `JwtAuthenticationConverter` in Spring Security 6 to extract nested claims like Keycloak's `realm_access.roles`?**
+**A:** Implement `Converter<Jwt, AbstractAuthenticationToken>` (or customize `JwtGrantedAuthoritiesConverter`). The custom converter reads `jwt.getClaimAsMap("realm_access")`, extracts the `roles` list, maps each role to a `SimpleGrantedAuthority("ROLE_" + role.toUpperCase())`, extracts fine-grained scopes from `scope` or `permissions`, creates a custom domain `SecurityUser` principal containing user ID, tenant ID, and department, and returns a `JwtAuthenticationToken(jwt, authorities, principal.getUsername())`. This is registered in the security filter chain via `http.oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(customConverter)))`.
+
+---
+
 ## 16. Scenario-Based & Real-Experience Scenarios
 
 ### Scenario 1 — "A token minted by service A is accepted by service B"
@@ -2284,6 +3279,39 @@ is absent?"
   reconnaissance. The one case where a JWT refresh token is right is a **stateless
   refresh service** at very high volume, where you accept the denylist and the leakage
   in exchange for removing the database from the refresh path.
+
+
+### CQ9. "Why use DPoP instead of Mutual TLS (mTLS / RFC 8705) for sender-constrained tokens?"
+- **Naive answer:** "DPoP is newer and JSON-based, so it's better."
+- **The trap:** The interviewer is probing your infrastructure and operational networking knowledge.
+- **Expert answer:** mTLS operates at the **transport layer (Layer 4/TLS)**, binding certificates to the TCP connection. It requires client certificate distribution, complex PKI, and encounters severe operational challenges in cloud environments: API gateways, load balancers, and CDNs (Cloudflare, AWS ALB) terminate TLS at the edge, requiring complex certificate forwarding (`X-Client-Cert`) to downstream microservices. Furthermore, browser Single Page Applications (SPAs) cannot access or manage TLS client certificates via JavaScript. **DPoP operates at the application layer (Layer 7)**: the client generates ephemeral EC keys in software (or WebCrypto API), transmits proofs via standard HTTP headers (`DPoP`), and passes seamlessly through proxies, CDNs, and load balancers without requiring infrastructure-level TLS modifications.
+
+### CQ10. "If our API already runs over HTTPS / TLS, why would we ever need Nested JWE?"
+- **Naive answer:** "TLS encrypts everything in transit, so Nested JWE is redundant."
+- **The trap:** The interviewer is testing your understanding of end-to-end confidentiality versus point-to-point transport encryption.
+- **Expert answer:** TLS encrypts traffic **only point-to-point between adjacent network hops**. In an enterprise microservice topology:
+  1. TLS terminates at the reverse proxy / API gateway / CDN.
+  2. The gateway decrypts the packet, logs the `Authorization` header, or exposes the token in APM/tracing spans.
+  3. Tokens stored in browser `localStorage`, Redis caches, or message queues (Kafka) reside in plaintext.
+  Nested JWE provides **application-layer end-to-end confidentiality**: the claims are encrypted at the issuer for a specific recipient service. Intermediate proxies, ingress controllers, message brokers, and log forwarders see only ciphertext. Even if an internal proxy terminates TLS, it cannot read the sensitive PII, PAN, or health data sealed inside the JWE.
+
+### CQ11. "Why not just use `jwt.getClaimAsStringList()` inside our controllers instead of writing a custom `JwtAuthenticationConverter`?"
+- **Naive answer:** "Calling `jwt.getClaimAsStringList()` in the controller is simpler and avoids Spring Security boilerplate."
+- **The trap:** The interviewer is testing your architectural separation between authentication infrastructure and business controllers.
+- **Expert answer:** Manually extracting claims inside controllers is an architectural anti-pattern:
+  1. It couples business controllers directly to the identity provider's proprietary token schema (`realm_access`, `resource_access`). If the company switches from Keycloak to Okta or Auth0, every controller must be rewritten.
+  2. It bypasses Spring Security's authorization engine: annotations like `@PreAuthorize("hasRole('ADMIN')")` and `hasAuthority('orders:write')` rely strictly on the `GrantedAuthority` collection populated by the converter.
+  3. Writing an explicit `JwtAuthenticationConverter` centralizes token transformation in a single, unit-tested component, decoupling business services from identity provider formats.
+
+### CQ12. "How does DPoP prevent replay attacks if a network eavesdropper captures both the access token AND the DPoP proof token?"
+- **Naive answer:** "DPoP tokens can't be replayed because they're encrypted."
+- **The trap:** The interviewer wants you to explain the exact mechanics of DPoP proof replay prevention.
+- **Expert answer:** DPoP proofs are *not* encrypted; they are signed. If an attacker captures both the access token and the DPoP proof, RFC 9449 prevents replay through three strict constraints:
+  1. **Endpoint & Method Binding:** The proof is bound to the specific HTTP method (`htm`) and URI (`htu`). A proof intercepted from `GET /api/v1/balance` cannot be used to execute `POST /api/v1/transfers`.
+  2. **Short Lifetime & JTI Tracking:** The proof has an `iat` timestamp valid for only $\pm 60$ seconds, and resource servers cache the `jti` to block duplicate submissions within that window.
+  3. **Server Nonces (`DPoP-Nonce`):** For high-risk endpoints, the Resource Server enforces single-use server nonces. Once a nonce is used, the server invalidates it. Any replay of the exact same proof token is immediately rejected with HTTP 401 demanding a fresh nonce that only the legitimate client holding the private key can sign.
+
+---
 
 ## 18. Frequently Asked Production Issues & Debugging Scenarios
 
