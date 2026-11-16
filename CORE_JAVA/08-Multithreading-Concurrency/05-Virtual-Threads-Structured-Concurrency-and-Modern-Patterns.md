@@ -2079,5 +2079,5 @@ If `ls /proc/<PID>/fd | wc -l` approaches `ulimit -n`, the application will thro
 - **JEP 439 & 474:** *Generational ZGC (Java 21 & Java 23)*
 
 ---
-**Next Chapter:** → [09 · Design Patterns](../../09-Design-Patterns/README.md)  
+**Next Chapter:** → [09 · Design Patterns](../09-Design-Patterns/README.md)  
 **Previous Chapter:** ← [04 · Concurrency Problems](04-Concurrency-Problems.md)
