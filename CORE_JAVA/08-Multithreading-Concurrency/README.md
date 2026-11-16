@@ -6,6 +6,7 @@
 
 | Priority | Chapters | Why It Matters |
 |----------|----------|----------------|
+| ⭐⭐⭐⭐⭐ | [05 · Virtual Threads & Modern Patterns](05-Virtual-Threads-Structured-Concurrency-and-Modern-Patterns.md) | Loom, Continuations, Carrier pool, Pinning, Structured Concurrency, Scoped Values |
 | ⭐⭐⭐⭐⭐ | [03 · Locks & Atomic Classes](03-Locks-Atomic.md) | `ReentrantLock`, CAS, `LongAdder`, `StampedLock` |
 | ⭐⭐⭐⭐⭐ | [04 · Concurrency Problems](04-Concurrency-Problems.md) | Deadlock, livelock, starvation, false sharing |
 | ⭐⭐⭐⭐⭐ | [01 · Thread Basics](01-Thread-Basics.md) | JMM, happens-before, `volatile`, `synchronized`, `wait/notify` |
@@ -16,10 +17,10 @@
 ## 📚 Recommended Reading Order
 
 ```
-01 Thread Basics ──▶ 02 Executor Framework ──▶ 03 Locks & Atomic ──▶ 04 Concurrency Problems
+01 Thread Basics ──▶ 02 Executor Framework ──▶ 03 Locks & Atomic ──▶ 04 Concurrency Problems ──▶ 05 Virtual Threads & Modern Patterns
 ```
 
-Read **01** first — every later chapter assumes you can reason about happens-before edges.
+Read **01** first — every later chapter assumes you can reason about happens-before edges. Wrap up with **05** to master modern Java 21+ concurrency.
 
 ---
 
@@ -63,6 +64,12 @@ Read **01** first — every later chapter assumes you can reason about happens-b
 | How do you prevent a deadlock? | [04](04-Concurrency-Problems.md) | Break one of the 4 Coffman conditions |
 | What is false sharing? | [04](04-Concurrency-Problems.md) | Cache-line padding |
 | What is the `ThreadLocal` memory-leak in a pool? | [02](02-Executor-Framework.md) | Always `remove()` in a `finally` |
+| Virtual vs Platform threads internal architecture? | [05](05-Virtual-Threads-Structured-Concurrency-and-Modern-Patterns.md) | Continuations, heap stack chunks, carrier ForkJoinPool |
+| What causes thread pinning & how do you trace it? | [05](05-Virtual-Threads-Structured-Concurrency-and-Modern-Patterns.md) | `synchronized` vs native frames; `-Djdk.tracePinnedThreads=full` |
+| Why not pool virtual threads? | [05](05-Virtual-Threads-Structured-Concurrency-and-Modern-Patterns.md) | Ephemeral by design; use `Semaphore` for concurrency throttling |
+| Structured Concurrency vs `CompletableFuture`? | [05](05-Virtual-Threads-Structured-Concurrency-and-Modern-Patterns.md) | `StructuredTaskScope`, lexical scope, automatic cancellation |
+| `ScopedValue` vs `ThreadLocal` in Loom? | [05](05-Virtual-Threads-Structured-Concurrency-and-Modern-Patterns.md) | Immutability, zero memory leak risk, efficient child inheritance |
+| How to size HikariCP connection pools with Loom? | [05](05-Virtual-Threads-Structured-Concurrency-and-Modern-Patterns.md) | Size for DB capacity (cores × 2), never scale with thread count |
 
 ---
 
@@ -73,7 +80,9 @@ Read **01** first — every later chapter assumes you can reason about happens-b
 - [ ] **Unbounded queues** — `Executors.newFixedThreadPool` uses an *unbounded* `LinkedBlockingQueue` → OOM risk.
 - [ ] **Double-checked locking without `volatile`** — the classic "safe until Java 5" bug.
 - [ ] **`SimpleDateFormat` is not thread-safe** — use `DateTimeFormatter` (immutable, thread-safe).
-- [ ] **Virtual thread pinning** — `synchronized` inside a virtual thread pins the carrier.
+- [ ] **Virtual thread pinning** — `synchronized` inside a virtual thread pins the carrier (use `ReentrantLock` until JEP 491).
+- [ ] **Virtual thread pooling anti-pattern** — never pool virtual threads; spawn per task and throttle downstream via `Semaphore`.
+- [ ] **Structured task scope leakage** — forgetting to call `scope.join()` before reading subtask results.
 
 ---
 
@@ -84,6 +93,9 @@ Read **01** first — every later chapter assumes you can reason about happens-b
 3. Implement a lock-free counter using `AtomicLong` and a `LongAdder` and benchmark the difference under contention.
 4. Write a `ThreadLocal` context holder (e.g. trace-id) that is safe inside a thread pool, with cleanup.
 5. Produce a deadlock with two locks, detect it with `jstack`, then fix it with lock ordering.
+6. Build a modern resilient API gateway aggregator using `StructuredTaskScope.ShutdownOnFailure` and `ScopedValue`.
+7. Reproduce virtual thread carrier pinning under load, diagnose via `-Djdk.tracePinnedThreads=full`, and refactor to `ReentrantLock`.
+8. Implement downstream database connection throttling using a `Semaphore` with virtual threads and HikariCP.
 
 ---
 
