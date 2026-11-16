@@ -164,6 +164,13 @@ export default {
           '1.25rem',
           { lineHeight: '1.35', letterSpacing: '-0.012em', fontWeight: '600' },
         ],
+        // Article/document titles sit between h4 and h3. A literal 48-64px H1
+        // would break the compact document header, so titles use a deliberate,
+        // documented scale instead of an accidental utility class.
+        'title-lg': [
+          'clamp(2rem, 3vw, 2.5rem)',
+          { lineHeight: '1.18', letterSpacing: '-0.02em', fontWeight: '700' },
+        ],
         'body-lg': [
           '1.125rem',
           { lineHeight: '1.75', letterSpacing: '-0.005em' },

@@ -23,14 +23,19 @@ function thresholdsForRoute(route) {
 
 function findChromium() {
   if (process.env.CHROMIUM_PATH) return process.env.CHROMIUM_PATH;
-  const roots = [path.join(os.homedir(), '.cache', 'ms-playwright')];
+  const roots = [
+    path.join(os.homedir(), '.cache', 'ms-playwright'),
+    path.join(process.env.LOCALAPPDATA || '', 'ms-playwright'),
+  ];
   for (const root of roots) {
-    if (!fs.existsSync(root)) continue;
+    if (!root || !fs.existsSync(root)) continue;
     for (const entry of fs.readdirSync(root)) {
       if (!entry.startsWith('chromium-')) continue;
       const candidates = [
         path.join(root, entry, 'chrome-linux', 'chrome'),
         path.join(root, entry, 'chrome-linux-arm64', 'chrome'),
+        path.join(root, entry, 'chrome-win', 'chrome.exe'),
+        path.join(root, entry, 'chrome-win64', 'chrome.exe'),
       ];
       const found = candidates.find((candidate) => fs.existsSync(candidate));
       if (found) return found;
@@ -70,8 +75,17 @@ if (!chromePath) {
   process.exit(1);
 }
 
-const lighthouseBin = path.join(process.cwd(), 'node_modules', '.bin', 'lighthouse');
-if (!fs.existsSync(lighthouseBin)) {
+// Resolve the CLI through Node itself so this works on Windows too: the
+// node_modules/.bin shim is a shell script without an executable format on
+// Windows (spawning it directly throws ENOENT).
+const lighthouseCli = path.join(
+  process.cwd(),
+  'node_modules',
+  'lighthouse',
+  'cli',
+  'index.js'
+);
+if (!fs.existsSync(lighthouseCli)) {
   console.error('Lighthouse is not installed. Run npm install.');
   process.exit(1);
 }
@@ -94,7 +108,7 @@ function runLighthouse(url, preset) {
       '--chrome-flags=--headless --no-sandbox --disable-dev-shm-usage',
     ];
     if (preset === 'desktop') args.push('--preset=desktop');
-    const child = spawn(lighthouseBin, args, {
+    const child = spawn(process.execPath, [lighthouseCli, ...args], {
       cwd: process.cwd(),
       env: { ...process.env, CHROME_PATH: chromePath },
       stdio: ['ignore', 'pipe', 'pipe'],

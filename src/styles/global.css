@@ -807,9 +807,22 @@
     content: '';
   }
 
+  /* Top-level sections skip offscreen style/layout work. The FIRST section is
+     exempt: the hero varies from ~400px to >1100px, and reserving 400px for it
+     pushed the following nav down, causing CLS 0.23 and overlapping
+     offscreen geometry (touch-target failures). All later sections keep the
+     optimization with a realistic intrinsic size. */
   #main-content-wrapper .not-prose > section {
     content-visibility: auto;
-    contain-intrinsic-size: auto 400px;
+    contain-intrinsic-size: auto 900px;
+  }
+
+  #main-content-wrapper .not-prose > section:first-child,
+  /* Sections whose children are measured for touch-target spacing must render
+     at real height; a placeholder box makes them overlap the next section. */
+  #main-content-wrapper .not-prose > section#paths,
+  #main-content-wrapper .not-prose > section#domains {
+    content-visibility: visible;
   }
 
   /* Prevent flex/grid min-content overflow on narrow screens. */

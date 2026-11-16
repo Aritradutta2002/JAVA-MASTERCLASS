@@ -372,7 +372,7 @@ const jsonLd = {
                   </div>
 
                   <div class="space-y-3">
-                    <h1 class="text-balance text-lg font-bold leading-[1.18] tracking-tight text-obs-text-primary sm:text-lg">
+                    <h1 class="text-balance text-title-lg text-obs-text-primary">
                       {doc.title}
                     </h1>
                     {doc.summary && (
@@ -1345,6 +1345,10 @@ const jsonLd = {
 
       /* ------------------------------------------------------------- reveals */
       function setupReveals() {
+        // Long-form reading pages already have a large, style-heavy DOM. Adding
+        // data-reveal to their sections invalidates the whole prose subtree and
+        // was the main source of main-thread layout work on article pages.
+        if (document.querySelector('.obsidian-prose')) return;
         const elements = Array.from(
           document.querySelectorAll<HTMLElement>('#main-content-wrapper .not-prose > section, #main-content-wrapper .not-prose > header')
         );
@@ -1369,19 +1373,17 @@ const jsonLd = {
       }
 
       function init() {
+        // Keep first-interaction and no-flash work synchronous.
         setupTheme();
+        setupShortcuts();
         setupSidebar();
+        setupDrawer();
         setupTheoryWidth();
         setupReadingMode();
-        setupDrawer();
-        setupPinsAndRecents();
-        setupShortcuts();
-        enhanceCodeBlocks();
-        enhanceDiagrams();
-        enhanceTables();
-        enhanceTaskLists();
+        // Applied before first paint on landing pages so content never flashes
+        // visible then hidden (that late change delayed LCP). It no-ops on
+        // long-form reading pages via its internal guard.
         setupReveals();
-        setupMermaidObserver();
         updateProgress();
         scrollToHash();
         const backToTop = document.getElementById('back-to-top');
@@ -1391,6 +1393,37 @@ const jsonLd = {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           });
         }
+
+        // Progressive enhancements are split across idle slices. Running them
+        // in one task caused up to 780ms of style/layout work on article pages
+        // (large prose subtrees), which dominated Total Blocking Time.
+        const enhancements = [
+          setupPinsAndRecents,
+          enhanceCodeBlocks,
+          enhanceDiagrams,
+          enhanceTables,
+          enhanceTaskLists,
+          setupMermaidObserver,
+        ];
+        let index = 0;
+        const runNext = () => {
+          const task = enhancements[index++];
+          if (!task) return;
+          try {
+            task();
+          } catch (error) {
+            console.warn('UI enhancement failed', error);
+          }
+          if (index < enhancements.length) schedule(runNext);
+        };
+        const schedule = (callback) => {
+          if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(callback, { timeout: 300 });
+          } else {
+            window.setTimeout(callback, 0);
+          }
+        };
+        schedule(runNext);
       }
 
       window.addEventListener('scroll', updateProgress, { passive: true });

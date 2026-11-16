@@ -33,6 +33,7 @@ function findChromium() {
   const roots = [
     path.join(os.homedir(), '.cache', 'ms-playwright'),
     path.join(os.homedir(), '.cache', 'chromium'),
+    path.join(process.env.LOCALAPPDATA || '', 'ms-playwright'),
   ];
   for (const root of roots) {
     if (!fs.existsSync(root)) continue;
@@ -43,6 +44,7 @@ function findChromium() {
         path.join(root, entry, 'chrome-linux-arm64', 'chrome'),
         path.join(root, entry, 'chrome-mac', 'Chromium.app', 'Contents', 'MacOS', 'Chromium'),
         path.join(root, entry, 'chrome-win', 'chrome.exe'),
+        path.join(root, entry, 'chrome-win64', 'chrome.exe'),
       ];
       const found = candidates.find((candidate) => fs.existsSync(candidate));
       if (found) return found;

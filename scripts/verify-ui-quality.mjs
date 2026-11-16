@@ -44,49 +44,57 @@ function requireContrast(label, foreground, background, minimum = 4.5) {
 
 console.log('=== WCAG Contrast Verification ===\n');
 
-const dark = {
-  canvas: '#09090b',
-  canvasSoft: '#121216',
-  surface: '#18181f',
-  hover: '#22222d',
-  primary: '#f8fafc',
-  secondary: '#b4b4c4',
-  muted: '#8f8ea1',
-  accent: '#a78bfa',
-  accentHover: '#c4b5fd',
-  accentSolid: '#7c3aed',
-  accentSolidHover: '#6d28d9',
-  successText: '#34d399',
-  warningText: '#fbbf24',
-  errorText: '#f87171',
-  infoText: '#60a5fa',
-  successSolid: '#047857',
-  warningSolid: '#b45309',
-  errorSolid: '#b91c1c',
-  infoSolid: '#1d4ed8',
-};
+// Single source of truth: read the canonical CSS variables from global.css so
+// this gate cannot pass while the design tokens drift.
+const cssSource = fs.readFileSync(
+  path.join(process.cwd(), 'src', 'styles', 'global.css'),
+  'utf-8'
+);
 
-const light = {
-  canvas: '#ffffff',
-  canvasSoft: '#f8fafc',
-  surface: '#ffffff',
-  hover: '#f1f5f9',
-  primary: '#09090b',
-  secondary: '#334155',
-  muted: '#5f6b7a',
-  accent: '#6d28d9',
-  accentHover: '#5b21b6',
-  accentSolid: '#6d28d9',
-  accentSolidHover: '#5b21b6',
-  successText: '#065f46',
-  warningText: '#92400e',
-  errorText: '#991b1b',
-  infoText: '#1e40af',
-  successSolid: '#047857',
-  warningSolid: '#b45309',
-  errorSolid: '#b91c1c',
-  infoSolid: '#1d4ed8',
-};
+function themeVars(selector) {
+  const start = cssSource.indexOf(selector);
+  if (start < 0) throw new Error(`Missing theme block: ${selector}`);
+  const end = cssSource.indexOf('}', start);
+  const block = cssSource.slice(start, end);
+  const vars = {};
+  for (const match of block.matchAll(/--([\w-]+):\s*([^;]+);/g)) {
+    vars[match[1]] = match[2].trim();
+  }
+  return vars;
+}
+
+function themeFromVars(v) {
+  return {
+    canvas: v['obs-canvas'],
+    canvasSoft: v['obs-canvas-soft'],
+    surface: v['obs-surface'],
+    hover: v['obs-surface-hover'],
+    primary: v['obs-text-primary'],
+    secondary: v['obs-text-secondary'],
+    muted: v['obs-text-muted'],
+    accent: v['obs-accent'],
+    accentHover: v['obs-accent-hover'],
+    accentSolid: v['obs-accent-solid'],
+    accentSolidHover: v['obs-accent-solid-hover'],
+    successText: v['obs-success-text'],
+    warningText: v['obs-warning-text'],
+    errorText: v['obs-error-text'],
+    infoText: v['obs-info-text'],
+    successSolid: v['obs-success-solid'],
+    warningSolid: v['obs-warning-solid'],
+    errorSolid: v['obs-error-solid'],
+    infoSolid: v['obs-info-solid'],
+  };
+}
+
+const dark = themeFromVars(themeVars(':root {'));
+const light = themeFromVars(themeVars(":root[data-theme='light'] {"));
+
+for (const [name, theme] of Object.entries({ dark, light })) {
+  for (const [token, value] of Object.entries(theme)) {
+    if (!value) failures.push(`${name} token ${token} is not defined in global.css`);
+  }
+}
 
 for (const [themeName, theme] of Object.entries({ dark, light })) {
   console.log(`--- ${themeName[0].toUpperCase() + themeName.slice(1)} Mode ---`);
@@ -106,27 +114,38 @@ for (const [themeName, theme] of Object.entries({ dark, light })) {
   }
 }
 
+function domainPair(vars, id) {
+  const bg = vars[`domain-${id}-bg`] || '';
+  const match = bg.match(
+    /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)/i
+  );
+  if (!match) throw new Error(`Cannot parse domain tint for ${id}: ${bg}`);
+  const tint = `#${[match[1], match[2], match[3]]
+    .map((channel) => Number(channel).toString(16).padStart(2, '0'))
+    .join('')}`;
+  return [vars[`domain-${id}-text`], tint, match[4] ? Number(match[4]) : 1];
+}
+
+const domainIds = [
+  'core-java',
+  'spring-boot',
+  'system-design',
+  'database-caching',
+  'java-dsa',
+  'cloud-devops',
+  'docker-java-backend',
+  'root',
+];
 const domainPairs = {
-  dark: {
-    'core-java': ['#fbbf24', '#f59e0b', 0.12],
-    'spring-boot': ['#4ade80', '#22c55e', 0.12],
-    'system-design': ['#93c5fd', '#60a5fa', 0.12],
-    'database-caching': ['#5eead4', '#2dd4bf', 0.12],
-    'java-dsa': ['#fda4af', '#fb7185', 0.12],
-    'cloud-devops': ['#7dd3fc', '#38bdf8', 0.12],
-    'docker-java-backend': ['#a5b4fc', '#818cf8', 0.12],
-    root: ['#c4b5fd', '#a78bfa', 0.12],
-  },
-  light: {
-    'core-java': ['#92400e', '#f59e0b', 0.14],
-    'spring-boot': ['#166534', '#22c55e', 0.12],
-    'system-design': ['#1e40af', '#60a5fa', 0.12],
-    'database-caching': ['#115e59', '#2dd4bf', 0.12],
-    'java-dsa': ['#9f1239', '#fb7185', 0.12],
-    'cloud-devops': ['#075985', '#38bdf8', 0.12],
-    'docker-java-backend': ['#3730a3', '#818cf8', 0.12],
-    root: ['#5b21b6', '#a78bfa', 0.12],
-  },
+  dark: Object.fromEntries(
+    domainIds.map((id) => [id, domainPair(themeVars(':root {'), id)])
+  ),
+  light: Object.fromEntries(
+    domainIds.map((id) => [
+      id,
+      domainPair(themeVars(":root[data-theme='light'] {"), id),
+    ])
+  ),
 };
 
 for (const [themeName, entries] of Object.entries(domainPairs)) {
