@@ -140,6 +140,8 @@ export default {
         ],
       },
       fontSize: {
+        hero: ['clamp(2.7rem, 4.8vw, 4.75rem)', { lineHeight: '0.96', letterSpacing: '-0.06em', fontWeight: '600' }],
+        section: ['clamp(2rem, 4vw, 3.5rem)', { lineHeight: '1.04', letterSpacing: '-0.045em', fontWeight: '600' }],
         'display-1': [
           'clamp(3rem, 5vw, 4rem)',
           { lineHeight: '1.08', letterSpacing: '-0.025em', fontWeight: '800' },

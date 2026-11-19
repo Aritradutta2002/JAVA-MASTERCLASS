@@ -1,7 +1,8 @@
 ---
 import ObsidianLayout from '../layouts/ObsidianLayout.astro';
+import PageHeader from '../components/system/PageHeader.astro';
 import { buildNavigationTree, getAllDocs, getStats } from '../lib/content';
-import { ArrowUpRight, FileText, Search } from 'lucide-react';
+import { ArrowUpRight, Search } from 'lucide-react';
 
 const allDocs = getAllDocs();
 const navigation = buildNavigationTree(allDocs);
@@ -29,16 +30,8 @@ const fmt = new Intl.NumberFormat('en-US');
   wide
 >
   <div class="not-prose space-y-8">
-    <header class="space-y-3 border-b border-obs-border pb-6">
-      <p class="eyebrow"><FileText className="h-3.5 w-3.5" /> Complete index</p>
-      <h1 class="text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
-        Complete topic index (A–Z)
-      </h1>
-      <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
-        Full inventory of {fmt.format(stats.documents)} chapters, algorithms, HLD case studies, and
-        interview topics. Jump by letter, or use search for a specific phrase.
-      </p>
-
+    <PageHeader eyebrow="04 / COMPLETE DOCUMENT INDEX" title="Navigate the knowledge base A–Z." description={"Full inventory of " + fmt.format(stats.documents) + " chapters, algorithms, case studies, and reference notes. Filter by title, domain, or module."} />
+    <div class="mt-5 flex flex-wrap items-end justify-between gap-4">
       <div class="relative mt-2 flex max-w-xl items-center">
         <Search className="pointer-events-none absolute left-2.5 h-4 w-4 text-obs-accent" />
         <label for="index-filter" class="sr-only">Filter the index</label>
@@ -49,7 +42,6 @@ const fmt = new Intl.NumberFormat('en-US');
           class="field w-full rounded-lg border border-obs-border bg-obs-surface py-2 pl-9 pr-3 text-sm text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:outline-none"
         />
       </div>
-
       <nav aria-label="Jump to letter" class="flex flex-wrap gap-1 pt-2">
         {letters.map(([letter, list]) => (
           <a
@@ -61,7 +53,8 @@ const fmt = new Intl.NumberFormat('en-US');
           </a>
         ))}
       </nav>
-    </header>
+</div>
+
 
     <div id="index-empty" class="hidden rounded-xl border border-obs-border bg-obs-surface p-10 text-center">
       <p class="text-sm font-semibold text-obs-text-primary">No topics match that filter</p>

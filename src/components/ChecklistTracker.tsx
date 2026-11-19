@@ -331,12 +331,12 @@ export default function ChecklistTracker() {
   const strokeDashoffset = circumference - (overallPercent / 100) * circumference;
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto py-6 px-2 sm:px-4">
+    <div className="space-y-6 mx-auto w-full py-2">
       {/* Stripe-Grade Overview Hero Dashboard */}
-      <div className="relative rounded-2xl border border-obs-border/90 bg-obs-surface/60 backdrop-blur-md p-6 sm:p-8 shadow-obs-lg overflow-hidden">
+      <div className="relative overflow-hidden border-y border-obs-border py-6">
         {/* Ambient subtle glow background */}
         <div
-          className="absolute -right-20 -top-20 w-80 h-80 rounded-full opacity-20 pointer-events-none blur-3xl"
+          className="absolute right-0 -top-20 w-80 h-80 rounded-sm opacity-20 pointer-events-none blur-3xl"
           style={{
             background: 'radial-gradient(circle, var(--obs-accent) 0%, transparent 70%)',
           }}
@@ -345,17 +345,17 @@ export default function ChecklistTracker() {
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-obs-accent/15 border border-obs-accent/30 text-obs-accent">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-semibold uppercase tracking-wider bg-obs-accent/15 border border-obs-accent/30 text-obs-accent">
                 <Sparkles className="h-3.5 w-3.5" />
-                <span>Executive Preparation Syllabus</span>
+                <span>Assessment tracker</span>
               </span>
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${readinessTier.color}`}>
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-sm text-xs font-medium border ${readinessTier.color}`}>
                 {readinessTier.label}
               </span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-obs-text-primary">
-              Java Backend Mastery Tracker
+              Review progress
             </h2>
 
             <p className="text-sm text-obs-text-muted leading-relaxed">
@@ -365,7 +365,7 @@ export default function ChecklistTracker() {
           </div>
 
           {/* Linear Progress Ring & Quick Stats */}
-          <div className="flex items-center gap-6 bg-obs-canvas/80 border border-obs-border/80 p-4 rounded-xl shadow-xs self-stretch lg:self-auto justify-around sm:justify-start">
+          <div className="flex items-center gap-6 bg-obs-canvas/80 border border-obs-border/80 p-4 rounded-md shadow-xs self-stretch lg:self-auto justify-around sm:justify-start">
             <div className="relative flex items-center justify-center shrink-0">
               <svg
                 className="h-24 w-24 transform -rotate-90"
@@ -435,11 +435,11 @@ export default function ChecklistTracker() {
             </span>
           </div>
 
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-obs-canvas border border-obs-border/70 flex">
+          <div className="h-2.5 w-full overflow-hidden rounded-sm bg-obs-canvas border border-obs-border/70 flex">
             {CHECKLIST_DATA.map((dom) => {
               const dStat = domainStats[dom.domain] || { total: 0, checked: 0 };
               const widthPct = totalItems > 0 ? (dStat.checked / totalItems) * 100 : 0;
-              const color = DOMAIN_COLORS[dom.domain]?.hex || '#a78bfa';
+              const color = DOMAIN_COLORS[dom.domain]?.hex || '#6d3df5';
               if (widthPct === 0) return null;
               return (
                 <div
@@ -455,14 +455,14 @@ export default function ChecklistTracker() {
       </div>
 
       {/* Control Filter Bar */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-obs-sidebar/70 backdrop-blur-sm p-3 rounded-xl border border-obs-border/80">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-obs-sidebar/70 backdrop-blur-sm p-3 rounded-md border border-obs-border/80">
         {/* Domain Filter Pills */}
-        <div className="flex min-w-0 items-center gap-1 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+        <div className="flex min-w-0 max-w-full items-center gap-1 overflow-x-auto overscroll-x-contain pb-1 lg:pb-0 scrollbar-none">
           <button
             type="button"
             onClick={() => setSelectedDomain('all')}
             aria-pressed={selectedDomain === 'all'}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 ${
+            className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-all shrink-0 ${
               selectedDomain === 'all'
                 ? 'bg-obs-accent-solid text-white shadow-xs font-semibold'
                 : 'text-obs-text-secondary hover:bg-obs-surface hover:text-obs-text-primary'
@@ -480,13 +480,13 @@ export default function ChecklistTracker() {
                 type="button"
                 onClick={() => setSelectedDomain(dom.domain)}
                 aria-pressed={isSel}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 flex items-center gap-1.5 border ${
+                className={`px-2.5 py-1.5 rounded-sm text-xs font-medium transition-all shrink-0 flex items-center gap-1.5 border ${
                   isSel
                     ? 'bg-obs-surface text-obs-text-primary border-obs-accent shadow-xs font-semibold'
                     : 'border-transparent text-obs-text-secondary hover:bg-obs-surface/60 hover:text-obs-text-primary'
                 }`}
               >
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color.hex }} />
+                <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: color.hex }} />
                 <span>{dom.title.split(' ')[0]}</span>
                 <span className="text-micro font-mono text-obs-text-muted">
                   {stat?.checked}/{stat?.total}
@@ -506,7 +506,7 @@ export default function ChecklistTracker() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search chapters..."
               aria-label="Search checklist topics"
-              className="field w-full rounded-lg border border-obs-border/80 bg-obs-surface/80 py-1.5 pl-8 pr-2.5 text-xs text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:bg-obs-surface focus:outline-none transition-all"
+              className="field w-full rounded-sm border border-obs-border/80 bg-obs-surface/80 py-1.5 pl-8 pr-2.5 text-xs text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:bg-obs-surface focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
@@ -520,7 +520,7 @@ export default function ChecklistTracker() {
             )}
           </div>
 
-          <div className="flex items-center border border-obs-border/80 rounded-lg p-0.5 bg-obs-canvas text-xs">
+          <div className="flex items-center border border-obs-border/80 rounded-sm p-0.5 bg-obs-canvas text-xs">
             <button
               type="button"
               onClick={() => setStatusFilter('all')}
@@ -559,7 +559,7 @@ export default function ChecklistTracker() {
           <button
             type="button"
             onClick={() => setShowResetConfirm(true)}
-            className="p-1.5 rounded-lg border border-obs-border/80 bg-obs-surface text-obs-text-muted hover:text-obs-error-text hover:border-obs-error/40 transition-colors"
+            className="p-1.5 rounded-sm border border-obs-border/80 bg-obs-surface text-obs-text-muted hover:text-obs-error-text hover:border-obs-error/40 transition-colors"
             title="Reset All Progress"
             aria-label="Reset All Progress"
           >
@@ -573,13 +573,13 @@ export default function ChecklistTracker() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div
             ref={resetDialogRef}
-            className="w-full max-w-sm rounded-2xl border border-obs-border bg-obs-surface p-6 shadow-2xl space-y-4"
+            className="w-full max-w-sm rounded-md border border-obs-border bg-obs-surface p-6 shadow-2xl space-y-4"
             role="dialog"
             aria-modal="true"
             aria-labelledby="reset-progress-title"
           >
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-obs-error-subtle text-obs-error-text border border-obs-error/20">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-obs-error-subtle text-obs-error-text border border-obs-error/20">
                 <AlertCircle className="h-5 w-5" />
               </div>
               <div>
@@ -594,14 +594,14 @@ export default function ChecklistTracker() {
               <button
                 type="button"
                 onClick={() => setShowResetConfirm(false)}
-                className="px-3 py-1.5 rounded-lg border border-obs-border text-xs font-medium text-obs-text-secondary hover:bg-obs-hover transition-colors"
+                className="px-3 py-1.5 rounded-sm border border-obs-border text-xs font-medium text-obs-text-secondary hover:bg-obs-hover transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleResetConfirm}
-                className="px-3.5 py-1.5 rounded-lg bg-obs-error-solid hover:bg-obs-error-solid-hover text-white text-xs font-semibold transition-colors shadow-sm"
+                className="px-3.5 py-1.5 rounded-sm bg-obs-error-solid hover:bg-obs-error-solid-hover text-white text-xs font-semibold transition-colors shadow-sm"
               >
                 Yes, Reset All
               </button>
@@ -613,7 +613,7 @@ export default function ChecklistTracker() {
       {/* Domain Sections */}
       <div className="space-y-6">
         {filteredData.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-obs-border p-12 text-center space-y-3">
+          <div className="rounded-md border border-dashed border-obs-border p-12 text-center space-y-3">
             <Filter className="mx-auto h-8 w-8 text-obs-text-muted" />
             <h3 className="text-sm font-semibold text-obs-text-primary">No Matching Topics Found</h3>
             <p className="text-xs text-obs-text-muted max-w-sm mx-auto">
@@ -626,7 +626,7 @@ export default function ChecklistTracker() {
                 setStatusFilter('all');
                 setSearchQuery('');
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-obs-border bg-obs-surface text-xs font-medium text-obs-accent hover:bg-obs-hover"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-obs-border bg-obs-surface text-xs font-medium text-obs-accent hover:bg-obs-hover"
             >
               Reset Filters
             </button>
@@ -641,7 +641,7 @@ export default function ChecklistTracker() {
             return (
               <div
                 key={dom.domain}
-                className="rounded-2xl border border-obs-border/80 bg-obs-surface/40 overflow-hidden shadow-sm transition-all duration-200 hover:border-obs-border"
+                className="rounded-md border border-obs-border/80 bg-obs-surface/40 overflow-hidden shadow-sm transition-all duration-200 hover:border-obs-border"
               >
                 {/* Domain Header */}
                 <div className="p-4 sm:p-5 border-b border-obs-border/80 bg-obs-sidebar/70 flex flex-wrap items-center justify-between gap-3">
@@ -652,7 +652,7 @@ export default function ChecklistTracker() {
                       className="flex items-center gap-2.5 text-left group"
                     >
                       <div
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border transition-transform duration-200 group-hover:scale-105"
+                        className="flex h-9 w-9 items-center justify-center rounded-md border transition-transform duration-200 group-hover:scale-105"
                         style={{
                           backgroundColor: domainColor.bg,
                           color: domainColor.text,
@@ -681,11 +681,11 @@ export default function ChecklistTracker() {
 
                   {/* Domain Quick Actions & Progress Pill */}
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 bg-obs-canvas/80 px-2.5 py-1 rounded-lg border border-obs-border/70">
+                    <div className="flex items-center gap-2 bg-obs-canvas/80 px-2.5 py-1 rounded-sm border border-obs-border/70">
                       <span className="font-mono text-xs font-semibold text-obs-text-primary">
                         {stat.percent}%
                       </span>
-                      <div className="w-20 h-2 rounded-full bg-obs-surface overflow-hidden border border-obs-border/40">
+                      <div className="w-20 h-2 rounded-sm bg-obs-surface overflow-hidden border border-obs-border/40">
                         <div
                           className="h-full transition-all duration-500 ease-out"
                           style={{
@@ -737,7 +737,7 @@ export default function ChecklistTracker() {
                             return (
                               <div
                                 key={item.id}
-                                className={`group relative flex items-center justify-between p-3 rounded-xl border transition-all duration-200 select-none ${
+                                className={`group relative flex items-center justify-between p-3 rounded-md border transition-all duration-200 select-none ${
                                   isDone
                                     ? 'bg-obs-accent/5 border-obs-accent/30 text-obs-text-primary'
                                     : 'bg-obs-surface/60 border-obs-border/70 hover:border-obs-border hover:bg-obs-surface text-obs-text-secondary'
@@ -756,7 +756,7 @@ export default function ChecklistTracker() {
                                     aria-label={`Mark ${item.title} as ${isDone ? 'incomplete' : 'completed'}`}
                                     className={`relative flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-obs-accent/50 ${
                                       isDone
-                                        ? 'bg-obs-accent-solid border-obs-accent-solid text-white shadow-xs'
+                                        ? 'bg-obs-text-primary border-obs-text-primary text-obs-canvas'
                                         : 'border-obs-border/90 bg-obs-canvas hover:border-obs-accent hover:bg-obs-surface'
                                     }`}
                                   >

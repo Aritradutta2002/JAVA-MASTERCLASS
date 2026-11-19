@@ -37,7 +37,7 @@ const fmt = new Intl.NumberFormat('en-US');
       </p>
     </div>
     <span class="badge badge-success shrink-0">
-      <span class="h-1.5 w-1.5 rounded-full bg-obs-success" aria-hidden="true"></span>
+      <span class="h-1.5 w-1.5 rounded-sm bg-obs-success" aria-hidden="true"></span>
       {domains.length} domains covered
     </span>
   </div>
@@ -52,16 +52,16 @@ const fmt = new Intl.NumberFormat('en-US');
           <div class="min-w-0">
             <div class="mb-1.5 flex items-center justify-between gap-3 text-sm">
               <span class="flex min-w-0 items-center gap-2 font-medium text-obs-text-primary">
-                <span class="h-2 w-2 shrink-0 rounded-full" style={`background-color:${domain.color.hex}`} aria-hidden="true"></span>
+                <span class="h-2 w-2 shrink-0 rounded-sm" style={`background-color:${domain.color.hex}`} aria-hidden="true"></span>
                 <span class="truncate">{domain.title}</span>
               </span>
               <span class="shrink-0 font-mono text-xs text-obs-text-muted">
                 {domain.count} chapters · {share}%
               </span>
             </div>
-            <div class="h-2 overflow-hidden rounded-full bg-obs-canvas-soft">
+            <div class="h-2 overflow-hidden rounded-sm bg-obs-canvas-soft">
               <div
-                class="h-full rounded-full transition-[width] duration-500"
+                class="h-full rounded-sm transition-[width] duration-500"
                 style={`width:${width}%;background-color:${domain.color.hex}`}
               ></div>
             </div>
@@ -74,22 +74,22 @@ const fmt = new Intl.NumberFormat('en-US');
     </div>
 
     <div class="grid grid-cols-2 gap-3 self-start">
-      <div class="rounded-xl border border-obs-border bg-obs-canvas-soft p-4">
+      <div class="rounded-md border border-obs-border bg-obs-canvas-soft p-4">
         <p class="text-xs font-medium uppercase tracking-wider text-obs-text-muted">Chapters</p>
         <p class="mt-1 font-mono text-2xl font-bold text-obs-text-primary">{fmt.format(totalDocs)}</p>
         <p class="mt-1 text-xs text-obs-text-muted">Across {domains.length} domains</p>
       </div>
-      <div class="rounded-xl border border-obs-border bg-obs-canvas-soft p-4">
+      <div class="rounded-md border border-obs-border bg-obs-canvas-soft p-4">
         <p class="text-xs font-medium uppercase tracking-wider text-obs-text-muted">Words</p>
         <p class="mt-1 font-mono text-2xl font-bold text-obs-text-primary">{(totalWords / 1_000_000).toFixed(2)}M</p>
         <p class="mt-1 text-xs text-obs-text-muted">{fmt.format(Math.round(averageWords))} average per domain</p>
       </div>
-      <div class="rounded-xl border border-obs-border bg-obs-canvas-soft p-4">
+      <div class="rounded-md border border-obs-border bg-obs-canvas-soft p-4">
         <p class="text-xs font-medium uppercase tracking-wider text-obs-text-muted">Reading time</p>
         <p class="mt-1 font-mono text-2xl font-bold text-obs-text-primary">{fmt.format(Math.round(totalMinutes / 60))}h</p>
         <p class="mt-1 text-xs text-obs-text-muted">Estimated deep reading</p>
       </div>
-      <div class="rounded-xl border border-obs-border bg-obs-canvas-soft p-4">
+      <div class="rounded-md border border-obs-border bg-obs-canvas-soft p-4">
         <p class="text-xs font-medium uppercase tracking-wider text-obs-text-muted">Diagrams</p>
         <p class="mt-1 font-mono text-2xl font-bold text-obs-text-primary">{fmt.format(totalDiagrams)}</p>
         <p class="mt-1 text-xs text-obs-text-muted">Architecture visuals</p>

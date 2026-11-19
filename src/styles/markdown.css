@@ -872,3 +872,20 @@ html[data-theme='dark'] .obsidian-prose .mermaid svg .cluster text {
     padding: 1rem;
   }
 }
+
+/* Precision reader: document typography remains primary. */
+.obsidian-prose { line-height:1.78; font-size:1rem; }
+.obsidian-prose > h1:first-child { font-size:clamp(2rem,4vw,3.25rem) !important; font-weight:600 !important; letter-spacing:-.045em; border-bottom:0; }
+.obsidian-prose h1 { font-size:clamp(1.85rem,3.5vw,3rem) !important; font-weight:600 !important; line-height:1.06 !important; }
+.obsidian-prose h2 { font-size:clamp(1.375rem,2.5vw,2rem) !important; font-weight:600 !important; line-height:1.18 !important; letter-spacing:-.035em !important; margin-top:3.5rem !important; }
+.obsidian-prose h3 { font-size:clamp(1.125rem,1.8vw,1.45rem) !important; font-weight:600 !important; letter-spacing:-.02em !important; }
+.obsidian-prose h4 { font-size:1.125rem !important; font-weight:600 !important; }
+.obsidian-prose h5,.obsidian-prose h6 { letter-spacing:.06em; }
+.obsidian-prose blockquote { border-radius:0 4px 4px 0; border-right:1px solid var(--obs-border-subtle); box-shadow:none !important; background-image:none !important; }
+.obsidian-prose table th,.obsidian-prose table td { font-family: 'Inter Variable', sans-serif; }
+.obsidian-prose .mermaid-figure,.obsidian-prose .mermaid-source,.obsidian-prose iframe,.obsidian-prose video { border-radius:4px; box-shadow:none; }
+.obsidian-prose img { box-shadow:none; }
+.obsidian-prose pre > code { font-variant-ligatures:none; }
+
+.doc-header, .document-masthead { border-bottom:1px solid var(--obs-border); }
+@media(max-width:639px){ .obsidian-prose {font-size:1rem;} .obsidian-prose h1{font-size:2rem!important;} .obsidian-prose h2{font-size:1.45rem!important;} .obsidian-prose h3{font-size:1.2rem!important;} }

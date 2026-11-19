@@ -192,6 +192,46 @@ try {
   const drawerClosed = await page.evaluate(() => document.getElementById('mobile-drawer')?.classList.contains('hidden'));
   if (!drawerClosed) failures.push('Mobile drawer did not close on Escape');
 
+  // Mobile document outline disclosure: open, close, Escape, and focus restoration.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${BASE_URL}/core-java/01-core-java-oop/01-oop-foundations-and-4-pillars`, {
+    waitUntil: 'networkidle',
+  });
+  const contextToggle = page.locator('#mobile-context-toggle');
+  await contextToggle.scrollIntoViewIfNeeded();
+  await contextToggle.click();
+  await page.waitForTimeout(150);
+  const contextOpened = await page.evaluate(() => {
+    const toggle = document.getElementById('mobile-context-toggle');
+    const panel = document.getElementById('right-sidebar');
+    return toggle?.getAttribute('aria-expanded') === 'true' && panel?.classList.contains('mobile-context-open');
+  });
+  if (!contextOpened) failures.push('Mobile document outline did not open');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(150);
+  const contextClosed = await page.evaluate(() => {
+    const toggle = document.getElementById('mobile-context-toggle');
+    const panel = document.getElementById('right-sidebar');
+    return toggle?.getAttribute('aria-expanded') === 'false' &&
+      !panel?.classList.contains('mobile-context-open') &&
+      document.activeElement === toggle;
+  });
+  if (!contextClosed) failures.push('Mobile document outline did not close and restore focus on Escape');
+
+  // Graph controls remain inside the graph viewport on mobile.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${BASE_URL}/graph`, { waitUntil: 'networkidle' });
+  const graphControlsContained = await page.evaluate(() => {
+    const graph = document.querySelector('canvas')?.closest('[class*="h-full"]');
+    if (!graph) return false;
+    const graphRect = graph.getBoundingClientRect();
+    return [...graph.querySelectorAll('button')].every((button) => {
+      const rect = button.getBoundingClientRect();
+      return rect.left >= graphRect.left - 1 && rect.right <= graphRect.right + 1;
+    });
+  });
+  if (!graphControlsContained) failures.push('Graph controls overflow the mobile graph container');
+
   // Table sorting smoke test on a content page.
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${BASE_URL}/core-java/01-core-java-oop/01-oop-foundations-and-4-pillars`, {

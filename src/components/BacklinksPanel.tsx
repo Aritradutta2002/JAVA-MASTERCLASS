@@ -48,8 +48,8 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
 
   if (totalConnections === 0) {
     return (
-      <div className="rounded-xl border border-obs-border/70 bg-obs-surface/40 p-4 text-center space-y-2.5">
-        <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-lg bg-obs-accent/10 border border-obs-accent/20 text-obs-accent">
+      <div className="rounded-md border border-obs-border/70 bg-obs-surface/40 p-4 text-center space-y-2.5">
+        <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-sm bg-obs-accent/10 border border-obs-accent/20 text-obs-accent">
           <Network className="h-4 w-4" />
         </div>
         <div>
@@ -60,7 +60,7 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
         </div>
         <a
           href="/graph"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-obs-border bg-obs-surface px-3 py-1.5 text-xs font-medium text-obs-accent hover:border-obs-accent/40 hover:bg-obs-hover transition-colors shadow-xs"
+          className="inline-flex items-center gap-1.5 rounded-sm border border-obs-border bg-obs-surface px-3 py-1.5 text-xs font-medium text-obs-accent hover:border-obs-accent/40 hover:bg-obs-hover transition-colors shadow-xs"
         >
           <span>Open Knowledge Graph</span>
           <ArrowUpRight className="h-3.5 w-3.5" />
@@ -74,13 +74,13 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
       {/* Header bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex h-5 w-5 items-center justify-center rounded bg-obs-accent/15 text-obs-accent">
+          <div className="flex h-5 w-5 items-center justify-center rounded bg-obs-accent-subtle text-obs-text-primary">
             <Link2 className="h-3 w-3" />
           </div>
           <span className="text-caption font-bold uppercase tracking-wider text-obs-text-primary">
             Knowledge Links
           </span>
-          <span className="rounded-full bg-obs-surface border border-obs-border/70 px-1.5 py-0.5 font-mono text-micro font-semibold text-obs-text-muted">
+          <span className="rounded-sm bg-obs-surface border border-obs-border/70 px-1.5 py-0.5 font-mono text-micro font-semibold text-obs-text-muted">
             {totalConnections}
           </span>
         </div>
@@ -99,7 +99,7 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
       {totalConnections > 4 && (
         <div className="space-y-2">
           {/* Segmented Tab Control */}
-          <div className="grid grid-cols-3 gap-1 rounded-lg border border-obs-border/70 bg-obs-canvas/80 p-0.5 text-caption font-medium">
+          <div className="grid grid-cols-3 gap-1 rounded-sm border border-obs-border/70 bg-obs-canvas/80 p-0.5 text-caption font-medium">
             <button
               type="button"
               onClick={() => setActiveTab('all')}
@@ -181,7 +181,7 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
                     <li key={`backlink-${backlink.sourceSlug}-${index}`}>
                       <a
                         href={backlink.sourceSlug}
-                        className="group relative block rounded-xl border border-obs-border/70 bg-obs-surface/40 hover:bg-obs-surface/85 hover:border-obs-accent/40 p-2.5 transition-all duration-200 shadow-xs hover:shadow-sm overflow-hidden"
+                        className="group relative block rounded-md border border-obs-border/70 bg-obs-surface/40 hover:bg-obs-surface/85 hover:border-obs-accent/40 p-2.5 transition-all duration-200 shadow-xs hover:shadow-sm overflow-hidden"
                       >
                         {/* Linear-style top highlight line on hover */}
                         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-obs-accent/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -207,7 +207,7 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
                         </div>
 
                         {backlink.contextSnippet && (
-                          <div className="mt-2 rounded-lg border-l-2 border-l-emerald-500/50 border border-obs-border/40 bg-obs-canvas/80 p-2 font-mono text-caption leading-relaxed text-obs-text-muted line-clamp-3 group-hover:text-obs-text-secondary transition-colors">
+                          <div className="mt-2 rounded-sm border-l-2 border-l-[var(--obs-emerald)] border border-obs-border/40 bg-obs-canvas/80 p-2 font-mono text-caption leading-relaxed text-obs-text-muted line-clamp-3 group-hover:text-obs-text-secondary transition-colors">
                             {backlink.contextSnippet}
                           </div>
                         )}
@@ -252,11 +252,11 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
                     <li key={`outgoing-${item.targetSlug}-${index}`}>
                       <a
                         href={item.targetSlug}
-                        className="group flex items-center justify-between gap-2 rounded-lg border border-obs-border/50 bg-obs-surface/30 hover:bg-obs-surface/80 hover:border-obs-accent/30 px-2.5 py-1.5 transition-all text-xs"
+                        className="group flex items-center justify-between gap-2 rounded-sm border border-obs-border/50 bg-obs-surface/30 hover:bg-obs-surface/80 hover:border-obs-accent/30 px-2.5 py-1.5 transition-all text-xs"
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <span
-                            className="h-1.5 w-1.5 rounded-full shrink-0"
+                            className="h-1.5 w-1.5 rounded-sm shrink-0"
                             style={{ backgroundColor: domainColor.hex }}
                           />
                           <span className="truncate text-obs-text-secondary group-hover:text-obs-accent transition-colors">

@@ -1,0 +1,13 @@
+---
+interface Props { metrics: { label: string; value: string | number }[]; class?: string }
+const { metrics, class: className = '' } = Astro.props;
+const format = new Intl.NumberFormat('en-US');
+---
+<dl class={'metric-strip grid-cols-2 sm:grid-cols-3 ' + className}>
+  {metrics.map(metric => (
+    <div>
+      <dt class="technical-label m-0 text-obs-text-muted">{metric.label}</dt>
+      <dd class="m-0 mt-2 font-mono text-xl font-semibold text-obs-text-primary">{typeof metric.value === 'number' ? format.format(metric.value) : metric.value}</dd>
+    </div>
+  ))}
+</dl>

@@ -299,14 +299,14 @@ export default function CommandPalette() {
     >
       <div
         ref={dialogRef}
-        className="w-full max-w-2xl overflow-hidden rounded-2xl border border-obs-border/80 bg-obs-sidebar/95 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] backdrop-blur-2xl animate-slide-up"
+        className="w-full max-w-2xl overflow-hidden rounded-md border border-obs-border/80 bg-obs-sidebar/95 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] backdrop-blur-2xl animate-slide-up"
         role="dialog"
         aria-modal="true"
         aria-label="Raycast command center"
       >
         {/* Search Input Bar */}
         <div className="relative flex items-center gap-3 border-b border-obs-border/70 px-4 py-3.5">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-obs-accent/15 text-obs-accent shadow-xs">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-obs-accent-subtle text-obs-text-primary">
             <Search className="h-4 w-4" />
           </div>
           <input
@@ -349,7 +349,7 @@ export default function CommandPalette() {
           {loading && (
             <div className="space-y-2 p-2" aria-busy="true" aria-label="Indexing knowledge base">
               {[0, 1, 2, 3].map((item) => (
-                <div key={item} className="flex items-center gap-3 rounded-xl border border-obs-border/40 p-3">
+                <div key={item} className="flex items-center gap-3 rounded-md border border-obs-border/40 p-3">
                   <div className="skeleton h-8 w-8 shrink-0" />
                   <div className="min-w-0 flex-1 space-y-2">
                     <div className="skeleton h-3 w-2/3" />
@@ -383,7 +383,7 @@ export default function CommandPalette() {
 
           {!loading && !loadError && query.trim() && flatItems.length === 0 && (
             <div className="px-4 py-12 text-center">
-              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-obs-accent/10 text-obs-accent mb-3">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-sm bg-obs-accent/10 text-obs-accent mb-3">
                 <Search className="h-5 w-5" />
               </div>
               <p className="text-sm font-semibold text-obs-text-primary">No results found for “{query}”</p>
@@ -392,7 +392,7 @@ export default function CommandPalette() {
               </p>
               <a
                 href={`/search?q=${encodeURIComponent(query)}`}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-obs-accent/40 bg-obs-accent/15 px-3 py-1.5 text-xs font-semibold text-obs-accent hover:bg-obs-accent/25 transition-all"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-sm border border-obs-accent/40 bg-obs-accent/15 px-3 py-1.5 text-xs font-semibold text-obs-accent hover:bg-obs-accent/25 transition-all"
               >
                 <span>Search full-text article contents</span>
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -432,7 +432,7 @@ export default function CommandPalette() {
                     tabIndex={-1}
                     onMouseEnter={() => setSelectedIndex(index)}
                     onClick={() => navigateTo(item.slug)}
-                    className={`group relative flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-150 ${
+                    className={`group relative flex cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 transition-all duration-150 ${
                       isSelected
                         ? 'border border-obs-accent/40 bg-gradient-to-r from-obs-accent/15 to-obs-accent/5 text-obs-text-primary shadow-xs'
                         : 'border border-transparent text-obs-text-secondary hover:bg-obs-surface/60 hover:text-obs-text-primary'
@@ -447,7 +447,7 @@ export default function CommandPalette() {
                     )}
 
                     <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-all ${
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border transition-all ${
                         isSelected
                           ? 'border-obs-accent/50 bg-obs-accent/20 text-obs-accent shadow-xs'
                           : domainMeta
@@ -477,7 +477,7 @@ export default function CommandPalette() {
                           {item.title}
                         </span>
                         {item.group === 'Domains' && (
-                          <span className="hidden sm:inline-flex rounded-full border border-obs-accent/30 bg-obs-accent/10 px-1.5 py-0.5 font-mono text-micro font-semibold text-obs-accent">
+                          <span className="hidden sm:inline-flex rounded-sm border border-obs-accent/30 bg-obs-accent/10 px-1.5 py-0.5 font-mono text-micro font-semibold text-obs-accent">
                             Curriculum
                           </span>
                         )}
@@ -504,7 +504,7 @@ export default function CommandPalette() {
           {!loading && !loadError && query.trim() && flatItems.length > 0 && (
             <a
               href={`/search?q=${encodeURIComponent(query)}`}
-              className="mt-2 flex items-center justify-between rounded-xl border border-obs-border/60 bg-obs-surface/40 px-3 py-2.5 text-caption font-semibold text-obs-accent hover:border-obs-accent/40 hover:bg-obs-surface transition-all"
+              className="mt-2 flex items-center justify-between rounded-md border border-obs-border/60 bg-obs-surface/40 px-3 py-2.5 text-caption font-semibold text-obs-accent hover:border-obs-accent/40 hover:bg-obs-surface transition-all"
             >
               <span className="flex items-center gap-2">
                 <Sparkles className="h-3.5 w-3.5" />

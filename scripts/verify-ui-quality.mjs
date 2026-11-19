@@ -52,10 +52,11 @@ const cssSource = fs.readFileSync(
 );
 
 function themeVars(selector) {
-  const start = cssSource.indexOf(selector);
+  const source = cssSource;
+  const start = source.indexOf(selector);
   if (start < 0) throw new Error(`Missing theme block: ${selector}`);
-  const end = cssSource.indexOf('}', start);
-  const block = cssSource.slice(start, end);
+  const end = source.indexOf('}', start);
+  const block = source.slice(start, end);
   const vars = {};
   for (const match of block.matchAll(/--([\w-]+):\s*([^;]+);/g)) {
     vars[match[1]] = match[2].trim();

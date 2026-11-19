@@ -349,7 +349,7 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
 
       return (
         <div key={node.id} className="mt-3.5 first:mt-1">
-          <div className="group flex items-center gap-2 rounded-xl px-2 py-1.5 transition-all duration-150 hover:bg-obs-surface/80">
+          <div className="group flex items-center gap-2 rounded-md px-2 py-1.5 transition-all duration-150 hover:bg-obs-surface/80">
             <button
               type="button"
               data-tree-toggle="true"
@@ -365,16 +365,16 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
                   }`}
                 />
               ) : (
-                <span className="h-1.5 w-1.5 rounded-full bg-obs-border" />
+                <span className="h-1.5 w-1.5 rounded-sm bg-obs-border" />
               )}
             </button>
 
             <div
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border shadow-xs transition-transform duration-200 group-hover:scale-105"
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border shadow-xs transition-transform duration-200 group-hover:scale-105"
               style={{
                 backgroundColor: domainMeta?.bg || 'rgba(167, 139, 250, 0.1)',
                 borderColor: domainMeta?.border || 'rgba(167, 139, 250, 0.25)',
-                color: domainMeta?.text || '#a78bfa',
+                color: domainMeta?.text || '#6d3df5',
               }}
             >
               <DomainIcon className="h-3.5 w-3.5" />
@@ -397,7 +397,7 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
             )}
 
             {node.count !== undefined && (
-              <span className="shrink-0 rounded-full border border-obs-border/70 bg-obs-canvas px-1.5 py-0.5 font-mono text-micro font-medium text-obs-text-muted">
+              <span className="shrink-0 rounded-sm border border-obs-border/70 bg-obs-canvas px-1.5 py-0.5 font-mono text-micro font-medium text-obs-text-muted">
                 {node.count}
               </span>
             )}
@@ -417,7 +417,7 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
 
     const row = (
       <div
-        className={`group relative flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs transition-all duration-150 ${
+        className={`group relative flex items-center gap-1.5 rounded-sm px-2 py-1.5 text-xs transition-all duration-150 ${
           isActive
             ? 'bg-gradient-to-r from-obs-accent/20 via-obs-accent/10 to-obs-accent/5 font-medium text-obs-accent border border-obs-accent/30 shadow-xs'
             : isContainsActive
@@ -452,7 +452,7 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
         ) : (
           <span className="flex h-5 w-4 shrink-0 items-center justify-center">
             <span
-              className={`h-1.5 w-1.5 rounded-full transition-all duration-150 ${
+              className={`h-1.5 w-1.5 rounded-sm transition-all duration-150 ${
                 isActive
                   ? 'bg-obs-accent shadow-[0_0_8px_var(--obs-accent)] scale-110'
                   : 'bg-obs-border group-hover:bg-obs-text-muted'
@@ -522,13 +522,13 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
       {/* Top Header & Toolbar with Linear aesthetics */}
       <div className="flex items-center justify-between border-b border-obs-border/70 bg-obs-sidebar/70 px-3 py-2.5 backdrop-blur-sm">
         <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-obs-accent/15 text-obs-accent shadow-xs">
+          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-obs-accent-subtle text-obs-text-primary shadow-xs">
             <FolderTree className="h-3 w-3" />
           </span>
           <span className="text-caption font-bold uppercase tracking-[0.14em] text-obs-text-muted">
             Explorer
           </span>
-          <span className="rounded-full border border-obs-border/60 bg-obs-surface px-1.5 py-0.5 font-mono text-micro font-medium text-obs-text-muted">
+          <span className="rounded-sm border border-obs-border/60 bg-obs-surface px-1.5 py-0.5 font-mono text-micro font-medium text-obs-text-muted">
             {totalTopics}
           </span>
         </div>
@@ -580,7 +580,7 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
               }
             }}
             placeholder="Filter topics… (Press /)"
-            className="field w-full rounded-lg border border-obs-border/80 bg-obs-canvas/80 py-1.5 pl-8 pr-12 text-xs text-obs-text-primary placeholder:text-obs-text-muted shadow-inner transition-all focus:border-obs-accent/60 focus:bg-obs-surface focus:outline-none focus:ring-2 focus:ring-obs-accent/20"
+            className="field w-full rounded-sm border border-obs-border/80 bg-obs-canvas/80 py-1.5 pl-8 pr-12 text-xs text-obs-text-primary placeholder:text-obs-text-muted shadow-inner transition-all focus:border-obs-accent/60 focus:bg-obs-surface focus:outline-none focus:ring-2 focus:ring-obs-accent/20"
           />
           {filter ? (
             <button
@@ -606,9 +606,9 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
                 <a
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center justify-center gap-1 rounded-md border px-1.5 py-1 text-caption font-semibold transition-all ${
+                  className={`flex min-h-10 min-w-0 flex-col items-center justify-center gap-1 rounded-sm border px-1 py-1 text-micro font-semibold transition-all ${
                     isLinkActive
-                      ? 'border-obs-accent/50 bg-obs-accent/15 text-obs-accent shadow-xs'
+                      ? 'border-obs-accent/50 bg-obs-accent-subtle text-obs-text-primary shadow-xs'
                       : 'border-obs-border/70 bg-obs-surface/60 text-obs-text-muted hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary'
                   }`}
                 >
@@ -630,19 +630,19 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
       >
         {/* Pinned Pages Section */}
         {pinned.length > 0 && !filter && (
-          <section className="mb-3 rounded-xl border border-obs-gold/25 bg-obs-gold/5 p-2 shadow-xs" aria-label="Pinned pages">
+          <section className="mb-3 rounded-md border border-obs-gold/25 bg-obs-gold/5 p-2 shadow-xs" aria-label="Pinned pages">
             <button
               type="button"
               onClick={() => setShowPinned((value) => !value)}
               aria-expanded={showPinned}
-              className="flex w-full items-center justify-between rounded-lg px-1.5 py-1 text-caption font-bold uppercase tracking-[0.12em] text-obs-gold hover:bg-obs-gold/10 transition-colors"
+              className="flex w-full items-center justify-between rounded-sm px-1.5 py-1 text-caption font-bold uppercase tracking-[0.12em] text-obs-gold hover:bg-obs-gold/10 transition-colors"
             >
               <span className="flex items-center gap-1.5">
                 <ChevronRight className={`h-3 w-3 transition-transform duration-200 ${showPinned ? 'rotate-90' : ''}`} />
                 <Star className="h-3 w-3 fill-current" />
                 Pinned Topics
               </span>
-              <span className="font-mono text-micro px-1.5 py-0.5 rounded-full bg-obs-gold/15 text-obs-gold">{pinned.length}</span>
+              <span className="font-mono text-micro px-1.5 py-0.5 rounded-sm bg-obs-gold/15 text-obs-gold">{pinned.length}</span>
             </button>
             {showPinned && (
               <div className="mt-1 space-y-0.5 pt-1 border-t border-obs-gold/15">
@@ -676,8 +676,8 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
 
         {/* Recent Pages Section */}
         {recents.length > 0 && !filter && (
-          <section className="mb-3 rounded-xl border border-obs-border/70 bg-obs-surface/40 p-2 shadow-xs" aria-label="Recently viewed pages">
-            <div className="flex w-full items-center justify-between rounded-lg px-1.5 py-1">
+          <section className="mb-3 rounded-md border border-obs-border/70 bg-obs-surface/40 p-2 shadow-xs" aria-label="Recently viewed pages">
+            <div className="flex w-full items-center justify-between rounded-sm px-1.5 py-1">
               <button
                 type="button"
                 onClick={() => setShowRecent((value) => !value)}
@@ -706,7 +706,7 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
                     href={item.slug}
                     className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors ${
                       normalizeSlug(item.slug) === target
-                        ? 'bg-obs-accent/15 text-obs-accent font-medium'
+                        ? 'bg-obs-accent-subtle text-obs-text-primary font-medium'
                         : 'text-obs-text-secondary hover:bg-obs-surface hover:text-obs-text-primary'
                     }`}
                   >

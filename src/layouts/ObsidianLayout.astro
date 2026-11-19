@@ -3,7 +3,9 @@ import '@fontsource-variable/inter';
 import interFontUrl from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import '@fontsource-variable/jetbrains-mono';
 import 'katex/dist/katex.min.css';
+
 import '../styles/global.css';
+import '../styles/presentation.css';
 import '../styles/markdown.css';
 
 import Header from '../components/Header.astro';
@@ -20,6 +22,7 @@ import type {
 } from '../lib/types';
 import { DOMAIN_COLORS, SITE } from '../lib/constants';
 import {
+  Plus,
   ArrowLeft,
   ArrowRight,
   Clock,
@@ -157,7 +160,7 @@ const jsonLd = {
 ---
 
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -195,10 +198,7 @@ const jsonLd = {
       try {
         const stored = localStorage.getItem('theme');
         const theme =
-          stored ||
-          (window.matchMedia('(prefers-color-scheme: light)').matches
-            ? 'light'
-            : 'dark');
+          stored || 'light';
         document.documentElement.setAttribute('data-theme', theme);
 
         if (localStorage.getItem('obsidian-sidebar-folded') === 'true') {
@@ -275,12 +275,12 @@ const jsonLd = {
         class="sticky top-[var(--obs-header-height)] hidden h-[calc(100vh-var(--obs-header-height))] w-[var(--obs-sidebar-width)] shrink-0 overflow-hidden border-r border-obs-border bg-obs-sidebar/70 backdrop-blur-md md:block z-20"
         aria-label="Knowledge base navigation"
       >
-        <div class="h-full w-[var(--obs-sidebar-width)] min-w-[19rem] overflow-hidden">
+        <div class="h-full w-full overflow-hidden">
           <SidebarTree client:media="(min-width: 768px)" navigation={[]} currentSlug={pathname} />
         </div>
       </aside>
 
-      <div id="content-grid" class="flex min-w-0 flex-1 flex-col xl:flex-row transition-all duration-300">
+      <div id="content-grid" role="region" aria-label="Knowledge workspace" class="flex min-w-0 flex-1 flex-col xl:flex-row transition-all duration-300">
         <main
           id="main-content-wrapper"
           tabindex="-1"
@@ -325,7 +325,7 @@ const jsonLd = {
             )}
 
             {doc ? (
-              <header class="mb-8 overflow-hidden rounded-2xl border border-obs-border bg-gradient-to-b from-obs-surface to-obs-canvas-soft/60 shadow-obs">
+              <header class="mb-8 border-b border-obs-border pb-8">
                 <div class="space-y-5 p-5 sm:p-7">
                   <div class="flex flex-wrap items-center justify-between gap-3">
                     <div class="flex min-w-0 flex-wrap items-center gap-2 text-caption">
@@ -521,32 +521,58 @@ const jsonLd = {
           </div>
         </main>
 
+        {(doc || headings.length > 0 || outgoing.length > 0) && (
+          <button id="mobile-context-toggle" type="button" class="technical-label inline-flex w-full items-center justify-center gap-2 border-y border-obs-border bg-obs-surface py-4 text-obs-text-primary xl:hidden" aria-label="Open page outline and connections" aria-controls="right-sidebar" aria-expanded="false">
+            <ListTree className="h-4 w-4" /> Outline <Plus className="h-3 w-3" />
+          </button>
+        )}
         {(doc || headings.length > 0 || backlinks.length > 0 || outgoing.length > 0) && (
-        <aside
-          id="right-sidebar"
-          data-pagefind-ignore
-          class="sticky top-[var(--obs-header-height)] hidden h-[calc(100vh-var(--obs-header-height))] w-[var(--obs-toc-width)] shrink-0 overflow-y-auto border-l border-obs-border bg-obs-sidebar/30 px-5 py-7 xl:block"
-          aria-label="Page outline and connections"
-        >
+        <aside id="right-sidebar" data-pagefind-ignore class="mobile-context sticky top-0 border-t border-obs-border py-7 xl:sticky xl:top-[var(--obs-header-height)] xl:h-[calc(100vh-var(--obs-header-height))] xl:w-[var(--obs-toc-width)] xl:shrink-0 xl:overflow-y-auto xl:border-l xl:border-t-0 xl:bg-obs-sidebar/30 xl:px-5" aria-label="Page outline and connections">
+          <button id="mobile-context-close" type="button" class="icon-btn mb-4 hidden w-full justify-between px-3 text-xs" aria-label="Close page outline">Close outline <X className="h-4 w-4" /></button>
           <div class="space-y-6">
-            <TableOfContents client:media="(min-width: 1280px)" headings={headings} />
-            <BacklinksPanel client:media="(min-width: 1280px)" backlinks={backlinks} outgoing={outgoing} />
-            <div class="border-t border-obs-border-subtle pt-4">
-              <a
-                href="/checklist"
-                class="flex items-center justify-between rounded-lg border border-obs-border bg-obs-surface px-3 py-2 text-caption font-semibold text-obs-text-secondary transition-colors hover:border-obs-emerald/40 hover:text-obs-emerald"
-              >
-                Study checklist
-                <ArrowRight className="h-3 w-3" />
-              </a>
-            </div>
+            <TableOfContents client:visible headings={headings} />
+            <BacklinksPanel client:visible backlinks={backlinks} outgoing={outgoing} />
+            <div class="border-t border-obs-border-subtle pt-4"><a href="/checklist" class="flex items-center justify-between border border-obs-border bg-obs-surface px-3 py-2 text-caption font-semibold text-obs-text-secondary transition-colors hover:text-obs-text-primary">Study checklist <ArrowRight className="h-3 w-3" /></a></div>
           </div>
         </aside>
         )}
+      )}
+      <script is:inline>
+        function setupContextPanel() {
+          const toggle = document.getElementById('mobile-context-toggle');
+          const panel = document.getElementById('right-sidebar');
+          const close = document.getElementById('mobile-context-close');
+          if (!toggle || !panel || toggle.dataset.bound === 'true') return;
+          toggle.dataset.bound = 'true';
+          function setOpen(open) {
+            panel.classList.toggle('mobile-context-open', open);
+            toggle.setAttribute('aria-expanded', String(open));
+            toggle.setAttribute('aria-label', open ? 'Close page outline and connections' : 'Open page outline and connections');
+            if (open) {
+              panel.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+            }
+          }
+          toggle.addEventListener('click', () => {
+            setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+          });
+          close?.addEventListener('click', () => {
+            setOpen(false);
+            toggle.focus();
+          });
+          document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+              setOpen(false);
+              toggle.focus();
+            }
+          });
+        }
+        setupContextPanel();
+        document.addEventListener('astro:page-load', setupContextPanel);
+      </script>
       </div>
-    </div>
+      </div>
 
-    <!-- Mobile navigation drawer -->
+         <!-- Mobile navigation drawer -->
     <div
       id="mobile-drawer"
       data-pagefind-ignore
@@ -677,6 +703,7 @@ const jsonLd = {
         }
         applyThemeIcons();
         rerenderMermaid();
+        window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: next } }));
       }
 
       function setupTheme() {
@@ -1416,12 +1443,8 @@ const jsonLd = {
           }
           if (index < enhancements.length) schedule(runNext);
         };
-        const schedule = (callback) => {
-          if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(callback, { timeout: 300 });
-          } else {
-            window.setTimeout(callback, 0);
-          }
+        const schedule = (callback: () => void) => {
+          globalThis.setTimeout(callback, 0);
         };
         schedule(runNext);
       }

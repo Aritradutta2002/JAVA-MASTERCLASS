@@ -1,0 +1,14 @@
+---
+import SectionHeading from './SectionHeading.astro';
+import { ArrowUpRight, ArrowRight } from 'lucide-react';
+interface Domain { id: string; title: string; description: string; href: string; count: number; words: number; }
+interface Props { domains: Domain[]; metrics: { label: string; value: number }[]; }
+const { domains, metrics } = Astro.props;
+const fmt = new Intl.NumberFormat('en-US');
+---
+<section id="curriculum" class="content-section scroll-mt-24" aria-labelledby="curriculum-heading">
+  <SectionHeading number="01" label="CURRICULUM" id="curriculum-heading" title="A complete Java engineering library." description="From language internals to distributed infrastructure. Every domain is organized into connected modules, production notes, and interview-focused chapters." />
+  <div class="metric-strip mt-8 grid-cols-2 md:grid-cols-4">{metrics.map((metric) => <div><p class="technical-label m-0 text-obs-text-muted">{metric.label}</p><p class="mb-0 mt-2 text-2xl font-semibold text-obs-text-primary">{fmt.format(metric.value)}</p></div>)}</div>
+  <div class="mt-8">{domains.map((domain, index) => <a href={domain.href} class="document-row group grid gap-3 py-5 md:grid-cols-[40px_1fr_1.1fr_auto] md:items-start"><span class="technical-label text-obs-text-muted">{String(index + 1).padStart(2, '0')}</span><div><h3 class="m-0 text-lg font-semibold tracking-tight text-obs-text-primary group-hover:underline decoration-obs-text-primary/30 underline-offset-4">{domain.title}</h3><p class="mb-0 mt-1 text-xs text-obs-text-muted">{domain.count} chapters / {fmt.format(domain.words)} words</p></div><p class="m-0 text-sm leading-relaxed text-obs-text-secondary md:max-w-md">{domain.description}</p><span class="hidden h-8 w-8 items-center justify-center text-obs-text-muted group-hover:text-obs-text-primary md:flex"><ArrowUpRight className="h-4 w-4" /></span></a>)}</div>
+  <a href="/library" class="mt-6 inline-flex items-center gap-2 text-xs font-semibold text-obs-text-primary hover:underline underline-offset-4">Browse the complete library <ArrowRight className="h-3.5 w-3.5" /></a>
+</section>

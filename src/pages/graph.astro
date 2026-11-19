@@ -1,5 +1,7 @@
 ---
 import ObsidianLayout from '../layouts/ObsidianLayout.astro';
+import PageHeader from '../components/system/PageHeader.astro';
+import MetricStrip from '../components/system/MetricStrip.astro';
 import ObsidianGraph from '../components/ObsidianGraph';
 import { buildNavigationTree, getAllDocs, getStats } from '../lib/content';
 import { buildKnowledgeGraph } from '../lib/graphBuilder';
@@ -8,7 +10,6 @@ import {
   GitBranch,
   MousePointerClick,
   Move,
-  Network,
   Search,
   ZoomIn,
 } from 'lucide-react';
@@ -29,60 +30,16 @@ const fmt = new Intl.NumberFormat('en-US');
 >
   <div class="not-prose space-y-8">
     <!-- Header -->
-    <header class="space-y-4 border-b border-obs-border pb-8">
-      <div class="inline-flex items-center gap-2 rounded-full border border-obs-accent/30 bg-obs-accent/10 px-3 py-1 text-xs font-semibold text-obs-accent">
-        <Network className="h-3.5 w-3.5" />
-        <span>Bidirectional Knowledge Mesh</span>
+    <PageHeader eyebrow="03 / BIDIRECTIONAL KNOWLEDGE MESH" title="See how knowledge connects." description="Every node is a full technical chapter; every edge is a resolved architectural reference. Use graph exploration to follow reasoning across the curriculum.">
+      <MetricStrip metrics={[{ label:'Knowledge nodes', value:graph.nodes.length },{ label:'Relationships', value:graph.edges.length },{ label:'Domains', value:stats.domains }]} />
+      <div slot="footer" class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-obs-border-subtle pt-4 text-xs text-obs-text-muted">
+        <span class="inline-flex items-center gap-2"><Move className="h-3.5 w-3.5" />Drag to pan</span><span class="inline-flex items-center gap-2"><ZoomIn className="h-3.5 w-3.5" />Pinch or scroll to zoom</span><span class="inline-flex items-center gap-2"><MousePointerClick className="h-3.5 w-3.5" />Click node to inspect</span>
       </div>
+    </PageHeader>
 
-      <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
-        <div>
-          <h1 class="text-3xl font-extrabold tracking-tight text-obs-text-primary sm:text-4xl lg:text-5xl">
-            The Knowledge Graph
-          </h1>
-          <p class="mt-2 max-w-2xl text-sm leading-relaxed text-obs-text-muted sm:text-base">
-            Visualize the multi-dimensional web of connections across the curriculum. Every node is a full technical chapter; every edge is a resolved architectural reference.
-          </p>
-        </div>
-
-        <!-- Telemetry Badges -->
-        <div class="flex flex-wrap items-center gap-2 text-xs">
-          <div class="rounded-xl border border-obs-border bg-obs-surface/80 px-3.5 py-2 text-center shadow-sm">
-            <div class="font-mono text-base font-bold text-obs-text-primary">{fmt.format(graph.nodes.length)}</div>
-            <div class="text-micro font-medium uppercase tracking-wider text-obs-text-muted">Knowledge Nodes</div>
-          </div>
-          <div class="rounded-xl border border-obs-border bg-obs-surface/80 px-3.5 py-2 text-center shadow-sm">
-            <div class="font-mono text-base font-bold text-obs-accent">{fmt.format(graph.edges.length)}</div>
-            <div class="text-micro font-medium uppercase tracking-wider text-obs-text-muted">Relationships</div>
-          </div>
-          <div class="rounded-xl border border-obs-border bg-obs-surface/80 px-3.5 py-2 text-center shadow-sm">
-            <div class="font-mono text-base font-bold text-obs-emerald">{stats.domains}</div>
-            <div class="text-micro font-medium uppercase tracking-wider text-obs-text-muted">Domains</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Interaction Guidance Hints -->
-      <div class="flex flex-wrap items-center gap-4 text-xs text-obs-text-muted pt-1">
-        <span class="inline-flex items-center gap-1.5 font-medium text-obs-text-secondary">
-          <Move className="h-3.5 w-3.5 text-obs-accent" />
-          <span>Drag to pan</span>
-        </span>
-        <span class="text-obs-border">•</span>
-        <span class="inline-flex items-center gap-1.5 font-medium text-obs-text-secondary">
-          <ZoomIn className="h-3.5 w-3.5 text-obs-accent" />
-          <span>Pinch / scroll to zoom</span>
-        </span>
-        <span class="text-obs-border">•</span>
-        <span class="inline-flex items-center gap-1.5 font-medium text-obs-text-secondary">
-          <MousePointerClick className="h-3.5 w-3.5 text-obs-accent" />
-          <span>Click node to inspect & isolate neighbors</span>
-        </span>
-      </div>
-    </header>
 
     <!-- Graph Canvas Container with Skeleton Loader Fallback -->
-    <div class="relative h-[calc(100vh-16rem)] min-h-[32rem] w-full overflow-hidden rounded-hero border border-obs-border bg-obs-canvas shadow-obs-lg" style="contain: layout paint;">
+    <div class="relative h-[calc(100dvh-10rem)] min-h-[42rem] w-full overflow-hidden border border-obs-border bg-obs-canvas lg:h-[calc(100vh-16rem)] lg:min-h-[32rem]" style="contain: layout paint;">
       <ObsidianGraph client:only="react">
         <div slot="fallback" class="absolute inset-0 flex w-full flex-col" aria-busy="true" aria-label="Loading knowledge graph">
           <div class="flex flex-wrap items-center justify-between gap-3 border-b border-obs-border/80 bg-obs-sidebar/85 p-4 lg:h-[156px] 2xl:h-[72px]">

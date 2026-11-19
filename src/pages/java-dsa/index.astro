@@ -2,6 +2,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import ObsidianLayout from '../../layouts/ObsidianLayout.astro';
+import PageHeader from '../../components/system/PageHeader.astro';
+import MetricStrip from '../../components/system/MetricStrip.astro';
 import { buildNavigationTree, getAllDocs } from '../../lib/content';
 import {
   ArrowRight,
@@ -94,34 +96,10 @@ const fmt = new Intl.NumberFormat('en-US');
   wide
 >
   <div class="not-prose space-y-9">
-    <header class="relative overflow-hidden rounded-hero border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/70 to-obs-canvas-soft p-6 shadow-obs sm:p-9">
-      <div class="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-obs-rose/10 blur-3xl"></div>
-      <div class="relative space-y-4">
-        <p class="eyebrow"><Code2 className="h-3.5 w-3.5" /> Algorithms track</p>
-        <h1 class="max-w-3xl text-balance text-3xl font-bold leading-tight tracking-tight text-obs-text-primary sm:text-4xl">
-          Data structures & algorithms, from pattern to proof
-        </h1>
-        <p class="max-w-2xl text-pretty text-sm leading-relaxed text-obs-text-secondary">
-          Theory, pattern breakdowns, dry runs, and {fmt.format(dsaJavaFiles)} runnable Java
-          implementations. Every section is a navigable chapter with complexity analysis and
-          interview framing.
-        </p>
+    <PageHeader eyebrow="02 / ALGORITHMS TRACK" title="Data structures & algorithms, from pattern to proof." description={'Theory, pattern breakdowns, dry runs, and ' + fmt.format(dsaJavaFiles) + ' runnable Java implementations. Every section includes complexity analysis and interview framing.'}>
+      <MetricStrip class="sm:grid-cols-4" metrics={[{ label:'Chapters', value:dsaDocs.length },{ label:'Java files', value:dsaJavaFiles },{ label:'Sections', value:dsaSections },{ label:'Reading hours', value:Math.round(dsaReadingMinutes/60) }]} />
+    </PageHeader>
 
-        <div class="grid grid-cols-2 gap-3 border-t border-obs-border-subtle pt-4 sm:grid-cols-4">
-          {[
-            { label: 'Chapters', value: fmt.format(dsaDocs.length) },
-            { label: 'Java files', value: fmt.format(dsaJavaFiles) },
-            { label: 'Sections', value: fmt.format(dsaSections) },
-            { label: 'Reading hours', value: `${fmt.format(Math.round(dsaReadingMinutes / 60))}` },
-          ].map((item) => (
-            <div>
-              <div class="font-mono text-xl font-bold text-obs-text-primary">{item.value}</div>
-              <div class="text-micro font-medium uppercase tracking-[0.12em] text-obs-text-muted">{item.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </header>
 
     <nav aria-label="DSA sections" class="flex flex-wrap gap-1.5">
       {orderedGroups.map(([key, docs]) => (

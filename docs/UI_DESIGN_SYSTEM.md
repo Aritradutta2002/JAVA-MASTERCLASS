@@ -6,13 +6,16 @@ scripts enforce them.
 
 ## Tokens (single source of truth)
 
-- `global.css: :root` — dark palette (default) + semantic + domain accents.
-- `global.css: :root[data-theme='light']` — light palette. Every token must exist in both.
+- `global.css: :root` — dark palette + semantic + domain accents.
+- `global.css: :root[data-theme='light']` — light palette (the default) + matching semantic and domain accents. Every token must exist in both.
 - `scripts/verify-ui-quality.mjs` reads these variables directly from `global.css`. Do not
   duplicate color values in scripts or components.
 
 Groups: `canvas`, `canvas-soft`, `sidebar`, `surface`, `surface-hover`, `border`, `border-subtle`,
 `text-primary/secondary/muted`, `accent*`, `success/warning/error/info*`, and `domain-*`.
+
+Stylesheets load in a deliberate order: canonical tokens and Tailwind primitives in `global.css`,
+shared presentation primitives in `presentation.css`, then long-form reader styles in `markdown.css`.
 
 ## Typography
 
@@ -55,6 +58,8 @@ press, and disabled states.
 - WCAG AA floor, AAA where practical. Contrast pairs are verified in both themes.
 - Skip link, focus trap for dialogs, ARIA live status, semantic headings in order (no skipped levels
   in card grids), labelled inputs, ≥44px touch targets on mobile.
+- Mobile document context uses an inline disclosure (not a modal): `aria-expanded` stays synchronized,
+  Escape closes it and restores focus to the toggle.
 - Never remove `lang`, viewport meta, skip link, or ARIA control targets.
 
 ## Performance rules

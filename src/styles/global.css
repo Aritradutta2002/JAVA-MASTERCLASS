@@ -3,42 +3,42 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+:root {
     /* Deep obsidian dark palette (Linear / Vercel inspired) */
-    --obs-canvas: #09090b;
-    --obs-canvas-rgb: 9 9 11;
-    --obs-canvas-soft: #121216;
-    --obs-canvas-soft-rgb: 18 18 22;
-    --obs-sidebar: #121216;
-    --obs-sidebar-rgb: 18 18 22;
-    --obs-surface: #18181f;
-    --obs-surface-rgb: 24 24 31;
-    --obs-surface-hover: #22222d;
-    --obs-surface-hover-rgb: 34 34 45;
-    --obs-border: #2e2e3c;
-    --obs-border-rgb: 46 46 60;
-    --obs-border-subtle: #1e1e27;
-    --obs-border-subtle-rgb: 30 30 39;
+    --obs-canvas: #121311;
+    --obs-canvas-rgb: 18 19 17;
+    --obs-canvas-soft: #181916;
+    --obs-canvas-soft-rgb: 24 25 22;
+    --obs-sidebar: #151613;
+    --obs-sidebar-rgb: 21 22 19;
+    --obs-surface: #1c1d1a;
+    --obs-surface-rgb: 28 29 26;
+    --obs-surface-hover: #252621;
+    --obs-surface-hover-rgb: 37 38 33;
+    --obs-border: #3a3b33;
+    --obs-border-rgb: 58 59 51;
+    --obs-border-subtle: #292a24;
+    --obs-border-subtle-rgb: 41 42 36;
 
     /* Text hierarchy — WCAG AA/AAA compliant contrast */
-    --obs-text-primary: #f8fafc;
-    --obs-text-primary-rgb: 248 250 252;
-    --obs-text-secondary: #b4b4c4;
-    --obs-text-secondary-rgb: 180 180 196;
-    --obs-text-muted: #8f8ea1;
-    --obs-text-muted-rgb: 143 142 161;
+    --obs-text-primary: #f6f5f0;
+    --obs-text-primary-rgb: 246 245 240;
+    --obs-text-secondary: #bdbdb3;
+    --obs-text-secondary-rgb: 189 189 179;
+    --obs-text-muted: #a1a298;
+    --obs-text-muted-rgb: 161 162 152;
 
     /* Accent & Brand Colors */
-    --obs-accent: #a78bfa;
-    --obs-accent-rgb: 167 139 250;
-    --obs-accent-hover: #c4b5fd;
-    --obs-accent-hover-rgb: 196 181 253;
-    --obs-accent-strong: #7c3aed;
-    --obs-accent-strong-rgb: 124 58 237;
-    --obs-accent-solid: #7c3aed;
-    --obs-accent-solid-rgb: 124 58 237;
-    --obs-accent-solid-hover: #6d28d9;
-    --obs-accent-solid-hover-rgb: 109 40 217;
+    --obs-accent: #b29afa;
+    --obs-accent-rgb: 178 154 250;
+    --obs-accent-hover: #c8b9fb;
+    --obs-accent-hover-rgb: 200 185 251;
+    --obs-accent-strong: #6d3df5;
+    --obs-accent-strong-rgb: 109 61 245;
+    --obs-accent-solid: #6d3df5;
+    --obs-accent-solid-rgb: 109 61 245;
+    --obs-accent-solid-hover: #5b2ce0;
+    --obs-accent-solid-hover-rgb: 91 44 224;
     --obs-accent-subtle: rgba(167, 139, 250, 0.12);
 
     /* Code & Tag */
@@ -77,7 +77,7 @@
 
     --obs-error: #ef4444;
     --obs-error-rgb: 239 68 68;
-    --obs-error-text: #f87171;
+    --obs-error-text: #f0a6a6;
     --obs-error-text-rgb: 248 113 113;
     --obs-error-solid: #b91c1c;
     --obs-error-solid-rgb: 185 28 28;
@@ -87,7 +87,7 @@
 
     --obs-info: #3b82f6;
     --obs-info-rgb: 59 130 246;
-    --obs-info-text: #60a5fa;
+    --obs-info-text: #a2c0f7;
     --obs-info-text-rgb: 96 165 250;
     --obs-info-solid: #1d4ed8;
     --obs-info-solid-rgb: 29 78 216;
@@ -100,7 +100,7 @@
     --domain-core-java-text: #fbbf24;
     --domain-core-java-border: rgba(245, 158, 11, 0.28);
     --domain-spring-boot-bg: rgba(34, 197, 94, 0.12);
-    --domain-spring-boot-text: #4ade80;
+    --domain-spring-boot-text: #78d2b5;
     --domain-spring-boot-border: rgba(34, 197, 94, 0.28);
     --domain-system-design-bg: rgba(96, 165, 250, 0.12);
     --domain-system-design-text: #93c5fd;
@@ -118,7 +118,7 @@
     --domain-docker-java-backend-text: #a5b4fc;
     --domain-docker-java-backend-border: rgba(129, 140, 248, 0.28);
     --domain-root-bg: rgba(167, 139, 250, 0.12);
-    --domain-root-text: #c4b5fd;
+    --domain-root-text: #c8b9fb;
     --domain-root-border: rgba(167, 139, 250, 0.28);
 
     /* Glassmorphism tokens */
@@ -139,59 +139,59 @@
     --obs-shadow-glow: 0 0 28px -4px rgba(139, 92, 246, 0.28);
 
     /* Layout dimensions */
-    --obs-header-height: 3.75rem;
-    --obs-sidebar-width: 19rem;
+    --obs-header-height: 64px;
+    --obs-sidebar-width: 280px;
     --obs-toc-width: 17rem;
     --obs-reading-width: 52rem;
     --obs-reading-width-folded: 80rem;
     --obs-reading-width-wide: 76rem;
     --obs-reading-width-folded-wide: 92rem;
     color-scheme: dark;
+  --obs-shadow-xs: none; --obs-shadow-sm: none; --obs-shadow: none; --obs-shadow-lg: none; --obs-shadow-xl: none; --obs-shadow-glow: transparent;
   }
-
-  :root[data-theme='light'] {
+:root[data-theme='light'] {
     /* Crisp clean light palette */
-    --obs-canvas: #ffffff;
-    --obs-canvas-rgb: 255 255 255;
-    --obs-canvas-soft: #f8fafc;
-    --obs-canvas-soft-rgb: 248 250 252;
-    --obs-sidebar: #f8fafc;
-    --obs-sidebar-rgb: 248 250 252;
+    --obs-canvas: #f4f3ef;
+    --obs-canvas-rgb: 244 243 239;
+    --obs-canvas-soft: #f8f7f3;
+    --obs-canvas-soft-rgb: 248 247 243;
+    --obs-sidebar: #f8f7f3;
+    --obs-sidebar-rgb: 248 247 243;
     --obs-surface: #ffffff;
     --obs-surface-rgb: 255 255 255;
-    --obs-surface-hover: #f1f5f9;
-    --obs-surface-hover-rgb: 241 245 249;
-    --obs-border: #e2e8f0;
-    --obs-border-rgb: 226 232 240;
-    --obs-border-subtle: #f1f5f9;
-    --obs-border-subtle-rgb: 241 245 249;
+    --obs-surface-hover: #eeece6;
+    --obs-surface-hover-rgb: 238 236 230;
+    --obs-border: #d6d3ca;
+    --obs-border-rgb: 214 211 202;
+    --obs-border-subtle: #e5e3dc;
+    --obs-border-subtle-rgb: 229 227 220;
 
     /* Text hierarchy */
-    --obs-text-primary: #09090b;
-    --obs-text-primary-rgb: 9 9 11;
-    --obs-text-secondary: #334155;
-    --obs-text-secondary-rgb: 51 65 85;
-    --obs-text-muted: #5f6b7a;
-    --obs-text-muted-rgb: 95 107 122;
+    --obs-text-primary: #111111;
+    --obs-text-primary-rgb: 17 17 17;
+    --obs-text-secondary: #4f4f4f;
+    --obs-text-secondary-rgb: 79 79 79;
+    --obs-text-muted: #666666;
+    --obs-text-muted-rgb: 102 102 102;
 
     /* Accent & Brand Colors */
-    --obs-accent: #6d28d9;
-    --obs-accent-rgb: 109 40 217;
-    --obs-accent-hover: #5b21b6;
-    --obs-accent-hover-rgb: 91 33 182;
+    --obs-accent: #5b2ce0;
+    --obs-accent-rgb: 91 44 224;
+    --obs-accent-hover: #4e20bc;
+    --obs-accent-hover-rgb: 78 32 188;
     --obs-accent-strong: #4c1d95;
     --obs-accent-strong-rgb: 76 29 149;
-    --obs-accent-solid: #6d28d9;
-    --obs-accent-solid-rgb: 109 40 217;
-    --obs-accent-solid-hover: #5b21b6;
-    --obs-accent-solid-hover-rgb: 91 33 182;
-    --obs-accent-subtle: rgba(109, 40, 217, 0.08);
+    --obs-accent-solid: #5b2ce0;
+    --obs-accent-solid-rgb: 91 44 224;
+    --obs-accent-solid-hover: #4e20bc;
+    --obs-accent-solid-hover-rgb: 78 32 188;
+    --obs-accent-subtle: rgba(91, 44, 224, 0.08);
 
     /* Code & Tag */
-    --obs-code-bg: #f8fafc;
-    --obs-code-bg-rgb: 248 250 252;
-    --obs-tag-bg: #f1f5f9;
-    --obs-tag-bg-rgb: 241 245 249;
+    --obs-code-bg: #f8f7f3;
+    --obs-code-bg-rgb: 248 247 243;
+    --obs-tag-bg: #eeece6;
+    --obs-tag-bg-rgb: 238 236 230;
 
     /* Semantic Status Colors (Light mode - WCAG AA/AAA compliant) */
     --obs-gold: #b45309;
@@ -203,7 +203,7 @@
 
     --obs-success: #059669;
     --obs-success-rgb: 5 150 105;
-    --obs-success-text: #065f46;
+    --obs-success-text: #087f5b;
     --obs-success-text-rgb: 6 95 70;
     --obs-success-solid: #047857;
     --obs-success-solid-rgb: 4 120 87;
@@ -213,7 +213,7 @@
 
     --obs-warning: #d97706;
     --obs-warning-rgb: 217 119 6;
-    --obs-warning-text: #92400e;
+    --obs-warning-text: #a54806;
     --obs-warning-text-rgb: 146 64 14;
     --obs-warning-solid: #b45309;
     --obs-warning-solid-rgb: 180 83 9;
@@ -223,7 +223,7 @@
 
     --obs-error: #dc2626;
     --obs-error-rgb: 220 38 38;
-    --obs-error-text: #991b1b;
+    --obs-error-text: #c92a2a;
     --obs-error-text-rgb: 153 27 27;
     --obs-error-solid: #b91c1c;
     --obs-error-solid-rgb: 185 28 28;
@@ -233,7 +233,7 @@
 
     --obs-info: #2563eb;
     --obs-info-rgb: 37 99 235;
-    --obs-info-text: #1e40af;
+    --obs-info-text: #2563eb;
     --obs-info-text-rgb: 30 64 175;
     --obs-info-solid: #1d4ed8;
     --obs-info-solid-rgb: 29 78 216;
@@ -264,7 +264,7 @@
     --domain-docker-java-backend-text: #3730a3;
     --domain-docker-java-backend-border: rgba(129, 140, 248, 0.3);
     --domain-root-bg: rgba(167, 139, 250, 0.12);
-    --domain-root-text: #5b21b6;
+    --domain-root-text: #5b2ce0;
     --domain-root-border: rgba(167, 139, 250, 0.3);
 
     /* Glassmorphism tokens */
@@ -284,7 +284,11 @@
       inset 0 1px 0 rgba(255, 255, 255, 1);
     --obs-shadow-glow: 0 0 24px -4px rgba(109, 40, 217, 0.2);
     color-scheme: light;
+  --obs-shadow-xs: none; --obs-shadow-sm: none; --obs-shadow: none; --obs-shadow-lg: none; --obs-shadow-xl: none; --obs-shadow-glow: transparent;
   }
+  :root { --obs-header-height: 64px; --obs-sidebar-width: 280px; --obs-rightbar-width: 260px; --obs-toc-width: 16rem; }
+  #left-sidebar > div { width:100% !important; }
+
 
   * {
     border-color: var(--obs-border);

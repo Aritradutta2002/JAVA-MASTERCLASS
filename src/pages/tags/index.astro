@@ -1,7 +1,9 @@
 ---
+import PageHeader from '../../components/system/PageHeader.astro';
 import ObsidianLayout from '../../layouts/ObsidianLayout.astro';
+
 import { buildNavigationTree, getAllDocs, getAllTags } from '../../lib/content';
-import { Tag, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 const allDocs = getAllDocs();
 const navigation = buildNavigationTree(allDocs);
@@ -34,17 +36,8 @@ const fmt = new Intl.NumberFormat('en-US');
   wide
 >
   <div class="not-prose space-y-8">
-    <header class="space-y-3 border-b border-obs-border pb-6">
-      <p class="eyebrow"><Tag className="h-3.5 w-3.5" /> Taxonomy</p>
-      <h1 class="text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
-        Tags and concepts
-      </h1>
-      <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
-        {fmt.format(tagEntries.length)} tags across {fmt.format(taggedDocs)} chapters
-        ({fmt.format(totalMentions)} mentions), derived from document structure and technology
-        mentions. Select a tag to see every chapter that covers it.
-      </p>
-
+    <PageHeader eyebrow="04 / TAXONOMY & CONCEPTS" title="Find what connects your work." description={fmt.format(tagEntries.length) + " tags across " + fmt.format(taggedDocs) + " chapters. " + fmt.format(totalMentions) + " technical mentions, derived from document structure and technology references."} />
+    <div class="mt-5 flex flex-wrap items-end justify-between gap-4">
       <div class="relative mt-2 flex max-w-xl items-center">
         <Search className="pointer-events-none absolute left-2.5 h-4 w-4 text-obs-accent" />
         <label for="tag-filter" class="sr-only">Filter tags</label>
@@ -55,10 +48,8 @@ const fmt = new Intl.NumberFormat('en-US');
           class="field w-full rounded-lg border border-obs-border bg-obs-surface py-2 pl-9 pr-3 text-sm text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:outline-none"
         />
       </div>
-      <p id="tag-count" class="text-caption text-obs-text-muted" aria-live="polite">
-        Showing {fmt.format(tagEntries.length)} tags.
-      </p>
-    </header>
+</div>
+
 
     {letters.map(([letter, entries]) => (
       <section class="tag-letter scroll-mt-24" data-letter={letter} aria-labelledby={`tag-letter-${letter}`}>

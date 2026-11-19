@@ -40,7 +40,7 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
     <button
       id="mobile-menu-btn"
       type="button"
-      class="icon-btn flex h-8 w-8 items-center justify-center rounded-lg border border-obs-border/60 bg-obs-surface/40 text-obs-text-muted transition-all hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary active:scale-95 md:hidden"
+      class="icon-btn flex h-8 w-8 items-center justify-center rounded-sm border border-obs-border/60 bg-obs-surface/40 text-obs-text-muted transition-all hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary active:scale-95 md:hidden"
       aria-label="Open navigation menu"
       aria-controls="mobile-drawer"
       aria-expanded="false"
@@ -52,7 +52,7 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
     <button
       id="desktop-sidebar-toggle-btn"
       type="button"
-      class="icon-btn hidden h-8 w-8 items-center justify-center rounded-lg border border-obs-border/60 bg-obs-surface/40 text-obs-text-muted transition-all hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary active:scale-95 md:inline-flex"
+      class="icon-btn hidden h-8 w-8 items-center justify-center rounded-sm border border-obs-border/60 bg-obs-surface/40 text-obs-text-muted transition-all hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary active:scale-95 md:inline-flex"
       title="Toggle sidebar ([ or Ctrl+B)"
       aria-label="Toggle navigation sidebar"
       aria-controls="left-sidebar"
@@ -69,16 +69,16 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
     <!-- App Brand & Logo -->
     <a
       href="/"
-      class="group flex shrink-0 items-center gap-2.5 rounded-lg py-1 pr-1 font-semibold text-obs-text-primary transition-opacity hover:opacity-95"
+      class="group flex shrink-0 items-center gap-2.5 rounded-sm py-1 pr-1 font-semibold text-obs-text-primary transition-opacity hover:opacity-95"
     >
       <span class="sr-only">Java Masterclass home</span>
       <span
-        class="relative flex h-8 w-8 items-center justify-center rounded-lg border border-obs-accent/30 bg-gradient-to-br from-obs-accent/20 to-obs-accent/5 text-obs-accent shadow-sm transition-all duration-200 group-hover:border-obs-accent/60 group-hover:shadow-[0_0_12px_rgba(167,139,250,0.35)]"
+        class="relative flex h-8 w-8 items-center justify-center rounded-sm border border-obs-accent/30 bg-gradient-to-br from-obs-accent/20 to-obs-accent/5 text-obs-accent shadow-sm transition-all duration-200 group-hover:border-obs-accent/60 group-hover:shadow-[0_0_12px_rgba(167,139,250,0.35)]"
       >
         <BookOpen className="h-4 w-4 transition-transform duration-200 group-hover:scale-105" />
         <span class="absolute -right-0.5 -top-0.5 flex h-2 w-2">
-          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-obs-emerald opacity-75"></span>
-          <span class="relative inline-flex h-2 w-2 rounded-full bg-obs-emerald ring-2 ring-obs-canvas"></span>
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-sm bg-obs-emerald opacity-75"></span>
+          <span class="relative inline-flex h-2 w-2 rounded-sm bg-obs-emerald ring-2 ring-obs-canvas"></span>
         </span>
       </span>
       <span class="hidden flex-col leading-none sm:flex">
@@ -148,7 +148,7 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
     <button
       id="open-command-palette-btn"
       type="button"
-      class="group flex h-8 items-center gap-2 rounded-lg border border-obs-border/80 bg-obs-surface/60 px-2.5 text-xs text-obs-text-muted shadow-xs backdrop-blur-sm transition-all hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary hover:shadow-[0_0_12px_rgba(167,139,250,0.15)] active:scale-98"
+      class="group flex h-8 items-center gap-2 rounded-sm border border-obs-border/80 bg-obs-surface/60 px-2.5 text-xs text-obs-text-muted shadow-xs backdrop-blur-sm transition-all hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary hover:shadow-[0_0_12px_rgba(167,139,250,0.15)] active:scale-98"
     >
       <Search className="h-3.5 w-3.5 text-obs-accent transition-transform duration-200 group-hover:scale-110" />
       <span class="hidden sm:inline font-medium">Search knowledge...</span>
@@ -162,9 +162,9 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
     <a
       href="/library"
       class:list={[
-        'hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium transition-all lg:flex',
+        'hidden h-8 items-center gap-1.5 rounded-sm px-2.5 text-xs font-medium transition-all lg:flex',
         pathname.startsWith('/library')
-          ? 'border border-obs-accent/40 bg-obs-accent/15 text-obs-accent font-semibold shadow-xs'
+          ? 'border border-obs-accent/40 bg-obs-accent-subtle text-obs-text-primary font-semibold shadow-xs'
           : 'text-obs-text-muted hover:bg-obs-surface/80 hover:text-obs-text-primary'
       ]}
       aria-label="Browse the complete library"
@@ -176,9 +176,9 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
     <a
       href="/paths"
       class:list={[
-        'hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium transition-all lg:flex',
+        'hidden h-8 items-center gap-1.5 rounded-sm px-2.5 text-xs font-medium transition-all lg:flex',
         pathname.startsWith('/paths')
-          ? 'border border-obs-accent/40 bg-obs-accent/15 text-obs-accent font-semibold shadow-xs'
+          ? 'border border-obs-accent/40 bg-obs-accent-subtle text-obs-text-primary font-semibold shadow-xs'
           : 'text-obs-text-muted hover:bg-obs-surface/80 hover:text-obs-text-primary'
       ]}
       aria-label="View learning paths"
@@ -190,9 +190,9 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
     <a
       href="/graph"
       class:list={[
-        'hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium transition-all xl:flex',
+        'hidden h-8 items-center gap-1.5 rounded-sm px-2.5 text-xs font-medium transition-all xl:flex',
         pathname.startsWith('/graph')
-          ? 'border border-obs-accent/40 bg-obs-accent/15 text-obs-accent font-semibold shadow-xs'
+          ? 'border border-obs-accent/40 bg-obs-accent-subtle text-obs-text-primary font-semibold shadow-xs'
           : 'text-obs-text-muted hover:bg-obs-surface/80 hover:text-obs-text-primary'
       ]}
       aria-label="Open the knowledge graph"
@@ -204,9 +204,9 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
     <a
       href="/checklist"
       class:list={[
-        'hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium transition-all 2xl:flex',
+        'hidden h-8 items-center gap-1.5 rounded-sm px-2.5 text-xs font-medium transition-all 2xl:flex',
         pathname.startsWith('/checklist')
-          ? 'border border-obs-accent/40 bg-obs-accent/15 text-obs-accent font-semibold shadow-xs'
+          ? 'border border-obs-accent/40 bg-obs-accent-subtle text-obs-text-primary font-semibold shadow-xs'
           : 'text-obs-text-muted hover:bg-obs-surface/80 hover:text-obs-text-primary'
       ]}
       aria-label="Study checklist tracker"
@@ -221,7 +221,7 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
     <button
       id="reading-width-btn"
       type="button"
-      class="icon-btn hidden h-8 w-8 items-center justify-center rounded-lg border border-transparent text-obs-text-muted transition-all hover:border-obs-border/60 hover:bg-obs-surface hover:text-obs-text-primary active:scale-95 sm:inline-flex"
+      class="icon-btn hidden h-8 w-8 items-center justify-center rounded-sm border border-transparent text-obs-text-muted transition-all hover:border-obs-border/60 hover:bg-obs-surface hover:text-obs-text-primary active:scale-95 sm:inline-flex"
       title="Toggle dynamic wider theory view (W)"
       aria-label="Toggle dynamic wider theory view"
       aria-pressed="false"
@@ -238,7 +238,7 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
     <button
       id="reading-mode-btn"
       type="button"
-      class="icon-btn hidden h-8 w-8 items-center justify-center rounded-lg border border-transparent text-obs-text-muted transition-all hover:border-obs-border/60 hover:bg-obs-surface hover:text-obs-text-primary active:scale-95 sm:inline-flex"
+      class="icon-btn hidden h-8 w-8 items-center justify-center rounded-sm border border-transparent text-obs-text-muted transition-all hover:border-obs-border/60 hover:bg-obs-surface hover:text-obs-text-primary active:scale-95 sm:inline-flex"
       title="Toggle focus reading mode (Z)"
       aria-label="Toggle focus reading mode"
       aria-pressed="false"
@@ -250,7 +250,7 @@ const domainMeta = doc?.domain ? DOMAIN_COLORS[doc.domain] : null;
     <button
       id="theme-toggle-btn"
       type="button"
-      class="icon-btn flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-obs-text-muted transition-all hover:border-obs-border/60 hover:bg-obs-surface hover:text-obs-accent active:scale-95"
+      class="icon-btn flex h-8 w-8 items-center justify-center rounded-sm border border-transparent text-obs-text-muted transition-all hover:border-obs-border/60 hover:bg-obs-surface hover:text-obs-accent active:scale-95"
       title="Toggle dark and light theme"
       aria-label="Toggle color theme"
     >

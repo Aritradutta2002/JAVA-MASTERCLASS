@@ -1,0 +1,19 @@
+---
+interface Props { eyebrow: string; title: string; description?: string; status?: string; }
+const { eyebrow, title, description, status = 'KNOWLEDGE SYSTEM' } = Astro.props;
+---
+
+<header class="border-b border-obs-border pb-8 pt-2">
+  <div class="technical-label flex flex-wrap items-center gap-2 text-obs-text-muted">
+    <span class="status-dot"></span><span>{eyebrow}</span><span aria-hidden="true">/</span><span>{status}</span>
+  </div>
+  <div class="mt-6 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+    <div class="min-w-0">
+      <span class="sr-only">{eyebrow}: </span>
+      <h1 class="page-heading m-0 uppercase">{title}</h1>
+      {description && <p class="mt-5 m-0 max-w-2xl text-sm leading-relaxed text-obs-text-secondary">{description}</p>}
+    </div>
+    <slot />
+  </div>
+  <slot name="footer" />
+</header>

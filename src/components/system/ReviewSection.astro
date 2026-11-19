@@ -1,0 +1,14 @@
+---
+import SectionHeading from './SectionHeading.astro';
+import { ArrowRight, CheckSquare, Library, Terminal } from 'lucide-react';
+---
+<section class="content-section" aria-labelledby="review-heading">
+<SectionHeading number="04" label="REVIEW & PRACTICE" id="review-heading" title="Built for the work after reading." />
+<div class="mt-8 grid border-y border-obs-border md:grid-cols-3">
+{[
+  {href:'/checklist', title:'Study checklist', description:'Track chapters, assess readiness, and keep progress in your browser.', action:'TRACK PROGRESS', icon:CheckSquare},
+  {href:'/glossary', title:'Technical glossary', description:'Look up definitions, mechanisms, and exact section-level anchors.', action:'FIND A CONCEPT', icon:Library},
+  {href:'/reference/quick-references', title:'Quick references', description:'Dense revision sheets, engineering standards, and useful command patterns.', action:'OPEN REFERENCE DESK', icon:Terminal},
+].map((item) => {const Icon=item.icon;return <a href={item.href} class="group border-b border-obs-border p-5 last:border-b-0 hover:bg-obs-hover md:border-b-0 md:border-r md:last:border-r-0"><Icon className="h-5 w-5 text-obs-text-primary" /><h3 class="mt-4 text-base font-semibold text-obs-text-primary group-hover:underline underline-offset-4">{item.title}</h3><p class="mt-2 m-0 text-sm leading-relaxed text-obs-text-muted">{item.description}</p><span class="technical-label mt-5 flex items-center gap-2 text-obs-text-primary">{item.action}<ArrowRight className="h-3.5 w-3.5" /></span></a>})}
+</div>
+</section>

@@ -1,5 +1,6 @@
 ---
 import ObsidianLayout from '../layouts/ObsidianLayout.astro';
+import PageHeader from '../components/system/PageHeader.astro';
 import { buildNavigationTree, getAllDocs, getStats } from '../lib/content';
 import {
   Hash,
@@ -25,69 +26,9 @@ const fmt = new Intl.NumberFormat('en-US');
 >
   <div class="not-prose mx-auto max-w-4xl space-y-8">
     <!-- Header -->
-    <header class="space-y-4 border-b border-obs-border pb-8">
-      <div class="inline-flex items-center gap-2 rounded-full border border-obs-accent/30 bg-obs-accent/10 px-3 py-1 text-xs font-semibold text-obs-accent">
-        <Search className="h-3.5 w-3.5" />
-        <span>Full-Text Static Search</span>
-      </div>
-
-      <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <h1 class="text-3xl font-extrabold tracking-tight text-obs-text-primary sm:text-4xl lg:text-5xl">
-            Search the Curriculum
-          </h1>
-          <p class="mt-2 max-w-2xl text-sm leading-relaxed text-obs-text-muted sm:text-base">
-            Search across {fmt.format(stats.documents)} chapters, {fmt.format(stats.codeBlocks)} code examples, tables, and interview counter-questions. Instant client-side indexing with zero trackers.
-          </p>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <span class="rounded-xl border border-obs-border bg-obs-surface/80 px-3.5 py-2 font-mono text-xs text-obs-text-muted shadow-sm">
-            Press <kbd class="font-bold text-obs-accent">⌘K</kbd> anywhere
-          </span>
-        </div>
-      </div>
-
-      <!-- Quick query hints -->
-      <div class="flex flex-wrap items-center gap-2 pt-1 text-xs text-obs-text-muted">
-        <span class="font-semibold text-obs-text-secondary">Popular queries:</span>
-        <button
-          type="button"
-          data-query="JVM memory"
-          class="query-chip rounded-md border border-obs-border bg-obs-surface px-2 py-0.5 transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
-        >
-          JVM memory
-        </button>
-        <button
-          type="button"
-          data-query="Kafka partitioning"
-          class="query-chip rounded-md border border-obs-border bg-obs-surface px-2 py-0.5 transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
-        >
-          Kafka partitioning
-        </button>
-        <button
-          type="button"
-          data-query="CAP theorem"
-          class="query-chip rounded-md border border-obs-border bg-obs-surface px-2 py-0.5 transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
-        >
-          CAP theorem
-        </button>
-        <button
-          type="button"
-          data-query="dynamic programming"
-          class="query-chip rounded-md border border-obs-border bg-obs-surface px-2 py-0.5 transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
-        >
-          dynamic programming
-        </button>
-        <button
-          type="button"
-          data-query="Spring Security"
-          class="query-chip rounded-md border border-obs-border bg-obs-surface px-2 py-0.5 transition-colors hover:border-obs-accent/40 hover:text-obs-accent"
-        >
-          Spring Security
-        </button>
-      </div>
-    </header>
+    <PageHeader eyebrow="SEARCH / FULL-TEXT LOCAL INDEX" title="Search the engineering system." description={'Search across ' + fmt.format(stats.documents) + ' chapters, ' + fmt.format(stats.codeBlocks) + ' code examples, tables, and interview questions. No trackers, no account, no external search requests.'}>
+      <div slot="footer" class="mt-6 flex flex-wrap items-center gap-2"><span class="technical-label text-obs-text-muted">POPULAR QUERIES</span>{['JVM memory','Kafka partitioning','CAP theorem','dynamic programming','Spring Security'].map(query=><button type="button" data-query={query} class="query-chip rounded-sm border border-obs-border bg-obs-surface px-3 py-1.5 text-xs text-obs-text-secondary hover:bg-obs-hover">{query}</button>)}</div>
+    </PageHeader>
 
     <!-- Search Input Form (Accessible Fallback) -->
     <form

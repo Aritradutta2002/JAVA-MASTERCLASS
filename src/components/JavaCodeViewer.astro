@@ -101,15 +101,15 @@ const filesData = filePaths
 ---
 
 {filesData.length > 0 && (
-  <div class="my-8 rounded-2xl border border-obs-border/80 bg-obs-canvas-soft/80 backdrop-blur-sm overflow-hidden shadow-obs-lg ring-1 ring-black/5 dark:ring-white/5 transition-all">
+  <div class="my-8 rounded-md border border-obs-border/80 bg-obs-canvas-soft/80 backdrop-blur-sm overflow-hidden shadow-obs-lg ring-1 ring-black/5 dark:ring-white/5 transition-all">
     {/* IDE Window Top Header */}
     <div class="px-4 py-3 border-b border-obs-border/80 bg-obs-sidebar/90 flex flex-wrap items-center justify-between gap-3 select-none">
       <div class="flex items-center gap-3">
         {/* Window controls dots */}
         <div class="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity">
-          <span class="h-3 w-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/50 inline-block shadow-xs" />
-          <span class="h-3 w-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/50 inline-block shadow-xs" />
-          <span class="h-3 w-3 rounded-full bg-[#27c93f] border border-[#1aab29]/50 inline-block shadow-xs" />
+          <span class="h-3 w-3 rounded-sm bg-[#ff5f56] border border-[#e0443e]/50 inline-block shadow-xs" />
+          <span class="h-3 w-3 rounded-sm bg-[#ffbd2e] border border-[#dea123]/50 inline-block shadow-xs" />
+          <span class="h-3 w-3 rounded-sm bg-[#27c93f] border border-[#1aab29]/50 inline-block shadow-xs" />
         </div>
 
         <div class="h-4 w-px bg-obs-border/60 mx-1 hidden sm:block" />
@@ -121,7 +121,7 @@ const filesData = filePaths
           <span class="text-xs font-bold uppercase tracking-wider text-obs-text-primary">
             Runnable Reference Implementation
           </span>
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-micro font-mono font-medium bg-obs-surface border border-obs-border text-obs-text-secondary">
+          <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-micro font-mono font-medium bg-obs-surface border border-obs-border text-obs-text-secondary">
             Java 21 / JVM
           </span>
         </div>

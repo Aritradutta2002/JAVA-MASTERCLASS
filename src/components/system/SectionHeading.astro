@@ -1,0 +1,19 @@
+---
+import { ArrowUpRight } from 'lucide-react';
+interface Props {
+  number: string;
+  label: string;
+  title: string;
+  description?: string;
+  id: string;
+}
+const { number, label, title, description, id } = Astro.props;
+---
+<header class="section-heading">
+  <p class="technical-label m-0 text-obs-text-muted"><span class="text-obs-text-primary">{number}</span> / {label}</p>
+  <div class="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <h2 id={id} class="m-0 max-w-3xl text-section font-semibold leading-[1.04] tracking-tight text-obs-text-primary">{title}</h2>
+    <slot name="action"><ArrowUpRight className="hidden h-6 w-6 text-obs-text-muted sm:block" /></slot>
+  </div>
+  {description && <p class="mt-4 max-w-2xl text-sm leading-relaxed text-obs-text-secondary">{description}</p>}
+</header>

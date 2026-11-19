@@ -1,0 +1,46 @@
+---
+import type { DocMetadata, OutgoingLinkItem } from '../../lib/types';
+import { Folder, FolderOpen, ChevronRight, ArrowUpRight, ArrowRight, FileText, Clock, Network } from 'lucide-react';
+interface Domain { id: string; title: string; href: string; }
+interface Props {
+  domains: Domain[];
+  mostConnected: DocMetadata;
+  workspaceDomain?: Domain;
+  outgoing: OutgoingLinkItem[];
+  documentCount: number;
+  connectionCount: number;
+}
+const { domains, mostConnected: workspaceDoc, workspaceDomain, outgoing: workspaceConnections, documentCount, connectionCount } = Astro.props;
+const fmt = new Intl.NumberFormat('en-US');
+---
+<section id="workspace" class="scroll-mt-24 pt-10" aria-labelledby="workspace-heading">
+  <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <div><p class="technical-label m-0 text-obs-text-muted">00 / LIVE WORKSPACE</p><h2 id="workspace-heading" class="mt-2 text-xl font-semibold tracking-tight text-obs-text-primary">Your engineering reference, connected.</h2></div>
+    <a href="/library" class="technical-label flex items-center gap-2 text-obs-text-primary hover:underline underline-offset-4">OPEN LIBRARY <ArrowUpRight className="h-3.5 w-3.5" /></a>
+  </div>
+  <div class="workspace-window overflow-hidden border border-obs-border bg-obs-surface">
+    <div class="flex min-h-11 items-center justify-between gap-3 border-b border-obs-border px-3 text-micro technical-label text-obs-text-muted"><div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-obs-rose"></span><span class="h-2 w-2 rounded-full bg-obs-gold"></span><span class="h-2 w-2 rounded-full bg-obs-emerald"></span><span class="ml-2 hidden sm:inline">WORKSPACE / EXPLORE</span></div><div class="flex items-center gap-2"><span class="status-dot"></span><span>ALL SYSTEMS CONNECTED</span></div></div>
+    <div class="workspace-grid">
+      <aside class="workspace-tree border-b border-obs-border md:border-b-0 md:border-r">
+        <p class="technical-label mb-4 mt-0 text-obs-text-muted">KNOWLEDGE LIBRARY</p>
+        <a href="/library" class="flex items-center gap-2 rounded-sm px-2 py-2 text-xs font-semibold text-obs-text-primary"><FolderOpen className="h-4 w-4" /> All documents <span class="ml-auto text-micro text-obs-text-muted">{documentCount}</span></a>
+        {domains.slice(0, 5).map((domain) => <a href={domain.href} class:list={['mt-0.5 flex items-center gap-2 rounded-sm px-2 py-2 text-xs text-obs-text-secondary hover:bg-obs-hover hover:text-obs-text-primary', domain.id === workspaceDomain?.id && 'bg-obs-hover font-semibold text-obs-text-primary']}><Folder className="h-3.5 w-3.5 text-obs-text-muted" /><span class="truncate">{domain.title}</span><ChevronRight className="ml-auto h-3 w-3 text-obs-text-muted" /></a>)}
+        <div class="mt-6 border-t border-obs-border-subtle pt-4"><p class="technical-label m-0 text-obs-text-muted">DOMAINS</p><div class="mt-3 h-1 w-full bg-obs-border-subtle"><div class="h-full w-full bg-obs-text-primary"></div></div><p class="mb-0 mt-2 text-micro text-obs-text-muted">{domains.length} engineering domains indexed</p></div>
+      </aside>
+      <article class="min-w-0 p-4 sm:p-6">
+        <p class="technical-label m-0 text-obs-text-muted">{workspaceDoc.domainTitle} / KNOWLEDGE DOCUMENT</p>
+        <h3 class="mt-4 text-2xl font-semibold leading-tight tracking-tight text-obs-text-primary sm:text-3xl">{workspaceDoc.title}</h3>
+        <p class="mt-3 m-0 text-sm leading-relaxed text-obs-text-secondary">{workspaceDoc.summary}</p>
+        <a href={workspaceDoc.slug} class="mt-5 inline-flex min-h-9 items-center gap-2 border-b border-obs-text-primary text-xs font-semibold text-obs-text-primary">Read the chapter <ArrowUpRight className="h-3.5 w-3.5" /></a>
+        <div class="mt-7 border-t border-obs-border pt-4"><div class="flex justify-between gap-3 text-micro technical-label text-obs-text-muted"><span>CONNECTED DOCUMENTS</span><span>{connectionCount} LINKS</span></div>{workspaceConnections.slice(0, 4).map((doc) => <a href={doc.targetSlug} class="group flex items-center gap-3 border-b border-obs-border-subtle py-3 text-xs text-obs-text-secondary hover:text-obs-text-primary"><span class="status-dot"></span><span class="min-w-0 truncate">{doc.targetTitle}</span><ArrowRight className="ml-auto h-3 w-3 opacity-50 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100" /></a>)}</div>
+      </article>
+      <aside class="workspace-context border-t border-obs-border p-4 lg:border-l lg:border-t-0">
+        <p class="technical-label m-0 text-obs-text-muted">DOCUMENT CONTEXT</p>
+        <div class="mt-4 space-y-3 text-xs text-obs-text-secondary"><p class="m-0 flex items-center gap-2"><FileText className="h-3.5 w-3.5 text-obs-text-muted" />{fmt.format(workspaceDoc.wordCount)} words</p><p class="m-0 flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-obs-text-muted" />{workspaceDoc.readingTimeMinutes} min read</p><p class="m-0 flex items-center gap-2"><Network className="h-3.5 w-3.5 text-obs-text-muted" />{connectionCount} linked references</p></div>
+        <p class="mt-6 technical-label text-obs-text-muted">READING ANCHORS</p>
+        <div class="mt-2 border-l border-obs-border pl-3">{workspaceDoc.headings.filter((heading) => heading.depth === 2).slice(0, 5).map((heading) => <a href={workspaceDoc.slug + '#' + heading.slug} class="block truncate py-1.5 text-xs text-obs-text-muted hover:text-obs-text-primary">{heading.text}</a>)}</div>
+        <a href="/graph" class="mt-5 flex items-center gap-2 text-xs font-semibold text-obs-text-primary hover:underline underline-offset-4"><Network className="h-3.5 w-3.5" /> View in knowledge graph <ArrowRight className="h-3 w-3" /></a>
+      </aside>
+    </div>
+  </div>
+</section>

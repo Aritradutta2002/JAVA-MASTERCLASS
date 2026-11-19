@@ -1,8 +1,10 @@
 ---
+import PageHeader from '../../components/system/PageHeader.astro';
 import ObsidianLayout from '../../layouts/ObsidianLayout.astro';
+
 import { buildNavigationTree, getAllDocs } from '../../lib/content';
 import { DOMAIN_COLORS } from '../../lib/constants';
-import { ArrowRight, BookMarked, FileText, ShieldCheck } from 'lucide-react';
+import { ArrowRight, BookMarked, FileText } from 'lucide-react';
 
 const allDocs = getAllDocs();
 const navigation = buildNavigationTree(allDocs);
@@ -21,16 +23,8 @@ const fmt = new Intl.NumberFormat('en-US');
   wide
 >
   <div class="not-prose space-y-8">
-    <header class="space-y-3 border-b border-obs-border pb-6">
-      <p class="eyebrow"><ShieldCheck className="h-3.5 w-3.5" /> Standards</p>
-      <h1 class="text-3xl font-bold tracking-tight text-obs-text-primary sm:text-4xl">
-        Engineering standards
-      </h1>
-      <p class="max-w-2xl text-sm leading-relaxed text-obs-text-muted">
-        Each domain keeps an explicit standard covering structure, naming, code examples, and
-        review expectations. These are the rules the chapters are written against.
-      </p>
-    </header>
+    <PageHeader eyebrow="06 / ENGINEERING STANDARDS" title="Explicit standards. Repeatable quality." description="Every domain keeps an explicit standard covering structure, naming, code examples, and review expectations." />
+
 
     {standards.length === 0 ? (
       <div class="surface-card p-8 text-center">

@@ -220,6 +220,7 @@ export default function ObsidianGraph() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+            const domainNodeColors: Record<string, string> = isDark ? { 'core-java':'#dbaf63','spring-boot':'#78d2b5','system-design':'#a2c0f7','database-caching':'#7ed5cb','java-dsa':'#f0a6a6','cloud-devops':'#91bdf2','docker-java-backend':'#b19fdc',root:'#b29afa' } : { 'core-java':'#a54806','spring-boot':'#087f5b','system-design':'#2563eb','database-caching':'#087f5b','java-dsa':'#c92a2a','cloud-devops':'#2563eb','docker-java-backend':'#5b2ce0',root:'#5b2ce0' };
 
       ctx.save();
       ctx.translate(tx, ty);
@@ -276,7 +277,7 @@ export default function ObsidianGraph() {
 
       // Draw active glowing edges
       if (activeHoveredNode) {
-        const hoverColor = DOMAIN_COLORS[activeHoveredNode.domain]?.hex || '#a78bfa';
+        const hoverColor = domainNodeColors[activeHoveredNode.domain] || '#6d3df5';
         for (const edge of simEdges) {
           const s = nodeMap.get(edge.source);
           const t = nodeMap.get(edge.target);
@@ -301,7 +302,7 @@ export default function ObsidianGraph() {
 
       // 4. Draw nodes
       for (const node of simNodes) {
-        const domainColor = DOMAIN_COLORS[node.domain]?.hex || '#a78bfa';
+        const domainColor = domainNodeColors[node.domain] || '#6d3df5';
         const isHovered = activeHoveredNode?.id === node.id;
         const isConnected = activeHoveredNode ? connectedNodeIds.has(node.id) : true;
         const currentRadius = isHovered ? node.radius * 1.35 : node.radius;
@@ -395,8 +396,13 @@ export default function ObsidianGraph() {
       }
     }
     handleResize();
+    const handleThemeChange = () => redrawRef.current();
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('themechange', handleThemeChange);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('themechange', handleThemeChange);
+    };
   }, []);
 
   // Canvas Mouse Interactions (Pan, Zoom, Hover, Click)
@@ -511,11 +517,11 @@ export default function ObsidianGraph() {
   }, []);
 
   return (
-    <div className="relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-obs-border/90 bg-obs-canvas shadow-obs-lg select-none">
+    <div className="relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-md border border-obs-border/90 bg-obs-canvas shadow-obs-lg select-none">
       {/* Top Filter Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-obs-border/80 bg-obs-sidebar/85 p-4 backdrop-blur-md z-10 lg:h-[156px] 2xl:h-[72px]">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-obs-accent/15 border border-obs-accent/30 text-obs-accent shadow-xs">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-obs-accent/15 border border-obs-accent/30 text-obs-accent shadow-xs">
             <Compass className="h-5 w-5" />
           </div>
           <div>
@@ -523,7 +529,7 @@ export default function ObsidianGraph() {
               <h1 className="text-sm font-bold text-obs-text-primary tracking-tight">
                 Knowledge Graph Explorer
               </h1>
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-micro font-mono font-medium bg-obs-surface border border-obs-border text-obs-text-muted">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-sm text-micro font-mono font-medium bg-obs-surface border border-obs-border text-obs-text-muted">
                 Obsidian Engine
               </span>
             </div>
@@ -534,7 +540,7 @@ export default function ObsidianGraph() {
         </div>
 
         {/* Domain Filter Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+        <div className="flex w-full flex-wrap items-center gap-1.5 text-xs lg:w-auto">
           {['all', 'core-java', 'spring-boot', 'system-design', 'database-caching', 'java-dsa'].map((dom) => {
             const isSel = selectedDomain === dom;
             const label = dom === 'all' ? 'All Domains' : DOMAIN_TITLES[dom] || dom;
@@ -547,20 +553,20 @@ export default function ObsidianGraph() {
                 type="button"
                 onClick={() => setSelectedDomain(dom)}
                 aria-pressed={isSel}
-                className={`rounded-lg px-2.5 py-1 text-xs transition-all flex items-center gap-1.5 border ${
+                className={`rounded-sm px-2.5 py-1 text-xs transition-all flex items-center gap-1.5 border ${
                   isSel
-                    ? 'bg-obs-accent-solid text-white font-semibold border-obs-accent-solid shadow-xs'
+                    ? 'bg-obs-text-primary text-obs-canvas font-semibold border-obs-text-primary'
                     : 'border-obs-border/70 bg-obs-surface text-obs-text-secondary hover:bg-obs-hover hover:text-obs-text-primary'
                 }`}
               >
                 {color && (
                   <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: color.hex }}
+                    className="h-1.5 w-1.5 rounded-sm"
+                    style={{ backgroundColor: color.text }}
                   />
                 )}
                 <span>{label}</span>
-                <span className={`text-micro font-mono ${isSel ? 'text-white' : 'text-obs-text-muted'}`}>
+                <span className={`text-micro font-mono ${isSel ? 'text-obs-canvas' : 'text-obs-text-muted'}`}>
                   {count}
                 </span>
               </button>
@@ -569,7 +575,7 @@ export default function ObsidianGraph() {
         </div>
 
         {/* Search & View Mode */}
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 lg:w-auto">
           <div className="relative flex items-center">
             <Search className="absolute left-2.5 h-3.5 w-3.5 text-obs-text-muted pointer-events-none" />
             <input
@@ -578,7 +584,7 @@ export default function ObsidianGraph() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter graph nodes..."
               aria-label="Filter graph nodes"
-              className="field w-36 md:w-48 rounded-lg border border-obs-border/80 bg-obs-surface/80 py-1 pl-8 pr-7 text-xs text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:bg-obs-surface focus:outline-none transition-all"
+              className="field w-36 md:w-48 rounded-sm border border-obs-border/80 bg-obs-surface/80 py-1 pl-8 pr-7 text-xs text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent focus:bg-obs-surface focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
@@ -596,7 +602,7 @@ export default function ObsidianGraph() {
             type="button"
             onClick={() => setViewMode(viewMode === 'canvas' ? 'list' : 'canvas')}
             aria-pressed={viewMode === 'list'}
-            className="flex h-7 items-center gap-1.5 rounded-lg border border-obs-border/80 bg-obs-surface px-2.5 text-xs font-medium text-obs-text-secondary hover:bg-obs-hover transition-colors shadow-xs"
+            className="flex h-7 items-center gap-1.5 rounded-sm border border-obs-border/80 bg-obs-surface px-2.5 text-xs font-medium text-obs-text-secondary hover:bg-obs-hover transition-colors shadow-xs"
             title="Toggle Accessible List View"
           >
             {viewMode === 'canvas' ? <List className="h-3.5 w-3.5" /> : <Compass className="h-3.5 w-3.5" />}
@@ -608,7 +614,7 @@ export default function ObsidianGraph() {
       {/* Main Canvas Area */}
       <div
         ref={containerRef}
-        className="relative min-h-0 w-full flex-1 cursor-grab overflow-hidden bg-obs-canvas active:cursor-grabbing lg:h-[calc(100%-156px)] lg:flex-none 2xl:h-[calc(100%-72px)]"
+        className="relative min-h-[18rem] w-full flex-1 cursor-grab overflow-hidden bg-obs-canvas active:cursor-grabbing lg:min-h-0 lg:h-[calc(100%-156px)] lg:flex-none 2xl:h-[calc(100%-72px)]"
       >
         {isLoading && (
           <div className="absolute inset-0 z-20 bg-obs-canvas/90 p-6" aria-busy="true" aria-label="Loading knowledge graph">
@@ -616,7 +622,7 @@ export default function ObsidianGraph() {
               {Array.from({ length: 24 }).map((_, index) => (
                 <div
                   key={index}
-                  className="skeleton self-center rounded-full"
+                  className="skeleton self-center rounded-sm"
                   style={{ height: `${12 + (index % 5) * 6}px`, width: `${12 + (index % 5) * 6}px` }}
                 />
               ))}
@@ -685,12 +691,12 @@ export default function ObsidianGraph() {
                 <a
                   key={node.id}
                   href={node.slug}
-                  className="flex items-center justify-between p-3.5 rounded-xl border border-obs-border/70 bg-obs-surface/60 hover:border-obs-accent/50 hover:bg-obs-surface transition-all group shadow-xs hover:shadow-sm"
+                  className="flex items-center justify-between p-3.5 rounded-md border border-obs-border/70 bg-obs-surface/60 hover:border-obs-accent/50 hover:bg-obs-surface transition-all group shadow-xs hover:shadow-sm"
                 >
                   <div className="flex items-center gap-3">
                     <span
-                      className="h-2.5 w-2.5 rounded-full shrink-0"
-                      style={{ backgroundColor: domainColor.hex }}
+                      className="h-2.5 w-2.5 rounded-sm shrink-0"
+                      style={{ backgroundColor: domainColor.text }}
                     />
                     <div>
                       <div className="font-semibold text-xs sm:text-sm text-obs-text-primary group-hover:text-obs-accent transition-colors">
@@ -714,11 +720,11 @@ export default function ObsidianGraph() {
 
         {/* Zoom & Reset Floating Controls */}
         {viewMode === 'canvas' && (
-          <div className="absolute bottom-5 right-5 flex flex-col gap-1.5 bg-obs-surface/85 backdrop-blur-md p-1.5 rounded-xl border border-obs-border/80 shadow-obs-lg z-10">
+          <div className="absolute bottom-5 right-5 flex flex-col gap-1.5 bg-obs-surface/85 backdrop-blur-md p-1.5 rounded-md border border-obs-border/80 shadow-obs-lg z-10">
             <button
               type="button"
               onClick={zoomIn}
-              className="p-1.5 rounded-lg hover:bg-obs-hover text-obs-text-secondary hover:text-obs-text-primary transition-colors"
+              className="p-1.5 rounded-sm hover:bg-obs-hover text-obs-text-secondary hover:text-obs-text-primary transition-colors"
               title="Zoom In (+)"
               aria-label="Zoom In"
             >
@@ -727,7 +733,7 @@ export default function ObsidianGraph() {
             <button
               type="button"
               onClick={zoomOut}
-              className="p-1.5 rounded-lg hover:bg-obs-hover text-obs-text-secondary hover:text-obs-text-primary transition-colors"
+              className="p-1.5 rounded-sm hover:bg-obs-hover text-obs-text-secondary hover:text-obs-text-primary transition-colors"
               title="Zoom Out (-)"
               aria-label="Zoom Out"
             >
@@ -736,7 +742,7 @@ export default function ObsidianGraph() {
             <button
               type="button"
               onClick={fitView}
-              className="p-1.5 rounded-lg hover:bg-obs-hover text-obs-text-secondary hover:text-obs-text-primary transition-colors"
+              className="p-1.5 rounded-sm hover:bg-obs-hover text-obs-text-secondary hover:text-obs-text-primary transition-colors"
               title="Fit to Screen"
               aria-label="Fit to Screen"
             >
@@ -745,7 +751,7 @@ export default function ObsidianGraph() {
             <button
               type="button"
               onClick={resetZoom}
-              className="p-1.5 rounded-lg hover:bg-obs-hover text-obs-text-secondary hover:text-obs-text-primary transition-colors"
+              className="p-1.5 rounded-sm hover:bg-obs-hover text-obs-text-secondary hover:text-obs-text-primary transition-colors"
               title="Reset View"
               aria-label="Reset View"
             >
@@ -756,7 +762,7 @@ export default function ObsidianGraph() {
 
         {/* Canvas Navigation Hint Pill */}
         {viewMode === 'canvas' && (
-          <div className="absolute bottom-5 left-5 hidden md:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-obs-surface/80 backdrop-blur-md border border-obs-border/70 text-caption text-obs-text-muted select-none pointer-events-none">
+          <div className="absolute bottom-5 left-5 hidden md:flex items-center gap-3 px-3 py-1.5 rounded-sm bg-obs-surface/80 backdrop-blur-md border border-obs-border/70 text-caption text-obs-text-muted select-none pointer-events-none">
             <span>Drag to pan</span>
             <span>·</span>
             <span>Scroll to zoom</span>
@@ -768,7 +774,7 @@ export default function ObsidianGraph() {
         {/* Hover Tooltip Card */}
         {hoveredNode && tooltipPos && (
           <div
-            className="fixed z-50 pointer-events-none rounded-xl border border-obs-border bg-obs-surface/95 p-3.5 text-xs shadow-2xl backdrop-blur-xl transition-all animate-fade-in"
+            className="fixed z-50 pointer-events-none rounded-md border border-obs-border bg-obs-surface/95 p-3.5 text-xs shadow-2xl backdrop-blur-xl transition-all animate-fade-in"
             style={{
               left: `${Math.min(window.innerWidth - 280, tooltipPos.x + 16)}px`,
               top: `${Math.min(window.innerHeight - 150, tooltipPos.y + 16)}px`,
@@ -778,15 +784,15 @@ export default function ObsidianGraph() {
             {/* Top domain badge */}
             <div className="flex items-center gap-1.5">
               <span
-                className="h-2 w-2 rounded-full"
+                className="h-2 w-2 rounded-sm"
                 style={{
-                  backgroundColor: DOMAIN_COLORS[hoveredNode.domain]?.hex || '#a78bfa',
+                  backgroundColor: DOMAIN_COLORS[hoveredNode.domain]?.text || '#6d3df5',
                 }}
               />
               <span
                 className="text-micro font-semibold uppercase tracking-wider"
                 style={{
-                  color: DOMAIN_COLORS[hoveredNode.domain]?.text || '#a78bfa',
+                  color: DOMAIN_COLORS[hoveredNode.domain]?.text || '#6d3df5',
                 }}
               >
                 {hoveredNode.domainTitle}

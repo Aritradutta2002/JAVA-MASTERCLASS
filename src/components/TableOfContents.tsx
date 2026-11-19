@@ -46,7 +46,7 @@ export default function TableOfContents({ headings }: Props) {
     if (activeSlug && linkRefs.current[activeSlug]) {
       linkRefs.current[activeSlug]?.scrollIntoView({
         block: 'nearest',
-        behavior: 'smooth',
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
       });
     }
   }, [activeSlug]);
@@ -68,7 +68,6 @@ export default function TableOfContents({ headings }: Props) {
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
   if (filtered.length === 0) return null;
 
   const minDepth = Math.min(...filtered.map((heading) => heading.depth));
@@ -84,7 +83,7 @@ export default function TableOfContents({ headings }: Props) {
 
     window.scrollTo({
       top: offsetPosition,
-      behavior: 'smooth',
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
     });
 
     history.pushState(null, '', `#${slug}`);
@@ -107,7 +106,7 @@ export default function TableOfContents({ headings }: Props) {
             On This Page
           </span>
         </div>
-        <span className="rounded-full border border-obs-border/70 bg-obs-canvas-soft px-1.5 py-0.5 font-mono text-micro font-medium text-obs-text-muted">
+        <span className="rounded-sm border border-obs-border/70 bg-obs-canvas-soft px-1.5 py-0.5 font-mono text-micro font-medium text-obs-text-muted">
           {filtered.length}
         </span>
       </div>
@@ -123,9 +122,9 @@ export default function TableOfContents({ headings }: Props) {
             {readingProgress}%
           </span>
         </div>
-        <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-obs-border/50">
+        <div className="mt-1 h-1 w-full overflow-hidden rounded-sm bg-obs-border/50">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-obs-accent via-obs-accent-strong to-obs-gold transition-all duration-150 ease-out"
+            className="h-full rounded-sm bg-gradient-to-r from-obs-accent via-obs-accent-strong to-obs-gold transition-all duration-150 ease-out"
             style={{ width: `${readingProgress}%` }}
             role="progressbar"
             aria-label="Reading progress"
@@ -148,7 +147,7 @@ export default function TableOfContents({ headings }: Props) {
                 {/* Active Left Indicator Bar with subtle glow */}
                 {isActive && (
                   <span
-                    className="absolute -left-[1.5px] top-1 bottom-1 w-[3px] rounded-full bg-obs-accent shadow-[0_0_8px_var(--obs-accent)] transition-all duration-200"
+                    className="absolute -left-[1.5px] top-1 bottom-1 w-[3px] rounded-sm bg-obs-accent shadow-[0_0_8px_var(--obs-accent)] transition-all duration-200"
                     aria-hidden="true"
                   />
                 )}
@@ -171,7 +170,7 @@ export default function TableOfContents({ headings }: Props) {
                 >
                   <span className="truncate">{heading.text}</span>
                   {isActive && (
-                    <span className="ml-1 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-obs-accent/20 text-obs-accent">
+                    <span className="ml-1 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm bg-obs-accent/20 text-obs-accent">
                       <Check className="h-2 w-2 stroke-[2.5]" />
                     </span>
                   )}
@@ -187,7 +186,7 @@ export default function TableOfContents({ headings }: Props) {
         <button
           type="button"
           onClick={scrollToTop}
-          className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-caption font-medium text-obs-text-muted transition-all hover:bg-obs-surface/80 hover:text-obs-accent"
+          className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-caption font-medium text-obs-text-muted transition-all hover:bg-obs-surface/80 hover:text-obs-accent"
         >
           <span className="flex items-center gap-1.5">
             <ArrowUp className="h-3 w-3" />
