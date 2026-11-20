@@ -118,14 +118,14 @@ const fmt = new Intl.NumberFormat('en-US');
         return (
           <section
             id={path.id}
-            class="min-w-0 overflow-hidden scroll-mt-24 rounded-hero border border-obs-border bg-gradient-to-b from-obs-surface/90 to-obs-canvas-soft/60 p-6 shadow-obs transition-all sm:p-8"
+            class="min-w-0 overflow-hidden scroll-mt-24 rounded-sm border border-obs-border bg-obs-surface p-6 sm:p-8"
             aria-labelledby={`${path.id}-heading`}
           >
             <!-- Track Header -->
             <div class="flex flex-wrap items-start justify-between gap-4 border-b border-obs-border-subtle pb-6">
               <div class="flex items-start gap-4">
                 <span
-                  class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border font-mono text-base font-extrabold shadow-sm"
+                  class="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border font-mono text-base font-extrabold"
                   style={{ backgroundColor: color?.bg, color: color?.text, borderColor: color?.border }}
                 >
                   {String(pathIndex + 1).padStart(2, '0')}
@@ -148,12 +148,12 @@ const fmt = new Intl.NumberFormat('en-US');
 
                   <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-obs-text-muted">
                     <span class="inline-flex items-center gap-1.5 font-medium">
-                      <FileText className="h-3.5 w-3.5 text-obs-accent" />
+                      <FileText className="h-3.5 w-3.5" />
                       {path.docs.length} chapters
                     </span>
                     <span class="text-obs-border">•</span>
                     <span class="inline-flex items-center gap-1.5 font-medium">
-                      <Clock className="h-3.5 w-3.5 text-obs-accent" />
+                      <Clock className="h-3.5 w-3.5" />
                       ~{hours} hrs ({fmt.format(totalMinutes)} min reading time)
                     </span>
                   </div>
@@ -240,7 +240,7 @@ const fmt = new Intl.NumberFormat('en-US');
                 </div>
 
                 <!-- Progress Tracker Quick Card -->
-                <div class="rounded-2xl border border-obs-border bg-gradient-to-br from-obs-surface to-obs-canvas-soft p-5 shadow-sm">
+                <div class="rounded-sm border border-obs-border bg-obs-canvas-soft p-5">
                   <div class="flex items-center gap-2 text-caption font-bold uppercase tracking-[0.14em] text-obs-gold">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     <span>Track Your Progress</span>
@@ -273,7 +273,7 @@ const fmt = new Intl.NumberFormat('en-US');
           Use the master checklist to evaluate your interview readiness across all {allDocs.length} topics, track your percentage completion, and target remaining gaps.
         </p>
       </div>
-      <a href="/checklist" class="btn btn-primary shrink-0 shadow-lg shadow-obs-glow">
+      <a href="/checklist" class="btn btn-primary shrink-0">
         <CheckCircle2 className="h-4 w-4" />
         Open Checklist Matrix
       </a>

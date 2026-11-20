@@ -67,11 +67,22 @@ async function waitForServer(url, timeoutMs = 20000) {
 
 async function startPreview() {
   if (process.env.PREVIEW_URL) return null;
-  const astro = path.join(process.cwd(), 'node_modules', '.bin', 'astro');
-  const server = spawn(astro, ['preview', '--host', '127.0.0.1', '--port', String(PORT)], {
-    cwd: process.cwd(),
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  const isWindows = process.platform === 'win32';
+  const astro = path.join(
+    process.cwd(),
+    'node_modules',
+    '.bin',
+    isWindows ? 'astro.cmd' : 'astro'
+  );
+  const server = spawn(
+    astro,
+    ['preview', '--host', '127.0.0.1', '--port', String(PORT)],
+    {
+      cwd: process.cwd(),
+      stdio: ['ignore', 'pipe', 'pipe'],
+      shell: isWindows,
+    }
+  );
   server.stdout.on('data', () => {});
   server.stderr.on('data', (chunk) => process.stderr.write(chunk));
   await waitForServer(BASE_URL);
@@ -137,8 +148,12 @@ async function checkPage(page, route, viewport) {
         ['serious', 'critical'].includes(violation.impact)
       );
       for (const violation of serious) {
+        const detail = violation.nodes
+          .slice(0, 3)
+          .map((node) => `${node.target.join(' ')} :: ${node.html.replace(/\s+/g, ' ').slice(0, 180)}`)
+          .join(' | ');
         failures.push(
-          `${route} at ${viewport.width}px axe ${violation.impact}: ${violation.id} (${violation.nodes.length} nodes)`
+          `${route} at ${viewport.width}px axe ${violation.impact}: ${violation.id} (${violation.nodes.length} nodes) ${detail}`
         );
       }
     }
@@ -162,17 +177,17 @@ try {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' });
   await page.click('#open-command-palette-btn');
-  await page.waitForSelector('[role="dialog"][aria-label="Raycast command center"]');
+  await page.waitForSelector('[role="dialog"][aria-label="Command palette"]');
   await page.waitForTimeout(150);
   for (let index = 0; index < 6; index += 1) await page.keyboard.press('Tab');
   const paletteFocusInside = await page.evaluate(() => {
-    const dialog = document.querySelector('[role="dialog"][aria-label="Raycast command center"]');
+    const dialog = document.querySelector('[role="dialog"][aria-label="Command palette"]');
     return Boolean(dialog && dialog.contains(document.activeElement));
   });
   if (!paletteFocusInside) failures.push('Command palette focus escaped the dialog');
   await page.keyboard.press('Escape');
   await page.waitForTimeout(100);
-  const paletteClosed = await page.evaluate(() => !document.querySelector('[role="dialog"][aria-label="Raycast command center"]'));
+  const paletteClosed = await page.evaluate(() => !document.querySelector('[role="dialog"][aria-label="Command palette"]'));
   if (!paletteClosed) failures.push('Command palette did not close on Escape');
 
   // Mobile drawer focus trap and Escape restore.

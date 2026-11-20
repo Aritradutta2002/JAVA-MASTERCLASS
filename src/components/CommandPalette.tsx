@@ -302,11 +302,11 @@ export default function CommandPalette() {
         className="w-full max-w-2xl overflow-hidden rounded-md border border-obs-border/80 bg-obs-sidebar/95 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] backdrop-blur-2xl animate-slide-up"
         role="dialog"
         aria-modal="true"
-        aria-label="Raycast command center"
+        aria-label="Command palette"
       >
         {/* Search Input Bar */}
-        <div className="relative flex items-center gap-3 border-b border-obs-border/70 px-4 py-3.5">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-obs-accent-subtle text-obs-text-primary">
+        <div className="relative flex items-center gap-3 border-b border-obs-border/70 px-4 py-3.5 focus-within:border-obs-accent/60">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-obs-border bg-obs-canvas-soft text-obs-text-secondary">
             <Search className="h-4 w-4" />
           </div>
           <input
@@ -383,7 +383,7 @@ export default function CommandPalette() {
 
           {!loading && !loadError && query.trim() && flatItems.length === 0 && (
             <div className="px-4 py-12 text-center">
-              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-sm bg-obs-accent/10 text-obs-accent mb-3">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-sm border border-obs-border bg-obs-canvas-soft text-obs-text-muted mb-3">
                 <Search className="h-5 w-5" />
               </div>
               <p className="text-sm font-semibold text-obs-text-primary">No results found for “{query}”</p>
@@ -392,7 +392,7 @@ export default function CommandPalette() {
               </p>
               <a
                 href={`/search?q=${encodeURIComponent(query)}`}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-sm border border-obs-accent/40 bg-obs-accent/15 px-3 py-1.5 text-xs font-semibold text-obs-accent hover:bg-obs-accent/25 transition-all"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-sm border border-obs-accent/40 px-3 py-1.5 text-xs font-semibold text-obs-accent transition-colors hover:bg-obs-accent-subtle"
               >
                 <span>Search full-text article contents</span>
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -434,14 +434,14 @@ export default function CommandPalette() {
                     onClick={() => navigateTo(item.slug)}
                     className={`group relative flex cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 transition-all duration-150 ${
                       isSelected
-                        ? 'border border-obs-accent/40 bg-gradient-to-r from-obs-accent/15 to-obs-accent/5 text-obs-text-primary shadow-xs'
+                        ? 'border border-obs-accent/40 bg-obs-accent-subtle text-obs-text-primary'
                         : 'border border-transparent text-obs-text-secondary hover:bg-obs-surface/60 hover:text-obs-text-primary'
                     }`}
                   >
-                    {/* Active highlight cursor indicator */}
+                    {/* Selected item marker - color communicates state, not decoration */}
                     {isSelected && (
                       <span
-                        className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-obs-accent shadow-[0_0_8px_var(--obs-accent)]"
+                        className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-obs-accent"
                         aria-hidden="true"
                       />
                     )}
@@ -449,7 +449,7 @@ export default function CommandPalette() {
                     <div
                       className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border transition-all ${
                         isSelected
-                          ? 'border-obs-accent/50 bg-obs-accent/20 text-obs-accent shadow-xs'
+                          ? 'border-obs-accent/50 bg-obs-accent-subtle text-obs-accent'
                           : domainMeta
                             ? 'border-obs-border/70 text-obs-text-muted'
                             : 'border-obs-border/70 bg-obs-surface text-obs-text-muted'
@@ -477,7 +477,7 @@ export default function CommandPalette() {
                           {item.title}
                         </span>
                         {item.group === 'Domains' && (
-                          <span className="hidden sm:inline-flex rounded-sm border border-obs-accent/30 bg-obs-accent/10 px-1.5 py-0.5 font-mono text-micro font-semibold text-obs-accent">
+                          <span className="hidden sm:inline-flex rounded-sm border border-obs-border bg-obs-canvas-soft px-1.5 py-0.5 font-mono text-micro font-medium text-obs-text-muted">
                             Curriculum
                           </span>
                         )}
@@ -489,7 +489,7 @@ export default function CommandPalette() {
 
                     {/* Right Enter badge when selected */}
                     {isSelected ? (
-                      <div className="flex shrink-0 items-center gap-1 rounded border border-obs-accent/40 bg-obs-accent/15 px-1.5 py-0.5 text-micro font-semibold text-obs-accent shadow-2xs">
+                      <div className="flex shrink-0 items-center gap-1 rounded-sm border border-obs-accent/40 bg-obs-accent-subtle px-1.5 py-0.5 text-micro font-semibold text-obs-accent">
                         <span>Open</span>
                         <CornerDownLeft className="h-2.5 w-2.5" />
                       </div>

@@ -93,7 +93,7 @@ const sortedDocs = [...docs].sort((a, b) => a.title.localeCompare(b.title));
           class="surface-card surface-card-hover group flex flex-col p-4"
         >
           <div class="flex items-center justify-between gap-2 text-micro text-obs-text-muted">
-            <span class="font-semibold uppercase tracking-wider text-obs-accent/80">{doc.domainTitle}</span>
+            <span class="font-semibold uppercase tracking-wider text-obs-accent">{doc.domainTitle}</span>
             {doc.level && <span class="badge">{doc.level}</span>}
           </div>
           <h2 class="mt-2 text-base font-semibold leading-snug text-obs-text-primary group-hover:text-obs-accent">

@@ -160,9 +160,9 @@ const fmt = new Intl.NumberFormat('en-US');
     navigation={docProps.navigation}
     related={docProps.related}
   >
-    <div class="not-prose mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-obs-border/70 bg-obs-surface/40 px-4 py-2.5 text-xs text-obs-text-muted backdrop-blur-sm shadow-sm">
+    <div class="not-prose mb-6 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-obs-border/70 bg-obs-surface/40 px-4 py-2.5 text-xs text-obs-text-muted">
       <div class="flex items-center gap-2.5">
-        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-obs-accent/15 font-mono text-caption font-bold text-obs-accent">
+        <span class="flex h-6 w-6 items-center justify-center rounded-sm border border-obs-border bg-obs-canvas-soft font-mono text-caption font-bold text-obs-text-secondary">
           JM
         </span>
         <span class="font-medium text-obs-text-secondary">Java Masterclass Staff</span>
@@ -172,7 +172,7 @@ const fmt = new Intl.NumberFormat('en-US');
 
       <div class="flex flex-wrap items-center gap-3 text-caption">
         <span class="inline-flex items-center gap-1 text-obs-text-secondary">
-          <Clock className="h-3 w-3 text-obs-accent" />
+          <Clock className="h-3 w-3" />
           {docProps.doc.readingTimeMinutes} min read
         </span>
         <span class="text-obs-border">•</span>
@@ -189,11 +189,11 @@ const fmt = new Intl.NumberFormat('en-US');
     </div>
 
     {docProps.doc.isEmpty ? (
-      <div class="not-prose my-12 overflow-hidden rounded-hero border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/90 to-obs-canvas p-8 text-center shadow-obs-lg sm:p-12">
-        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-obs-accent/40 bg-obs-accent/10 text-obs-accent shadow-inner">
+      <div class="not-prose my-12 overflow-hidden rounded-sm border border-obs-border bg-obs-surface p-8 text-center sm:p-12">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-sm border border-obs-border bg-obs-canvas-soft text-obs-text-muted">
           <BookOpen className="h-7 w-7" />
         </div>
-        <div class="mt-4 inline-flex items-center gap-1.5 rounded-full border border-obs-accent/30 bg-obs-accent/10 px-3 py-1 text-xs font-semibold text-obs-accent">
+        <div class="mt-4 inline-flex items-center gap-1.5 rounded-sm border border-obs-border bg-obs-canvas-soft px-3 py-1 text-xs font-medium text-obs-text-muted">
           <Sparkles className="h-3 w-3" />
           Curriculum Topic Scaffold
         </div>
@@ -204,7 +204,7 @@ const fmt = new Intl.NumberFormat('en-US');
           This algorithmic concept or pattern is scaffolded into the curriculum outline. The detailed problem patterns, dry-runs, and runnable Java implementations live in the comprehensive DSA track.
         </p>
         <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <a href="/java-dsa" class="btn btn-primary shadow-md shadow-obs-glow">
+          <a href="/java-dsa" class="btn btn-primary">
             Browse DSA Directory <ArrowRight className="h-3.5 w-3.5" />
           </a>
           <a href="/library" class="btn btn-secondary">
@@ -301,7 +301,7 @@ const fmt = new Intl.NumberFormat('en-US');
   >
     <div class="not-prose space-y-10">
       <header class="space-y-4 border-b border-obs-border pb-8">
-        <div class="inline-flex items-center gap-2 rounded-full border border-obs-accent/30 bg-obs-accent/10 px-3 py-1 text-xs font-semibold text-obs-accent">
+        <div class="inline-flex items-center gap-2 rounded-sm border border-obs-border bg-obs-canvas-soft px-3 py-1 text-xs font-medium text-obs-text-muted">
           <Layers className="h-3.5 w-3.5" />
           <span>{landingProps.landing.domainTitle} Module</span>
         </div>

@@ -16,6 +16,24 @@ interface Props {
   outgoing?: OutgoingLinkItem[];
 }
 
+/** Strip inline Markdown so backlink context reads as prose, not source. */
+function cleanSnippet(value: string) {
+  return value
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/\[\[([^\]]+)\]\]/g, '$1')
+    .replace(/`{1,3}/g, '')
+    .replace(/\*\*|__|~~/g, '')
+    .replace(/(^|\s)[*_]([^*_]+)[*_](?=\s|$)/g, '$1$2')
+    .replace(/^\s{0,3}#{1,6}\s+/g, '')
+    .replace(/^\s{0,3}[-*+]\s+/g, '')
+    .replace(/^\s{0,3}>\s?/g, '')
+    .replace(/\s*\|\s*/g, ' · ')
+    .replace(/^\s*·\s*|\s*·\s*$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props) {
   const [activeTab, setActiveTab] = useState<'all' | 'backlinks' | 'outgoing'>('all');
   const [filterQuery, setFilterQuery] = useState('');
@@ -49,7 +67,7 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
   if (totalConnections === 0) {
     return (
       <div className="rounded-md border border-obs-border/70 bg-obs-surface/40 p-4 text-center space-y-2.5">
-        <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-sm bg-obs-accent/10 border border-obs-accent/20 text-obs-accent">
+        <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-sm border border-obs-border bg-obs-canvas-soft text-obs-text-muted">
           <Network className="h-4 w-4" />
         </div>
         <div>
@@ -70,81 +88,60 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
   }
 
   return (
-    <div className="space-y-3.5 border-t border-obs-border/80 pt-4">
-      {/* Header bar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex h-5 w-5 items-center justify-center rounded bg-obs-accent-subtle text-obs-text-primary">
-            <Link2 className="h-3 w-3" />
-          </div>
-          <span className="text-caption font-bold uppercase tracking-wider text-obs-text-primary">
-            Knowledge Links
-          </span>
-          <span className="rounded-sm bg-obs-surface border border-obs-border/70 px-1.5 py-0.5 font-mono text-micro font-semibold text-obs-text-muted">
-            {totalConnections}
-          </span>
+    <div className="space-y-3 border-t border-obs-border/80 pt-4">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <Link2 className="h-3.5 w-3.5 shrink-0 text-obs-text-muted" />
+          <span className="technical-label truncate text-obs-text-muted">Knowledge Links</span>
+          <span className="font-mono text-micro tabular-nums text-obs-text-muted">{totalConnections}</span>
         </div>
 
         <a
           href="/graph"
-          className="flex items-center gap-1 text-caption font-medium text-obs-text-muted hover:text-obs-accent transition-colors group"
-          title="Explore in full interactive graph"
+          aria-label="Open knowledge graph"
+          title="Open knowledge graph"
+          className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-obs-text-muted transition-colors hover:bg-obs-hover hover:text-obs-text-primary"
         >
-          <span>Graph</span>
-          <ArrowUpRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          <ArrowUpRight className="h-3.5 w-3.5" />
         </a>
       </div>
 
-      {/* Tabs & Search if multiple connections */}
+      {/* Tabs & filter */}
       {totalConnections > 4 && (
         <div className="space-y-2">
-          {/* Segmented Tab Control */}
-          <div className="grid grid-cols-3 gap-1 rounded-sm border border-obs-border/70 bg-obs-canvas/80 p-0.5 text-caption font-medium">
-            <button
-              type="button"
-              onClick={() => setActiveTab('all')}
-              className={`rounded-md py-1 transition-all ${
-                activeTab === 'all'
-                  ? 'bg-obs-surface text-obs-text-primary shadow-xs font-semibold'
-                  : 'text-obs-text-muted hover:text-obs-text-secondary'
-              }`}
-            >
-              All ({totalConnections})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('backlinks')}
-              className={`rounded-md py-1 transition-all ${
-                activeTab === 'backlinks'
-                  ? 'bg-obs-surface text-obs-text-primary shadow-xs font-semibold'
-                  : 'text-obs-text-muted hover:text-obs-text-secondary'
-              }`}
-            >
-              In ({backlinks.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('outgoing')}
-              className={`rounded-md py-1 transition-all ${
-                activeTab === 'outgoing'
-                  ? 'bg-obs-surface text-obs-text-primary shadow-xs font-semibold'
-                  : 'text-obs-text-muted hover:text-obs-text-secondary'
-              }`}
-            >
-              Out ({outgoing.length})
-            </button>
+          <div role="group" aria-label="Filter link direction" className="flex gap-3 border-b border-obs-border/70">
+            {([
+              ['all', 'All', totalConnections],
+              ['backlinks', 'In', backlinks.length],
+              ['outgoing', 'Out', outgoing.length],
+            ] as const).map(([value, label, count]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setActiveTab(value)}
+                aria-pressed={activeTab === value}
+                className={`-mb-px flex items-center gap-1 border-b px-0.5 pb-1.5 text-caption transition-colors ${
+                  activeTab === value
+                    ? 'border-obs-accent font-semibold text-obs-text-primary'
+                    : 'border-transparent text-obs-text-muted hover:text-obs-text-secondary'
+                }`}
+              >
+                {label}
+                <span className="font-mono text-micro tabular-nums">{count}</span>
+              </button>
+            ))}
           </div>
 
-          {/* Quick Filter */}
           <div className="relative">
-            <Search className="absolute left-2.5 top-2 h-3 w-3 text-obs-text-muted pointer-events-none" />
+            <Search className="pointer-events-none absolute left-2.5 top-2 h-3 w-3 text-obs-text-muted" />
             <input
               type="text"
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
-              placeholder="Filter relations..."
+              placeholder="Filter relations…"
               aria-label="Filter knowledge links"
-              className="field w-full rounded-md border border-obs-border/70 bg-obs-surface/60 py-1 pl-7 pr-2.5 text-caption text-obs-text-primary placeholder:text-obs-text-muted focus:border-obs-accent/70 focus:bg-obs-surface focus:outline-none transition-all"
+              className="field w-full rounded-sm border border-obs-border/70 bg-obs-surface/60 py-1 pl-7 pr-2.5 text-caption text-obs-text-primary placeholder:text-obs-text-muted transition-colors focus:border-obs-accent/70 focus:bg-obs-surface focus:outline-none"
             />
           </div>
         </div>
@@ -168,56 +165,52 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
             </span>
           </button>
 
-          {backlinksOpen && (
-            <ul className="space-y-2 animate-fade-in">
-              {filteredBacklinks.length === 0 ? (
-                <li className="text-caption text-obs-text-muted italic px-2 py-1">
-                  No matching backlinks found.
-                </li>
-              ) : (
-                filteredBacklinks.slice(0, 10).map((backlink, index) => {
+          {backlinksOpen &&
+            (filteredBacklinks.length === 0 ? (
+              <p className="px-1 py-1 text-caption italic text-obs-text-muted">
+                No matching backlinks.
+              </p>
+            ) : (
+              <ul className="animate-fade-in divide-y divide-obs-border/60 overflow-hidden rounded-sm border border-obs-border/70 bg-obs-surface/30">
+                {filteredBacklinks.slice(0, 10).map((backlink, index) => {
                   const domainColor = DOMAIN_COLORS[backlink.domain] || DOMAIN_COLORS.root;
+                  const snippet = backlink.contextSnippet
+                    ? cleanSnippet(backlink.contextSnippet)
+                    : '';
                   return (
                     <li key={`backlink-${backlink.sourceSlug}-${index}`}>
                       <a
                         href={backlink.sourceSlug}
-                        className="group relative block rounded-md border border-obs-border/70 bg-obs-surface/40 hover:bg-obs-surface/85 hover:border-obs-accent/40 p-2.5 transition-all duration-200 shadow-xs hover:shadow-sm overflow-hidden"
+                        title={backlink.sourceTitle}
+                        className="group block px-2.5 py-2 transition-colors hover:bg-obs-surface"
                       >
-                        {/* Linear-style top highlight line on hover */}
-                        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-obs-accent/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="font-medium text-xs text-obs-text-primary group-hover:text-obs-accent leading-snug transition-colors">
-                            {backlink.sourceTitle}
-                          </div>
-                          <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-obs-text-muted opacity-50 group-hover:opacity-100 group-hover:text-obs-accent group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                        </div>
-
-                        <div className="mt-1.5 flex items-center gap-1.5">
+                        <div className="flex items-start gap-1.5">
                           <span
-                            className="inline-flex items-center px-1.5 py-0.5 rounded text-micro font-medium border"
-                            style={{
-                              backgroundColor: domainColor.bg,
-                              color: domainColor.text,
-                              borderColor: domainColor.border,
-                            }}
-                          >
-                            {backlink.domainTitle}
+                            className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-sm"
+                            style={{ backgroundColor: domainColor.hex }}
+                            aria-hidden="true"
+                          />
+                          <span className="line-clamp-2 min-w-0 flex-1 text-xs font-medium leading-snug text-obs-text-primary">
+                            {backlink.sourceTitle}
                           </span>
+                          <ArrowUpRight className="mt-0.5 h-3 w-3 shrink-0 text-obs-text-muted transition-colors group-hover:text-obs-text-primary" />
                         </div>
 
-                        {backlink.contextSnippet && (
-                          <div className="mt-2 rounded-sm border-l-2 border-l-[var(--obs-emerald)] border border-obs-border/40 bg-obs-canvas/80 p-2 font-mono text-caption leading-relaxed text-obs-text-muted line-clamp-3 group-hover:text-obs-text-secondary transition-colors">
-                            {backlink.contextSnippet}
-                          </div>
+                        <div className="mt-1 pl-3 text-micro text-obs-text-muted">
+                          {backlink.domainTitle}
+                        </div>
+
+                        {snippet && (
+                          <p className="ml-3 mt-1.5 line-clamp-2 border-l border-obs-border pl-2 text-caption leading-snug text-obs-text-muted">
+                            {snippet}
+                          </p>
                         )}
                       </a>
                     </li>
                   );
-                })
-              )}
-            </ul>
-          )}
+                })}
+              </ul>
+            ))}
         </section>
       )}
 
@@ -239,38 +232,37 @@ export default function BacklinksPanel({ backlinks = [], outgoing = [] }: Props)
             </span>
           </button>
 
-          {outgoingOpen && (
-            <ul className="space-y-1.5 animate-fade-in">
-              {filteredOutgoing.length === 0 ? (
-                <li className="text-caption text-obs-text-muted italic px-2 py-1">
-                  No matching outgoing links found.
-                </li>
-              ) : (
-                filteredOutgoing.slice(0, 12).map((item, index) => {
+          {outgoingOpen &&
+            (filteredOutgoing.length === 0 ? (
+              <p className="px-1 py-1 text-caption italic text-obs-text-muted">
+                No matching outgoing links.
+              </p>
+            ) : (
+              <ul className="animate-fade-in divide-y divide-obs-border/60 overflow-hidden rounded-sm border border-obs-border/70 bg-obs-surface/30">
+                {filteredOutgoing.slice(0, 12).map((item, index) => {
                   const domainColor = DOMAIN_COLORS[item.domain] || DOMAIN_COLORS.root;
                   return (
                     <li key={`outgoing-${item.targetSlug}-${index}`}>
                       <a
                         href={item.targetSlug}
-                        className="group flex items-center justify-between gap-2 rounded-sm border border-obs-border/50 bg-obs-surface/30 hover:bg-obs-surface/80 hover:border-obs-accent/30 px-2.5 py-1.5 transition-all text-xs"
+                        title={item.targetTitle}
+                        className="group flex items-center gap-2 px-2.5 py-1.5 text-xs transition-colors hover:bg-obs-surface"
                       >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span
-                            className="h-1.5 w-1.5 rounded-sm shrink-0"
-                            style={{ backgroundColor: domainColor.hex }}
-                          />
-                          <span className="truncate text-obs-text-secondary group-hover:text-obs-accent transition-colors">
-                            {item.targetTitle}
-                          </span>
-                        </div>
-                        <ArrowUpRight className="h-3 w-3 shrink-0 text-obs-text-muted opacity-40 group-hover:opacity-100 group-hover:text-obs-accent group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                        <span
+                          className="h-1.5 w-1.5 shrink-0 rounded-sm"
+                          style={{ backgroundColor: domainColor.hex }}
+                          aria-hidden="true"
+                        />
+                        <span className="min-w-0 flex-1 truncate text-obs-text-secondary transition-colors group-hover:text-obs-text-primary">
+                          {item.targetTitle}
+                        </span>
+                        <ArrowUpRight className="h-3 w-3 shrink-0 text-obs-text-muted opacity-0 transition-opacity group-hover:opacity-100" />
                       </a>
                     </li>
                   );
-                })
-              )}
-            </ul>
-          )}
+                })}
+              </ul>
+            ))}
         </section>
       )}
     </div>

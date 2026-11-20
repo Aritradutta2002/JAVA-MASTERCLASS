@@ -44,14 +44,17 @@ export default {
           'canvas-soft': 'rgb(var(--obs-canvas-soft-rgb) / <alpha-value>)',
           sidebar: 'rgb(var(--obs-sidebar-rgb) / <alpha-value>)',
           surface: 'rgb(var(--obs-surface-rgb) / <alpha-value>)',
+          'surface-1': 'rgb(var(--obs-surface-1-rgb) / <alpha-value>)',
           hover: 'rgb(var(--obs-surface-hover-rgb) / <alpha-value>)',
           'surface-hover': 'rgb(var(--obs-surface-hover-rgb) / <alpha-value>)',
           base: 'rgb(var(--obs-canvas-rgb) / <alpha-value>)',
           border: 'rgb(var(--obs-border-rgb) / <alpha-value>)',
           'border-subtle': 'rgb(var(--obs-border-subtle-rgb) / <alpha-value>)',
+          'border-strong': 'rgb(var(--obs-border-strong-rgb) / <alpha-value>)',
           'text-primary': 'rgb(var(--obs-text-primary-rgb) / <alpha-value>)',
           'text-secondary': 'rgb(var(--obs-text-secondary-rgb) / <alpha-value>)',
           'text-muted': 'rgb(var(--obs-text-muted-rgb) / <alpha-value>)',
+          'text-disabled': 'rgb(var(--obs-text-disabled-rgb) / <alpha-value>)',
           accent: {
             DEFAULT: 'rgb(var(--obs-accent-rgb) / <alpha-value>)',
             hover: 'rgb(var(--obs-accent-hover-rgb) / <alpha-value>)',
@@ -227,12 +230,7 @@ export default {
         'obs-xl': 'var(--obs-shadow-xl)',
         'obs-glow': 'var(--obs-shadow-glow)',
         'obs-accent': 'var(--obs-shadow-glow)',
-        'glow-emerald': '0 0 24px -4px rgba(16, 185, 129, 0.25)',
-        'glow-rose': '0 0 24px -4px rgba(244, 63, 94, 0.25)',
-        'glow-accent': '0 0 24px -4px rgba(139, 92, 246, 0.25)',
         'inner-highlight': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
-        'glass-border':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 8px 32px 0 rgba(0, 0, 0, 0.36)',
       },
       keyframes: {
         fadeIn: {

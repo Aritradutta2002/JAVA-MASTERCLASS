@@ -332,21 +332,13 @@ export default function ChecklistTracker() {
 
   return (
     <div className="space-y-6 mx-auto w-full py-2">
-      {/* Stripe-Grade Overview Hero Dashboard */}
+      {/* Overview dashboard */}
       <div className="relative overflow-hidden border-y border-obs-border py-6">
-        {/* Ambient subtle glow background */}
-        <div
-          className="absolute right-0 -top-20 w-80 h-80 rounded-sm opacity-20 pointer-events-none blur-3xl"
-          style={{
-            background: 'radial-gradient(circle, var(--obs-accent) 0%, transparent 70%)',
-          }}
-        />
-
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-semibold uppercase tracking-wider bg-obs-accent/15 border border-obs-accent/30 text-obs-accent">
-                <Sparkles className="h-3.5 w-3.5" />
+              <span className="inline-flex items-center gap-1.5 rounded-sm border border-obs-accent/30 bg-obs-accent-subtle px-2.5 py-1 text-xs font-medium uppercase tracking-wider text-obs-text-primary">
+                <Sparkles className="h-3.5 w-3.5 text-obs-accent" />
                 <span>Assessment tracker</span>
               </span>
               <span className={`inline-flex items-center px-2.5 py-1 rounded-sm text-xs font-medium border ${readinessTier.color}`}>

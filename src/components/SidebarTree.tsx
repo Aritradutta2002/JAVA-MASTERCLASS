@@ -348,15 +348,15 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
       const domainMeta = DOMAIN_COLORS[node.domain || 'root'];
 
       return (
-        <div key={node.id} className="mt-3.5 first:mt-1">
-          <div className="group flex items-center gap-2 rounded-md px-2 py-1.5 transition-all duration-150 hover:bg-obs-surface/80">
+        <div key={node.id} className="mt-3 first:mt-1">
+          <div className="group flex items-center gap-1.5 rounded-sm px-1.5 py-1.5 transition-colors hover:bg-obs-hover/60">
             <button
               type="button"
               data-tree-toggle="true"
               onClick={(event) => toggle(node.id, event)}
               aria-expanded={isOpen}
               aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${node.title}`}
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-obs-text-muted hover:bg-obs-canvas-soft hover:text-obs-text-primary transition-colors focus-visible:ring-1 focus-visible:ring-obs-accent"
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-obs-text-muted transition-colors hover:bg-obs-canvas-soft hover:text-obs-text-primary focus-visible:ring-1 focus-visible:ring-obs-accent"
             >
               {hasChildren ? (
                 <ChevronRight
@@ -370,11 +370,11 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
             </button>
 
             <div
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border shadow-xs transition-transform duration-200 group-hover:scale-105"
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border"
               style={{
-                backgroundColor: domainMeta?.bg || 'rgba(167, 139, 250, 0.1)',
-                borderColor: domainMeta?.border || 'rgba(167, 139, 250, 0.25)',
-                color: domainMeta?.text || '#6d3df5',
+                backgroundColor: domainMeta?.bg || 'var(--obs-accent-subtle)',
+                borderColor: domainMeta?.border || 'var(--obs-border)',
+                color: domainMeta?.text || 'var(--obs-accent)',
               }}
             >
               <DomainIcon className="h-3.5 w-3.5" />
@@ -383,28 +383,32 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
             {node.slug ? (
               <a
                 href={node.slug}
-                className={`min-w-0 flex-1 truncate text-caption font-bold uppercase tracking-[0.12em] transition-colors ${
-                  isContainsActive ? 'text-obs-accent font-extrabold' : 'text-obs-text-muted hover:text-obs-text-primary'
+                title={node.title}
+                className={`min-w-0 flex-1 truncate text-xs font-semibold tracking-tight transition-colors ${
+                  isContainsActive ? 'text-obs-accent' : 'text-obs-text-primary hover:text-obs-accent'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
               >
                 {node.title}
               </a>
             ) : (
-              <span className="min-w-0 flex-1 truncate text-caption font-bold uppercase tracking-[0.12em] text-obs-text-muted">
+              <span
+                className="min-w-0 flex-1 truncate text-xs font-semibold tracking-tight text-obs-text-primary"
+                title={node.title}
+              >
                 {node.title}
               </span>
             )}
 
             {node.count !== undefined && (
-              <span className="shrink-0 rounded-sm border border-obs-border/70 bg-obs-canvas px-1.5 py-0.5 font-mono text-micro font-medium text-obs-text-muted">
+              <span className="shrink-0 rounded-sm border border-obs-border/70 bg-obs-canvas px-1.5 py-0.5 font-mono text-micro tabular-nums text-obs-text-muted">
                 {node.count}
               </span>
             )}
           </div>
 
-            {isOpen && hasChildren && (
-            <div className="relative ml-4 mt-1 space-y-0.5 border-l border-obs-border/60 pl-2">
+          {isOpen && hasChildren && (
+            <div className="relative ml-3 mt-0.5 space-y-0.5 border-l border-obs-border/50 pl-1.5">
               {node.children!.map((child) => renderNode(child, depth + 1))}
             </div>
           )}
@@ -417,19 +421,19 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
 
     const row = (
       <div
-        className={`group relative flex items-center gap-1.5 rounded-sm px-2 py-1.5 text-xs transition-all duration-150 ${
+        className={`group relative flex items-center gap-1.5 rounded-sm px-2 py-1.5 text-xs transition-colors ${
           isActive
-            ? 'bg-gradient-to-r from-obs-accent/20 via-obs-accent/10 to-obs-accent/5 font-medium text-obs-accent border border-obs-accent/30 shadow-xs'
+            ? 'border border-obs-border bg-obs-surface font-medium text-obs-text-primary'
             : isContainsActive
-              ? 'text-obs-text-primary hover:bg-obs-surface/80'
-              : 'text-obs-text-secondary hover:bg-obs-surface/60 hover:text-obs-text-primary'
+              ? 'text-obs-text-primary hover:bg-obs-hover/60'
+              : 'text-obs-text-secondary hover:bg-obs-hover/60 hover:text-obs-text-primary'
         }`}
         style={{ paddingLeft: `${Math.min(depth - 1, 6) * 0.4 + 0.35}rem` }}
       >
-        {/* Active Left Indicator Bar with subtle neon glow */}
+        {/* Active row marker: color communicates state */}
         {isActive && (
           <span
-            className="absolute left-0 top-1 bottom-1 w-1 rounded-r-full bg-obs-accent shadow-[0_0_10px_var(--obs-accent)]"
+            className="absolute left-0 top-1 bottom-1 w-1 rounded-r-full bg-obs-accent"
             aria-hidden="true"
           />
         )}
@@ -454,7 +458,7 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
             <span
               className={`h-1.5 w-1.5 rounded-sm transition-all duration-150 ${
                 isActive
-                  ? 'bg-obs-accent shadow-[0_0_8px_var(--obs-accent)] scale-110'
+                  ? 'bg-obs-accent scale-110'
                   : 'bg-obs-border group-hover:bg-obs-text-muted'
               }`}
             />
@@ -518,27 +522,23 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
   };
 
   return (
-    <div className="flex h-full flex-col text-sm bg-obs-sidebar/75 backdrop-blur-md select-none">
-      {/* Top Header & Toolbar with Linear aesthetics */}
-      <div className="flex items-center justify-between border-b border-obs-border/70 bg-obs-sidebar/70 px-3 py-2.5 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-obs-accent-subtle text-obs-text-primary shadow-xs">
+    <div className="flex h-full flex-col bg-obs-sidebar text-sm select-none">
+      {/* Explorer header */}
+      <div className="flex items-center justify-between border-b border-obs-border/70 px-3 py-2.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-obs-border bg-obs-canvas-soft text-obs-text-muted">
             <FolderTree className="h-3 w-3" />
           </span>
-          <span className="text-caption font-bold uppercase tracking-[0.14em] text-obs-text-muted">
-            Explorer
-          </span>
-          <span className="rounded-sm border border-obs-border/60 bg-obs-surface px-1.5 py-0.5 font-mono text-micro font-medium text-obs-text-muted">
-            {totalTopics}
-          </span>
+          <span className="technical-label truncate text-obs-text-muted">Explorer</span>
+          <span className="font-mono text-micro text-obs-text-muted">{totalTopics}</span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-0.5">
           <button
             type="button"
             onClick={toggleAll}
             title={allExpanded ? 'Collapse all folders' : 'Expand all folders'}
             aria-label={allExpanded ? 'Collapse all folders' : 'Expand all folders'}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-obs-text-muted hover:bg-obs-surface hover:text-obs-text-primary transition-colors"
+            className="flex h-6 w-6 items-center justify-center rounded-sm text-obs-text-muted transition-colors hover:bg-obs-hover hover:text-obs-text-primary"
           >
             {allExpanded ? (
               <ChevronsDownUp className="h-3.5 w-3.5" />
@@ -552,20 +552,20 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
             data-sidebar-fold-btn="true"
             title="Collapse sidebar ([ or Ctrl+B)"
             aria-label="Collapse navigation sidebar"
-            className="sidebar-fold-btn hidden md:flex h-6 w-6 items-center justify-center rounded-md text-obs-text-muted hover:bg-obs-surface hover:text-obs-accent transition-colors"
+            className="sidebar-fold-btn hidden h-6 w-6 items-center justify-center rounded-sm text-obs-text-muted transition-colors hover:bg-obs-hover hover:text-obs-text-primary md:flex"
           >
             <PanelLeftClose className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Filter and Shortcuts */}
-      <div className="border-b border-obs-border/70 bg-obs-sidebar/40 px-3 py-2.5">
+      {/* Filter and shortcuts */}
+      <div className="border-b border-obs-border/70 px-3 py-2.5">
         <label htmlFor={filterId} className="sr-only">
           Filter navigation
         </label>
         <div className="relative flex items-center">
-          <Search className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-obs-accent/70" />
+          <Search className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-obs-text-muted" />
           <input
             ref={filterInputRef}
             id={filterId}
@@ -579,41 +579,48 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
                 filterInputRef.current?.blur();
               }
             }}
-            placeholder="Filter topics… (Press /)"
-            className="field w-full rounded-sm border border-obs-border/80 bg-obs-canvas/80 py-1.5 pl-8 pr-12 text-xs text-obs-text-primary placeholder:text-obs-text-muted shadow-inner transition-all focus:border-obs-accent/60 focus:bg-obs-surface focus:outline-none focus:ring-2 focus:ring-obs-accent/20"
+            placeholder="Filter topics…"
+            className="field w-full rounded-sm border border-obs-border/80 bg-obs-canvas/80 py-1.5 pl-8 pr-10 text-xs text-obs-text-primary placeholder:text-obs-text-muted transition-colors focus:border-obs-accent/60 focus:bg-obs-surface focus:outline-none focus:ring-2 focus:ring-obs-accent/20"
           />
           {filter ? (
             <button
               type="button"
               onClick={() => setFilter('')}
               aria-label="Clear filter"
-              className="absolute right-2 rounded p-0.5 text-obs-text-muted hover:text-obs-rose transition-colors"
+              className="absolute right-2 rounded-sm p-0.5 text-obs-text-muted transition-colors hover:text-obs-text-primary"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           ) : (
-            <kbd className="pointer-events-none absolute right-2.5 hidden sm:inline-flex items-center rounded border border-obs-border/60 bg-obs-canvas-soft px-1 text-micro font-mono text-obs-text-muted">
+            <kbd className="pointer-events-none absolute right-2.5 hidden items-center rounded-sm border border-obs-border/60 bg-obs-canvas-soft px-1 text-micro font-mono text-obs-text-muted sm:inline-flex">
               /
             </kbd>
           )}
         </div>
 
         {!filter && (
-          <nav aria-label="Knowledge base shortcuts" className="mt-2.5 grid grid-cols-4 gap-1">
+          <nav
+            aria-label="Knowledge base shortcuts"
+            className="mt-2.5 grid grid-cols-2 overflow-hidden rounded-sm border-l border-t border-obs-border"
+          >
             {QUICK_LINKS.map((link) => {
               const isLinkActive = target.startsWith(link.href);
               return (
                 <a
                   key={link.href}
                   href={link.href}
-                  className={`flex min-h-10 min-w-0 flex-col items-center justify-center gap-1 rounded-sm border px-1 py-1 text-micro font-semibold transition-all ${
+                  className={`flex min-h-9 min-w-0 items-center gap-2 border-b border-r border-obs-border px-2.5 py-1.5 transition-colors ${
                     isLinkActive
-                      ? 'border-obs-accent/50 bg-obs-accent-subtle text-obs-text-primary shadow-xs'
-                      : 'border-obs-border/70 bg-obs-surface/60 text-obs-text-muted hover:border-obs-accent/40 hover:bg-obs-surface hover:text-obs-text-primary'
+                      ? 'bg-obs-accent-subtle text-obs-text-primary'
+                      : 'text-obs-text-muted hover:bg-obs-hover hover:text-obs-text-primary'
                   }`}
                 >
-                  <link.icon className={`h-3 w-3 shrink-0 ${isLinkActive ? 'text-obs-accent' : 'text-obs-text-muted'}`} />
-                  <span className="truncate">{link.label}</span>
+                  <link.icon
+                    className={`h-3.5 w-3.5 shrink-0 ${isLinkActive ? 'text-obs-accent' : 'text-obs-text-muted'}`}
+                  />
+                  <span className="truncate text-micro font-medium uppercase tracking-[0.06em]">
+                    {link.label}
+                  </span>
                 </a>
               );
             })}
@@ -628,32 +635,33 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
         onKeyDown={handleNavKeyDown}
         className="obs-scrollbar flex-1 overflow-y-auto overscroll-contain px-2 py-3"
       >
-        {/* Pinned Pages Section */}
+        {/* Pinned pages */}
         {pinned.length > 0 && !filter && (
-          <section className="mb-3 rounded-md border border-obs-gold/25 bg-obs-gold/5 p-2 shadow-xs" aria-label="Pinned pages">
+          <section className="mb-3 border-b border-obs-border/50 pb-3" aria-label="Pinned pages">
             <button
               type="button"
               onClick={() => setShowPinned((value) => !value)}
               aria-expanded={showPinned}
-              className="flex w-full items-center justify-between rounded-sm px-1.5 py-1 text-caption font-bold uppercase tracking-[0.12em] text-obs-gold hover:bg-obs-gold/10 transition-colors"
+              className="flex w-full items-center justify-between rounded-sm px-1.5 py-1 text-obs-text-muted transition-colors hover:text-obs-text-primary"
             >
               <span className="flex items-center gap-1.5">
                 <ChevronRight className={`h-3 w-3 transition-transform duration-200 ${showPinned ? 'rotate-90' : ''}`} />
-                <Star className="h-3 w-3 fill-current" />
-                Pinned Topics
+                <Star className="h-3 w-3 fill-current text-obs-gold" />
+                <span className="technical-label">Pinned</span>
               </span>
-              <span className="font-mono text-micro px-1.5 py-0.5 rounded-sm bg-obs-gold/15 text-obs-gold">{pinned.length}</span>
+              <span className="font-mono text-micro tabular-nums">{pinned.length}</span>
             </button>
             {showPinned && (
-              <div className="mt-1 space-y-0.5 pt-1 border-t border-obs-gold/15">
+              <div className="mt-0.5 space-y-0.5">
                 {pinned.map((item) => (
                   <div key={item.slug} className="group flex items-center gap-1">
                     <a
                       href={item.slug}
-                      className={`flex min-w-0 flex-1 items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors ${
+                      title={item.title}
+                      className={`flex min-w-0 flex-1 items-center gap-1.5 rounded-sm px-2 py-1 text-xs transition-colors ${
                         normalizeSlug(item.slug) === target
-                          ? 'bg-obs-gold/20 text-obs-gold font-medium'
-                          : 'text-obs-text-secondary hover:bg-obs-gold/10 hover:text-obs-text-primary'
+                          ? 'bg-obs-accent-subtle text-obs-text-primary'
+                          : 'text-obs-text-secondary hover:bg-obs-hover/60 hover:text-obs-text-primary'
                       }`}
                     >
                       <Pin className="h-3 w-3 shrink-0 text-obs-gold" />
@@ -663,7 +671,7 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
                       type="button"
                       onClick={(event) => unpin(item.slug, event)}
                       aria-label={`Unpin ${item.title}`}
-                      className="rounded p-1 text-obs-text-muted opacity-0 transition-all hover:text-obs-rose hover:bg-obs-rose/10 group-hover:opacity-100 focus-visible:opacity-100"
+                      className="rounded-sm p-1 text-obs-text-muted opacity-0 transition-opacity hover:bg-obs-hover hover:text-obs-text-primary group-hover:opacity-100 focus-visible:opacity-100"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -674,40 +682,41 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
           </section>
         )}
 
-        {/* Recent Pages Section */}
+        {/* Recent pages */}
         {recents.length > 0 && !filter && (
-          <section className="mb-3 rounded-md border border-obs-border/70 bg-obs-surface/40 p-2 shadow-xs" aria-label="Recently viewed pages">
+          <section className="mb-3 border-b border-obs-border/50 pb-3" aria-label="Recently viewed pages">
             <div className="flex w-full items-center justify-between rounded-sm px-1.5 py-1">
               <button
                 type="button"
                 onClick={() => setShowRecent((value) => !value)}
                 aria-expanded={showRecent}
-                className="flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-text-muted hover:text-obs-text-primary transition-colors"
+                className="flex items-center gap-1.5 text-obs-text-muted transition-colors hover:text-obs-text-primary"
               >
                 <ChevronRight className={`h-3 w-3 transition-transform duration-200 ${showRecent ? 'rotate-90' : ''}`} />
-                <Clock className="h-3 w-3 text-obs-accent" />
-                Recent
+                <Clock className="h-3 w-3" />
+                <span className="technical-label">Recent</span>
               </button>
               <button
                 type="button"
                 onClick={clearRecents}
                 aria-label="Clear recent pages"
                 title="Clear recent pages"
-                className="rounded p-1 text-obs-text-muted hover:text-obs-rose hover:bg-obs-rose/10 transition-all"
+                className="rounded-sm p-1 text-obs-text-muted transition-colors hover:bg-obs-hover hover:text-obs-text-primary"
               >
                 <Trash2 className="h-2.5 w-2.5" />
               </button>
             </div>
             {showRecent && (
-              <div className="mt-1 space-y-0.5 pt-1 border-t border-obs-border/50">
+              <div className="mt-0.5 space-y-0.5">
                 {recents.slice(0, 5).map((item) => (
                   <a
                     key={item.slug}
                     href={item.slug}
-                    className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors ${
+                    title={item.title}
+                    className={`flex items-center gap-1.5 rounded-sm px-2 py-1 text-xs transition-colors ${
                       normalizeSlug(item.slug) === target
-                        ? 'bg-obs-accent-subtle text-obs-text-primary font-medium'
-                        : 'text-obs-text-secondary hover:bg-obs-surface hover:text-obs-text-primary'
+                        ? 'bg-obs-surface text-obs-text-primary'
+                        : 'text-obs-text-secondary hover:bg-obs-hover/60 hover:text-obs-text-primary'
                     }`}
                   >
                     <Clock className="h-2.5 w-2.5 shrink-0 text-obs-text-muted" />
@@ -740,15 +749,16 @@ export default function SidebarTree({ navigation: initialNavigation, currentSlug
       </nav>
 
       {/* Footer info bar */}
-      <div className="flex items-center justify-between border-t border-obs-border/80 bg-obs-sidebar/40 px-3 py-2 text-caption text-obs-text-muted">
-        <a href="/search" className="inline-flex items-center gap-1.5 hover:text-obs-accent transition-colors">
-          <Search className="h-3 w-3 text-obs-accent/80" /> Search
+      <div className="flex items-center justify-between gap-2 border-t border-obs-border/80 px-3 py-2 text-caption text-obs-text-muted">
+        <a href="/search" className="inline-flex items-center gap-1.5 transition-colors hover:text-obs-text-primary">
+          <Search className="h-3 w-3" /> Search
         </a>
-        <a href="/graph" className="inline-flex items-center gap-1.5 hover:text-obs-accent transition-colors">
-          <GitBranch className="h-3 w-3 text-obs-accent/80" /> Graph
+        <a href="/graph" className="inline-flex items-center gap-1.5 transition-colors hover:text-obs-text-primary">
+          <GitBranch className="h-3 w-3" /> Graph
         </a>
-        <span className="hidden xl:inline text-micro text-obs-text-muted">
-          Fold: <kbd className="font-mono bg-obs-canvas-soft px-1 rounded border border-obs-border/60">[</kbd>
+        <span className="hidden items-center gap-1 text-micro xl:inline-flex">
+          Fold
+          <kbd className="rounded-sm border border-obs-border/60 bg-obs-canvas-soft px-1 font-mono">[</kbd>
         </span>
       </div>
     </div>

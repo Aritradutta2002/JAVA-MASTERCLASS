@@ -7,7 +7,6 @@ import {
   Library,
   Network,
   Search,
-  Sparkles,
   Terminal,
 } from 'lucide-react';
 
@@ -30,26 +29,26 @@ const fmt = new Intl.NumberFormat('en-US');
       <div slot="footer" class="mt-6 flex flex-wrap items-center gap-2"><span class="technical-label text-obs-text-muted">POPULAR QUERIES</span>{['JVM memory','Kafka partitioning','CAP theorem','dynamic programming','Spring Security'].map(query=><button type="button" data-query={query} class="query-chip rounded-sm border border-obs-border bg-obs-surface px-3 py-1.5 text-xs text-obs-text-secondary hover:bg-obs-hover">{query}</button>)}</div>
     </PageHeader>
 
-    <!-- Search Input Form (Accessible Fallback) -->
+    <!-- Search Input (shared field + button primitives) -->
     <form
       action="/search"
       method="get"
       role="search"
       id="static-search-form"
-      class="group relative flex items-center gap-3 rounded-2xl border border-obs-border bg-obs-surface/90 p-2 shadow-obs-lg backdrop-blur-md transition-all duration-200 focus-within:border-obs-accent/70 focus-within:ring-2 focus-within:ring-obs-accent/20"
+      class="group relative flex"
     >
       <label for="page-search-input" class="sr-only">Search all chapters</label>
-      <Search className="ml-3 h-5 w-5 shrink-0 text-obs-accent transition-transform group-focus-within:scale-110" />
+      <Search className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 shrink-0 text-obs-text-muted transition-colors group-focus-within:text-obs-text-primary" />
       <input
         id="page-search-input"
         name="q"
         type="search"
         required
         placeholder="Type a concept, class name, algorithmic pattern, or system design trade-off…"
-        class="min-w-0 flex-1 bg-transparent py-2.5 text-base text-obs-text-primary placeholder:text-obs-text-muted focus:outline-none"
+        class="field min-w-0 flex-1 rounded-r-none py-3 pl-11 pr-3 text-sm text-obs-text-primary placeholder:text-obs-text-muted focus:outline-none"
         autocomplete="off"
       />
-      <button type="submit" class="btn btn-primary px-5 py-2.5 text-sm font-semibold shadow-md shadow-obs-glow">
+      <button type="submit" class="btn btn-primary shrink-0 rounded-l-none px-6">
         Search
       </button>
     </form>
@@ -60,10 +59,10 @@ const fmt = new Intl.NumberFormat('en-US');
     <!-- Fallback / Pre-build Empty State (Linear Style) -->
     <div
       id="search-fallback"
-      class="hidden rounded-hero border border-obs-border bg-gradient-to-b from-obs-surface via-obs-surface/80 to-obs-canvas p-10 text-center shadow-obs-lg sm:p-12"
+      class="hidden border border-obs-border bg-obs-surface p-10 text-center sm:p-12"
     >
-      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-obs-accent/30 bg-obs-accent/10 text-obs-accent shadow-sm">
-        <Sparkles className="h-7 w-7" />
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-sm border border-obs-border bg-obs-canvas-soft text-obs-text-muted">
+        <Search className="h-6 w-6" />
       </div>
       <h3 class="mt-4 text-xl font-bold tracking-tight text-obs-text-primary sm:text-2xl">
         Instant Full-Text Search
@@ -75,7 +74,7 @@ const fmt = new Intl.NumberFormat('en-US');
         <button
           id="fallback-open-palette"
           type="button"
-          class="btn btn-primary shadow-md shadow-obs-glow"
+          class="btn btn-primary"
         >
           <Terminal className="h-4 w-4" />
           Open Command Palette (⌘K)
@@ -93,18 +92,18 @@ const fmt = new Intl.NumberFormat('en-US');
         class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
       >
         <div>
-          <span class="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-accent">
+          <span class="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-text-muted">
             <Library className="h-3.5 w-3.5" />
             <span>Library</span>
           </span>
-          <h3 class="mt-2 text-base font-bold text-obs-text-primary group-hover:text-obs-accent transition-colors">
+          <h3 class="mt-2 text-base font-bold text-obs-text-primary transition-colors group-hover:text-obs-text-primary">
             Browse by Domain
           </h3>
           <p class="mt-1 text-xs leading-relaxed text-obs-text-muted">
             Explore structured modules organized by Core Java, Spring Boot, DSA, and System Design.
           </p>
         </div>
-        <div class="mt-4 flex items-center text-xs font-semibold text-obs-accent group-hover:translate-x-0.5 transition-transform">
+        <div class="mt-4 flex items-center text-xs font-semibold text-obs-text-muted transition-colors group-hover:text-obs-text-primary">
           <span>Open Library →</span>
         </div>
       </a>
@@ -114,18 +113,18 @@ const fmt = new Intl.NumberFormat('en-US');
         class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
       >
         <div>
-          <span class="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-gold">
+          <span class="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-text-muted">
             <Hash className="h-3.5 w-3.5" />
             <span>Concepts</span>
           </span>
-          <h4 class="mt-2 text-base font-bold text-obs-text-primary group-hover:text-obs-gold transition-colors">
+          <h4 class="mt-2 text-base font-bold text-obs-text-primary transition-colors group-hover:text-obs-text-primary">
             Browse by Tag
           </h4>
           <p class="mt-1 text-xs leading-relaxed text-obs-text-muted">
             Find topics grouped by cross-cutting concerns like concurrency, memory, scalability, and security.
           </p>
         </div>
-        <div class="mt-4 flex items-center text-xs font-semibold text-obs-gold group-hover:translate-x-0.5 transition-transform">
+        <div class="mt-4 flex items-center text-xs font-semibold text-obs-text-muted transition-colors group-hover:text-obs-text-primary">
           <span>Explore Tags →</span>
         </div>
       </a>
@@ -135,18 +134,18 @@ const fmt = new Intl.NumberFormat('en-US');
         class="surface-card surface-card-hover group flex flex-col justify-between p-5 transition-all duration-200"
       >
         <div>
-          <span class="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-emerald">
+          <span class="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-[0.12em] text-obs-text-muted">
             <Network className="h-3.5 w-3.5" />
             <span>Graph</span>
           </span>
-          <h4 class="mt-2 text-base font-bold text-obs-text-primary group-hover:text-obs-emerald transition-colors">
+          <h4 class="mt-2 text-base font-bold text-obs-text-primary transition-colors group-hover:text-obs-text-primary">
             Knowledge Graph
           </h4>
           <p class="mt-1 text-xs leading-relaxed text-obs-text-muted">
             Visually trace how low-level JVM primitives link to distributed system architecture.
           </p>
         </div>
-        <div class="mt-4 flex items-center text-xs font-semibold text-obs-emerald group-hover:translate-x-0.5 transition-transform">
+        <div class="mt-4 flex items-center text-xs font-semibold text-obs-text-muted transition-colors group-hover:text-obs-text-primary">
           <span>View Graph →</span>
         </div>
       </a>

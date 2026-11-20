@@ -19,6 +19,10 @@
     --obs-border-rgb: 58 59 51;
     --obs-border-subtle: #292a24;
     --obs-border-subtle-rgb: 41 42 36;
+    --obs-border-strong: #55564b;
+    --obs-border-strong-rgb: 85 86 75;
+    --obs-surface-1: #20211d;
+    --obs-surface-1-rgb: 32 33 29;
 
     /* Text hierarchy — WCAG AA/AAA compliant contrast */
     --obs-text-primary: #f6f5f0;
@@ -27,6 +31,8 @@
     --obs-text-secondary-rgb: 189 189 179;
     --obs-text-muted: #a1a298;
     --obs-text-muted-rgb: 161 162 152;
+    --obs-text-disabled: #6b6c62;
+    --obs-text-disabled-rgb: 107 108 98;
 
     /* Accent & Brand Colors */
     --obs-accent: #b29afa;
@@ -125,18 +131,15 @@
     --obs-glass-bg: rgba(18, 18, 22, 0.72);
     --obs-glass-border: rgba(255, 255, 255, 0.08);
 
-    /* Premium layered shadows with 1px inset highlights */
-    --obs-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.45),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    --obs-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.65),
-      0 2px 6px -2px rgba(0, 0, 0, 0.45),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    --obs-shadow-lg: 0 24px 52px -16px rgba(0, 0, 0, 0.8),
-      0 8px 20px -6px rgba(0, 0, 0, 0.55),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    --obs-shadow-xl: 0 36px 72px -20px rgba(0, 0, 0, 0.9),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    --obs-shadow-glow: 0 0 28px -4px rgba(139, 92, 246, 0.28);
+    /* Structure comes from borders and surface changes, not elevation or
+       decorative glow (Plan.md §4.6). Shadows stay flat so typography and
+       alignment create the hierarchy. */
+    --obs-shadow-xs: none;
+    --obs-shadow-sm: none;
+    --obs-shadow: none;
+    --obs-shadow-lg: none;
+    --obs-shadow-xl: none;
+    --obs-shadow-glow: transparent;
 
     /* Layout dimensions */
     --obs-header-height: 64px;
@@ -147,7 +150,6 @@
     --obs-reading-width-wide: 76rem;
     --obs-reading-width-folded-wide: 92rem;
     color-scheme: dark;
-  --obs-shadow-xs: none; --obs-shadow-sm: none; --obs-shadow: none; --obs-shadow-lg: none; --obs-shadow-xl: none; --obs-shadow-glow: transparent;
   }
 :root[data-theme='light'] {
     /* Crisp clean light palette */
@@ -159,33 +161,41 @@
     --obs-sidebar-rgb: 248 247 243;
     --obs-surface: #ffffff;
     --obs-surface-rgb: 255 255 255;
-    --obs-surface-hover: #eeece6;
-    --obs-surface-hover-rgb: 238 236 230;
+    --obs-surface-1: #fbfaf7;
+    --obs-surface-1-rgb: 251 250 247;
+    --obs-surface-hover: #f0eee8;
+    --obs-surface-hover-rgb: 240 238 232;
     --obs-border: #d6d3ca;
     --obs-border-rgb: 214 211 202;
     --obs-border-subtle: #e5e3dc;
     --obs-border-subtle-rgb: 229 227 220;
+    --obs-border-strong: #aaa69b;
+    --obs-border-strong-rgb: 170 166 155;
 
     /* Text hierarchy */
     --obs-text-primary: #111111;
     --obs-text-primary-rgb: 17 17 17;
     --obs-text-secondary: #4f4f4f;
     --obs-text-secondary-rgb: 79 79 79;
+    /* #666 is the accessible rendering of Plan.md's #747474 muted token: the
+       literal value drops to 4.03:1 on --surface-hover, below WCAG AA. */
     --obs-text-muted: #666666;
     --obs-text-muted-rgb: 102 102 102;
+    --obs-text-disabled: #a3a3a3;
+    --obs-text-disabled-rgb: 163 163 163;
 
     /* Accent & Brand Colors */
-    --obs-accent: #5b2ce0;
-    --obs-accent-rgb: 91 44 224;
-    --obs-accent-hover: #4e20bc;
-    --obs-accent-hover-rgb: 78 32 188;
+    --obs-accent: #6d3df5;
+    --obs-accent-rgb: 109 61 245;
+    --obs-accent-hover: #5b2ce0;
+    --obs-accent-hover-rgb: 91 44 224;
     --obs-accent-strong: #4c1d95;
     --obs-accent-strong-rgb: 76 29 149;
-    --obs-accent-solid: #5b2ce0;
-    --obs-accent-solid-rgb: 91 44 224;
-    --obs-accent-solid-hover: #4e20bc;
-    --obs-accent-solid-hover-rgb: 78 32 188;
-    --obs-accent-subtle: rgba(91, 44, 224, 0.08);
+    --obs-accent-solid: #6d3df5;
+    --obs-accent-solid-rgb: 109 61 245;
+    --obs-accent-solid-hover: #5b2ce0;
+    --obs-accent-solid-hover-rgb: 91 44 224;
+    --obs-accent-subtle: rgba(109, 61, 245, 0.08);
 
     /* Code & Tag */
     --obs-code-bg: #f8f7f3;
@@ -194,8 +204,8 @@
     --obs-tag-bg-rgb: 238 236 230;
 
     /* Semantic Status Colors (Light mode - WCAG AA/AAA compliant) */
-    --obs-gold: #b45309;
-    --obs-gold-rgb: 180 83 9;
+    --obs-gold: #a54806;
+    --obs-gold-rgb: 165 72 6;
     --obs-rose: #be123c;
     --obs-rose-rgb: 190 18 60;
     --obs-emerald: #047857;
@@ -271,20 +281,7 @@
     --obs-glass-bg: rgba(255, 255, 255, 0.82);
     --obs-glass-border: rgba(0, 0, 0, 0.08);
 
-    /* Layered crisp shadows */
-    --obs-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05),
-      inset 0 1px 0 rgba(255, 255, 255, 0.95);
-    --obs-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.08),
-      0 2px 4px -2px rgba(15, 23, 42, 0.04),
-      inset 0 1px 0 rgba(255, 255, 255, 1);
-    --obs-shadow-lg: 0 20px 48px -12px rgba(15, 23, 42, 0.12),
-      0 8px 16px -8px rgba(15, 23, 42, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 1);
-    --obs-shadow-xl: 0 32px 64px -16px rgba(15, 23, 42, 0.16),
-      inset 0 1px 0 rgba(255, 255, 255, 1);
-    --obs-shadow-glow: 0 0 24px -4px rgba(109, 40, 217, 0.2);
     color-scheme: light;
-  --obs-shadow-xs: none; --obs-shadow-sm: none; --obs-shadow: none; --obs-shadow-lg: none; --obs-shadow-xl: none; --obs-shadow-glow: transparent;
   }
   :root { --obs-header-height: 64px; --obs-sidebar-width: 280px; --obs-rightbar-width: 260px; --obs-toc-width: 16rem; }
   #left-sidebar > div { width:100% !important; }
@@ -443,6 +440,18 @@
     background: transparent;
   }
 
+  /* Windows classic scrollbars draw arrow buttons that get clipped into
+     artifacts at this width; keep the scrollbar track-only. */
+  ::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
   ::-webkit-scrollbar-thumb {
     background: var(--obs-border);
     border-radius: 9999px;
@@ -598,14 +607,10 @@
   .btn-primary {
     background: var(--obs-accent-solid);
     color: #ffffff;
-    box-shadow: 0 4px 16px -2px rgba(124, 58, 237, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
 
   .btn-primary:hover {
     background: var(--obs-accent-solid-hover);
-    box-shadow: 0 6px 20px -2px rgba(109, 40, 217, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
 
   .btn-secondary {
@@ -722,18 +727,6 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--obs-accent);
-  }
-
-  .gradient-text {
-    background: linear-gradient(
-      110deg,
-      var(--obs-text-primary) 15%,
-      var(--obs-accent-hover) 60%,
-      var(--obs-gold) 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
   }
 
   .hairline {

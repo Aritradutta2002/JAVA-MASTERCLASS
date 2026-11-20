@@ -99,7 +99,7 @@ export default function TableOfContents({ headings }: Props) {
       {/* Header with Title and Section count */}
       <div className="flex items-center justify-between pb-2">
         <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-obs-accent/15 text-obs-accent">
+          <span className="flex h-5 w-5 items-center justify-center rounded-sm border border-obs-border bg-obs-canvas-soft text-obs-text-muted">
             <ListTree className="h-3 w-3" />
           </span>
           <span className="text-caption font-bold uppercase tracking-[0.14em] text-obs-text-muted">
@@ -115,7 +115,7 @@ export default function TableOfContents({ headings }: Props) {
       <div className="mb-3.5 mt-1">
         <div className="flex items-center justify-between text-micro font-mono text-obs-text-muted">
           <span className="flex items-center gap-1 text-micro uppercase tracking-wider">
-            <BookOpen className="h-2.5 w-2.5 text-obs-accent/80" />
+            <BookOpen className="h-2.5 w-2.5" />
             Reading Progress
           </span>
           <span className="font-semibold text-obs-text-primary">
@@ -124,7 +124,7 @@ export default function TableOfContents({ headings }: Props) {
         </div>
         <div className="mt-1 h-1 w-full overflow-hidden rounded-sm bg-obs-border/50">
           <div
-            className="h-full rounded-sm bg-gradient-to-r from-obs-accent via-obs-accent-strong to-obs-gold transition-all duration-150 ease-out"
+            className="h-full rounded-sm bg-obs-accent transition-[width] duration-150 ease-out"
             style={{ width: `${readingProgress}%` }}
             role="progressbar"
             aria-label="Reading progress"
@@ -135,7 +135,7 @@ export default function TableOfContents({ headings }: Props) {
         </div>
       </div>
 
-      {/* Hierarchical Headings Tree with Active Glow Bar */}
+      {/* Hierarchical heading tree */}
       <div className="relative border-l border-obs-border/60 pl-0">
         <ul className="space-y-0.5">
           {filtered.map((heading) => {
@@ -144,10 +144,10 @@ export default function TableOfContents({ headings }: Props) {
 
             return (
               <li key={heading.slug} className="relative">
-                {/* Active Left Indicator Bar with subtle glow */}
+                {/* Active heading marker: state only */}
                 {isActive && (
                   <span
-                    className="absolute -left-[1.5px] top-1 bottom-1 w-[3px] rounded-sm bg-obs-accent shadow-[0_0_8px_var(--obs-accent)] transition-all duration-200"
+                    className="absolute -left-[1.5px] top-1 bottom-1 w-[3px] rounded-sm bg-obs-accent transition-all duration-200"
                     aria-hidden="true"
                   />
                 )}
@@ -162,7 +162,7 @@ export default function TableOfContents({ headings }: Props) {
                     paddingLeft: `${0.75 + indentLevel * 0.7}rem`,
                   }}
                   title={heading.text}
-                  className={`group flex items-center justify-between rounded-r-lg py-1.5 pr-2 text-caption leading-snug transition-all duration-150 ${
+                  className={`group flex items-center justify-between rounded-r-lg py-1.5 pr-2 text-caption leading-snug transition-colors duration-150 ${
                     isActive
                       ? 'bg-obs-accent/10 font-semibold text-obs-accent shadow-2xs'
                       : 'text-obs-text-muted hover:bg-obs-surface/60 hover:text-obs-text-primary'
@@ -170,7 +170,7 @@ export default function TableOfContents({ headings }: Props) {
                 >
                   <span className="truncate">{heading.text}</span>
                   {isActive && (
-                    <span className="ml-1 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm bg-obs-accent/20 text-obs-accent">
+                    <span className="ml-1 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm bg-obs-accent-subtle text-obs-accent">
                       <Check className="h-2 w-2 stroke-[2.5]" />
                     </span>
                   )}

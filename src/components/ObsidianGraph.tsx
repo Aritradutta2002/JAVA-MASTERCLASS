@@ -220,7 +220,7 @@ export default function ObsidianGraph() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-            const domainNodeColors: Record<string, string> = isDark ? { 'core-java':'#dbaf63','spring-boot':'#78d2b5','system-design':'#a2c0f7','database-caching':'#7ed5cb','java-dsa':'#f0a6a6','cloud-devops':'#91bdf2','docker-java-backend':'#b19fdc',root:'#b29afa' } : { 'core-java':'#a54806','spring-boot':'#087f5b','system-design':'#2563eb','database-caching':'#087f5b','java-dsa':'#c92a2a','cloud-devops':'#2563eb','docker-java-backend':'#5b2ce0',root:'#5b2ce0' };
+            const domainNodeColors: Record<string, string> = isDark ? { 'core-java':'#dbaf63','spring-boot':'#78d2b5','system-design':'#a2c0f7','database-caching':'#7ed5cb','java-dsa':'#f0a6a6','cloud-devops':'#91bdf2','docker-java-backend':'#b19fdc',root:'#b29afa' } : { 'core-java':'#a54806','spring-boot':'#087f5b','system-design':'#2563eb','database-caching':'#087f5b','java-dsa':'#c92a2a','cloud-devops':'#2563eb','docker-java-backend':'#4c1d95',root:'#6d3df5' };
 
       ctx.save();
       ctx.translate(tx, ty);
@@ -275,7 +275,7 @@ export default function ObsidianGraph() {
         ctx.stroke();
       }
 
-      // Draw active glowing edges
+      // Draw active edges with a stronger stroke (state, no glow)
       if (activeHoveredNode) {
         const hoverColor = domainNodeColors[activeHoveredNode.domain] || '#6d3df5';
         for (const edge of simEdges) {
@@ -292,8 +292,6 @@ export default function ObsidianGraph() {
           ctx.lineTo(t.x, t.y);
           ctx.strokeStyle = hoverColor;
           ctx.lineWidth = 2.2;
-          ctx.shadowColor = hoverColor;
-          ctx.shadowBlur = 12;
           ctx.globalAlpha = 1;
           ctx.stroke();
           ctx.restore();
@@ -310,11 +308,8 @@ export default function ObsidianGraph() {
         ctx.save();
         ctx.globalAlpha = isConnected ? 1 : 0.18;
 
-        // Glowing outer halo for hub nodes or hovered node
+        // Halo ring for hub nodes or the hovered node (hierarchy/state, no glow)
         if (isHovered || (isConnected && node.degree >= 12)) {
-          ctx.shadowColor = domainColor;
-          ctx.shadowBlur = isHovered ? 24 : 12;
-
           ctx.beginPath();
           ctx.arc(node.x, node.y, currentRadius + (isHovered ? 4 : 2), 0, 2 * Math.PI);
           ctx.strokeStyle = isHovered ? '#ffffff' : `${domainColor}66`;

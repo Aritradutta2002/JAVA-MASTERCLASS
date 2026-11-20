@@ -15,7 +15,6 @@ interface Props {
   class?: string;
   container?: boolean;
   size?: 'sm' | 'md' | 'lg';
-  glow?: boolean;
 }
 
 const {
@@ -23,7 +22,6 @@ const {
   class: className = 'h-4 w-4',
   container = false,
   size = 'md',
-  glow = true,
 } = Astro.props;
 
 const icons: Record<string, any> = {
@@ -39,10 +37,10 @@ const icons: Record<string, any> = {
 
 const Icon = icons[domain] ?? BookOpen;
 const color = DOMAIN_COLORS[domain] ?? DOMAIN_COLORS.root ?? {
-  bg: 'rgba(167, 139, 250, 0.12)',
-  text: '#c4b5fd',
-  border: 'rgba(167, 139, 250, 0.28)',
-  hex: '#a78bfa',
+  bg: 'var(--obs-accent-subtle)',
+  text: 'var(--obs-accent)',
+  border: 'var(--obs-border)',
+  hex: '#6d3df5',
 };
 
 const sizeStyles = {
@@ -63,20 +61,10 @@ const sizeStyles = {
       backgroundColor: color.bg,
       color: color.text,
       borderColor: color.border,
-      boxShadow: glow ? `0 0 20px -5px ${color.hex}44, 0 2px 4px -1px rgba(0,0,0,0.1)` : undefined,
     }}
   >
-    <span
-      class="absolute inset-0 opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none"
-      style={{
-        background: `radial-gradient(circle at center, ${color.hex}26 0%, transparent 70%)`,
-      }}
-    />
-    <Icon className="h-4 w-4 relative z-10 transition-transform duration-300 group-hover/icon:scale-110" />
+    <Icon className="h-4 w-4 relative z-10" />
   </span>
 ) : (
-  <Icon
-    className={className}
-    style={glow ? { filter: `drop-shadow(0 0 6px ${color.hex}40)` } : undefined}
-  />
+  <Icon className={className} />
 )}

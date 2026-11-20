@@ -25,6 +25,9 @@ import {
   Plus,
   ArrowLeft,
   ArrowRight,
+  ArrowUp,
+  BookOpen,
+  CheckSquare,
   Clock,
   FileText,
   Hash,
@@ -169,8 +172,8 @@ const jsonLd = {
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {noIndex && <meta name="robots" content="noindex, nofollow" />}
-    <meta name="theme-color" content="#09090d" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#fbfaf7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121311" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f4f3ef" media="(prefers-color-scheme: light)" />
 
     <meta property="og:type" content={doc ? 'article' : 'website'} />
     <meta property="og:site_name" content={SITE.name} />
@@ -214,7 +217,7 @@ const jsonLd = {
           document.documentElement.setAttribute('data-theory-width', widthMode);
         }
       } catch (_) {
-        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.setAttribute('data-theme', 'light');
       }
     </script>
   </head>
@@ -231,7 +234,7 @@ const jsonLd = {
 
     <div
       id="reading-progress"
-      class="fixed left-0 top-0 z-[60] h-0.5 w-0 bg-gradient-to-r from-obs-accent via-obs-accent-strong to-obs-gold transition-[width] duration-75"
+      class="fixed left-0 top-0 z-[60] h-0.5 w-0 bg-obs-accent transition-[width] duration-75"
       role="presentation"
       aria-hidden="true"
     ></div>
@@ -250,13 +253,13 @@ const jsonLd = {
       <button
         id="sidebar-edge-unfold-btn"
         type="button"
-        class="group relative flex h-9 w-9 items-center justify-center rounded-r-xl border border-l-0 border-obs-border/80 bg-obs-surface/95 text-obs-text-secondary shadow-obs-md backdrop-blur-md transition-all duration-200 hover:w-auto hover:px-3 hover:gap-2 hover:border-obs-accent/60 hover:bg-obs-hover hover:text-obs-accent hover:shadow-obs-lg active:scale-95"
+        class="group relative flex h-9 w-9 items-center justify-center rounded-r-xl border border-l-0 border-obs-border/80 bg-obs-surface/95 text-obs-text-secondary backdrop-blur-md transition-colors hover:w-auto hover:gap-2 hover:border-obs-border-strong hover:bg-obs-hover hover:px-3 hover:text-obs-text-primary active:scale-95"
         title="Unfold navigation sidebar ([ or Ctrl+B)"
         aria-label="Unfold navigation sidebar"
         aria-controls="left-sidebar"
         aria-expanded="false"
       >
-        <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-obs-accent/15 text-obs-accent transition-colors group-hover:bg-obs-accent/25">
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-obs-canvas-soft text-obs-text-secondary transition-colors group-hover:bg-obs-surface group-hover:text-obs-text-primary">
           <PanelLeftOpen className="h-3.5 w-3.5" />
         </span>
         <span class="hidden whitespace-nowrap text-xs font-semibold tracking-wide group-hover:inline-block">
@@ -272,7 +275,7 @@ const jsonLd = {
       <aside
         id="left-sidebar"
         data-pagefind-ignore
-        class="sticky top-[var(--obs-header-height)] hidden h-[calc(100vh-var(--obs-header-height))] w-[var(--obs-sidebar-width)] shrink-0 overflow-hidden border-r border-obs-border bg-obs-sidebar/70 backdrop-blur-md md:block z-20"
+        class="sticky top-[var(--obs-header-height)] hidden h-[calc(100vh-var(--obs-header-height))] w-[var(--obs-sidebar-width)] shrink-0 overflow-hidden border-r border-obs-border bg-obs-sidebar md:block z-20"
         aria-label="Knowledge base navigation"
       >
         <div class="h-full w-full overflow-hidden">
@@ -453,7 +456,7 @@ const jsonLd = {
                       class="group rounded-xl border border-obs-border bg-obs-surface/60 p-3.5 transition-colors hover:border-obs-accent/40 hover:bg-obs-hover"
                     >
                       {item.domainTitle && (
-                        <span class="text-micro font-bold uppercase tracking-[0.12em] text-obs-accent/80">
+                        <span class="text-micro font-bold uppercase tracking-[0.12em] text-obs-accent">
                           {item.domainTitle}
                         </span>
                       )}
@@ -532,7 +535,15 @@ const jsonLd = {
           <div class="space-y-6">
             <TableOfContents client:visible headings={headings} />
             <BacklinksPanel client:visible backlinks={backlinks} outgoing={outgoing} />
-            <div class="border-t border-obs-border-subtle pt-4"><a href="/checklist" class="flex items-center justify-between border border-obs-border bg-obs-surface px-3 py-2 text-caption font-semibold text-obs-text-secondary transition-colors hover:text-obs-text-primary">Study checklist <ArrowRight className="h-3 w-3" /></a></div>
+            <div class="border-t border-obs-border-subtle pt-4">
+              <a href="/checklist" class="group flex items-center justify-between gap-3 border border-obs-border bg-obs-surface px-3 py-2.5 transition-colors hover:border-obs-border-strong hover:bg-obs-hover">
+                <span class="flex min-w-0 items-center gap-2">
+                  <CheckSquare className="h-3.5 w-3.5 shrink-0 text-obs-text-muted group-hover:text-obs-text-primary" />
+                  <span class="technical-label truncate text-obs-text-secondary group-hover:text-obs-text-primary">Study checklist</span>
+                </span>
+                <ArrowRight className="h-3.5 w-3.5 shrink-0 text-obs-text-muted transition-colors group-hover:text-obs-text-primary" />
+              </a>
+            </div>
           </div>
         </aside>
         )}
@@ -585,8 +596,8 @@ const jsonLd = {
       <div id="mobile-drawer-panel" class="absolute inset-y-0 left-0 flex w-[min(22rem,90vw)] -translate-x-full flex-col border-r border-obs-border/80 bg-obs-sidebar shadow-2xl backdrop-blur-2xl transition-transform duration-300 ease-out">
         <div class="flex h-14 items-center justify-between border-b border-obs-border/70 px-4">
           <a href="/" class="flex items-center gap-2.5 text-sm font-bold text-obs-text-primary">
-            <span class="flex h-7 w-7 items-center justify-center rounded-lg border border-obs-accent/35 bg-obs-accent/15 text-obs-accent shadow-xs">
-              <Sparkles className="h-4 w-4" />
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg border border-obs-border bg-obs-surface text-obs-text-primary">
+              <BookOpen className="h-4 w-4" />
             </span>
             <span class="tracking-tight">Java Masterclass</span>
           </a>
@@ -620,10 +631,10 @@ const jsonLd = {
     <button
       id="back-to-top"
       type="button"
-      class="no-print fixed bottom-5 right-5 z-30 hidden h-9 w-9 items-center justify-center rounded-full border border-obs-border bg-obs-surface text-obs-text-secondary shadow-lg transition hover:border-obs-accent/40 hover:text-obs-accent"
+      class="no-print fixed bottom-6 right-6 z-30 hidden h-9 w-9 items-center justify-center rounded-sm border border-obs-border bg-obs-surface text-obs-text-secondary transition-colors hover:border-obs-border-strong hover:bg-obs-hover hover:text-obs-text-primary xl:right-[calc(var(--obs-toc-width)+1.5rem)]"
       aria-label="Back to top"
     >
-      <ArrowRight className="h-4 w-4 -rotate-90" />
+      <ArrowUp className="h-4 w-4" />
     </button>
 
     <div
@@ -861,6 +872,7 @@ const jsonLd = {
         bar.style.width = scrollable <= 0 ? '0%' : `${Math.min(100, Math.max(0, (window.scrollY / scrollable) * 100))}%`;
         const backToTop = document.getElementById('back-to-top');
         backToTop?.classList.toggle('hidden', window.scrollY < 700);
+        backToTop?.classList.toggle('inline-flex', window.scrollY >= 700);
       }
 
       /* ---------------------------------------------------------- mobile menu */
@@ -920,65 +932,65 @@ const jsonLd = {
         return isDark
           ? {
               darkMode: true,
-              background: '#13131b',
-              mainBkg: '#1c1c27',
-              primaryColor: '#1c1c27',
-              primaryTextColor: '#f4f2ed',
-              primaryBorderColor: '#3a3a4c',
-              lineColor: '#807d8c',
-              secondaryColor: '#1b1b25',
-              tertiaryColor: '#0d0d13',
-              nodeBorder: '#3a3a4c',
-              nodeTextColor: '#f4f2ed',
-              clusterBkg: '#14141e',
-              clusterBorder: '#3a3a4c',
-              defaultLinkColor: '#807d8c',
-              titleColor: '#f4f2ed',
-              edgeLabelBackground: '#13131b',
-              actorBorder: '#3a3a4c',
-              actorBkg: '#1c1c27',
-              actorTextColor: '#f4f2ed',
-              actorLineColor: '#807d8c',
-              signalColor: '#f4f2ed',
-              signalTextColor: '#f4f2ed',
-              labelBoxBkgColor: '#1c1c27',
-              labelBoxBorderColor: '#3a3a4c',
-              labelTextColor: '#f4f2ed',
-              loopTextColor: '#f4f2ed',
-              noteBorderColor: '#3a3a4c',
-              noteBkgColor: '#1c1c27',
-              noteTextColor: '#f4f2ed',
+              background: '#121311',
+              mainBkg: '#1c1d1a',
+              primaryColor: '#1c1d1a',
+              primaryTextColor: '#f6f5f0',
+              primaryBorderColor: '#3a3b33',
+              lineColor: '#8a8b80',
+              secondaryColor: '#252621',
+              tertiaryColor: '#181916',
+              nodeBorder: '#3a3b33',
+              nodeTextColor: '#f6f5f0',
+              clusterBkg: '#181916',
+              clusterBorder: '#3a3b33',
+              defaultLinkColor: '#8a8b80',
+              titleColor: '#f6f5f0',
+              edgeLabelBackground: '#121311',
+              actorBorder: '#3a3b33',
+              actorBkg: '#1c1d1a',
+              actorTextColor: '#f6f5f0',
+              actorLineColor: '#8a8b80',
+              signalColor: '#f6f5f0',
+              signalTextColor: '#f6f5f0',
+              labelBoxBkgColor: '#1c1d1a',
+              labelBoxBorderColor: '#3a3b33',
+              labelTextColor: '#f6f5f0',
+              loopTextColor: '#f6f5f0',
+              noteBorderColor: '#3a3b33',
+              noteBkgColor: '#20211d',
+              noteTextColor: '#f6f5f0',
             }
           : {
               darkMode: false,
               background: '#ffffff',
-              mainBkg: '#f4f1e9',
-              primaryColor: '#f4f1e9',
-              primaryTextColor: '#1b1b22',
-              primaryBorderColor: '#d8d1c3',
-              lineColor: '#7d7a82',
-              secondaryColor: '#ece7dd',
+              mainBkg: '#f8f7f3',
+              primaryColor: '#f8f7f3',
+              primaryTextColor: '#111111',
+              primaryBorderColor: '#d6d3ca',
+              lineColor: '#666666',
+              secondaryColor: '#f0eee8',
               tertiaryColor: '#fbfaf7',
-              nodeBorder: '#d8d1c3',
-              nodeTextColor: '#1b1b22',
-              clusterBkg: '#faf8f5',
-              clusterBorder: '#d8d1c3',
-              defaultLinkColor: '#7d7a82',
-              titleColor: '#1b1b22',
+              nodeBorder: '#d6d3ca',
+              nodeTextColor: '#111111',
+              clusterBkg: '#fbfaf7',
+              clusterBorder: '#d6d3ca',
+              defaultLinkColor: '#666666',
+              titleColor: '#111111',
               edgeLabelBackground: '#ffffff',
-              actorBorder: '#d8d1c3',
-              actorBkg: '#f4f1e9',
-              actorTextColor: '#1b1b22',
-              actorLineColor: '#7d7a82',
-              signalColor: '#1b1b22',
-              signalTextColor: '#1b1b22',
+              actorBorder: '#d6d3ca',
+              actorBkg: '#f8f7f3',
+              actorTextColor: '#111111',
+              actorLineColor: '#666666',
+              signalColor: '#111111',
+              signalTextColor: '#111111',
               labelBoxBkgColor: '#ffffff',
-              labelBoxBorderColor: '#d8d1c3',
-              labelTextColor: '#1b1b22',
-              loopTextColor: '#1b1b22',
-              noteBorderColor: '#d8d1c3',
-              noteBkgColor: '#fff9e6',
-              noteTextColor: '#1b1b22',
+              labelBoxBorderColor: '#d6d3ca',
+              labelTextColor: '#111111',
+              loopTextColor: '#111111',
+              noteBorderColor: '#d6d3ca',
+              noteBkgColor: '#f8f7f3',
+              noteTextColor: '#111111',
             };
       }
 
